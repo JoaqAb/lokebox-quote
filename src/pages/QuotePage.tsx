@@ -12,6 +12,7 @@ import type { SelectionValue } from '../core/ui/panelTypes'
 import type { ClientConfig } from '../core/types'
 import { SignPreview } from '../verticals/signs/SignPreview'
 import { selectionFromValues, signFields, valuesFromSelection } from '../verticals/signs/fields'
+import { resolveSignVisual } from '../verticals/signs/visuals'
 import { ErrorScreen } from './ErrorScreen'
 
 // Punto de composicion: es el unico lugar que decide vertical y que junta core,
@@ -54,9 +55,11 @@ function QuoteScreen({ config }: QuoteScreenProps) {
     document.title = brandName
   }, [brandName])
 
-  // Sin useEffect, sin debounce y sin estado derivado: el precio se calcula en el render.
+  // Sin useEffect, sin debounce y sin estado derivado: el precio y el visual de la
+  // escena se calculan en el render, sobre la misma seleccion.
   const selection = selectionFromValues(values)
   const result = calculatePrice(rules, selection)
+  const visual = resolveSignVisual(config, selection)
 
   function handleChange(fieldId: string, value: SelectionValue): void {
     setValues((current) => ({ ...current, [fieldId]: value }))
@@ -65,7 +68,7 @@ function QuoteScreen({ config }: QuoteScreenProps) {
   return (
     <QuoteLayout
       config={config}
-      preview={<SignPreview selection={selection} theme={theme} />}
+      preview={<SignPreview selection={selection} visual={visual} theme={theme} />}
       panel={
         <>
           <OptionsPanel

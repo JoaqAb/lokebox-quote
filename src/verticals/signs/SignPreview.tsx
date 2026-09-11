@@ -1,44 +1,48 @@
+import { Canvas } from '@react-three/fiber'
+import { useReducedMotion } from 'framer-motion'
+import { useMemo } from 'react'
 import type { SignSelection } from '../../core/types'
+import { SignPreviewFallback } from './SignPreviewFallback'
+import { SignScene } from './scene/SignScene'
+import { scenePalette, signBoxMeters } from './scene/sceneGeometry'
+import { hasWebGL } from './scene/webgl'
+import type { SignVisual } from './visuals'
 
-// Preview enchufable de la vertical carteleria. Interfaz final: selection y theme.
-// Cuerpo provisorio de TAREA_002: un marco 16/9 con una caja centrada que sigue
-// la proporcion de ancho y alto en vivo. TAREA_003 reemplaza el cuerpo por la escena 3D
-// sin tocar esta interfaz.
+// Host del preview. Mantiene el marco del layout y adentro pone el canvas.
+// No recibe ClientConfig y no busca nada por id: todo lo que necesita dibujar viene
+// en selection y visual. prefers-reduced-motion se lee aca, fuera del canvas, y baja
+// como prop: adentro del canvas no entra Framer Motion.
 
-const FRAME_RATIO = 16 / 9
-const MAX_WIDTH_PCT = 76
-const MAX_HEIGHT_PCT = 62
+const DPR: [number, number] = [1, 1.75]
 
 type SignPreviewProps = {
   selection: SignSelection
+  visual: SignVisual
   theme: Record<string, string>
 }
 
-function boxSize(width: number, height: number): { width: number; height: number } {
-  const ratio = width / height
-  if (!Number.isFinite(ratio) || ratio <= 0) {
-    return { width: MAX_WIDTH_PCT, height: MAX_HEIGHT_PCT }
-  }
-  const widthPct = MAX_WIDTH_PCT
-  const heightPct = (widthPct * FRAME_RATIO) / ratio
-  if (heightPct <= MAX_HEIGHT_PCT) {
-    return { width: widthPct, height: heightPct }
-  }
-  const scale = MAX_HEIGHT_PCT / heightPct
-  return { width: widthPct * scale, height: MAX_HEIGHT_PCT }
-}
+export function SignPreview({ selection, visual, theme }: SignPreviewProps) {
+  const reducedMotion = useReducedMotion() === true
+  const palette = useMemo(() => scenePalette(theme), [theme])
+  const box = signBoxMeters(selection, visual.lengthToMeters)
 
-export function SignPreview({ selection, theme }: SignPreviewProps) {
-  const box = boxSize(selection.width, selection.height)
+  if (!hasWebGL()) {
+    return <SignPreviewFallback selection={selection} theme={theme} />
+  }
+
   return (
     <div
       style={theme}
-      className="flex aspect-video w-full items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-[var(--q-primary)]"
+      className="aspect-video w-full overflow-hidden rounded-2xl border border-white/10 bg-[var(--q-bg)]"
     >
-      <div
-        style={{ width: `${String(box.width)}%`, height: `${String(box.height)}%` }}
-        className="rounded-md bg-[var(--q-accent)] transition-all duration-300 ease-out motion-reduce:transition-none"
-      />
+      <Canvas dpr={DPR} gl={{ antialias: true }}>
+        <SignScene
+          box={box}
+          material={visual.material}
+          palette={palette}
+          reducedMotion={reducedMotion}
+        />
+      </Canvas>
     </div>
   )
 }
