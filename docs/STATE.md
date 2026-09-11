@@ -4,8 +4,8 @@
 
 Bloque 0 cerrado. Bloque 1 cerrado, incluido Canal C: hay URL publica.
 Produccion: https://lokebox-quote.vercel.app. Proyecto de Vercel lokebox-quote, sin variables de entorno.
-Bloque 2 en curso: TAREA_003 cerrada.
-Siguiente: TAREA_004, iluminacion, totem, autorotacion y presupuesto de rendimiento en mobile.
+Bloque 2 en curso: TAREA_003 cerrada, revisada y aceptada por Canal B.
+Siguiente: TAREA_004, escrita en docs/tareas/TAREA_004_iluminacion_totem_rendimiento.md. Cierra el bloque 2.
 
 ## Hecho
 
@@ -16,7 +16,8 @@ Siguiente: TAREA_004, iluminacion, totem, autorotacion y presupuesto de rendimie
 - TAREA_002: layout core, panel de opciones generico, precio animado, tema por variables CSS, rutas por cliente, registro por descubrimiento de archivos y vercel.json. 52 tests. Commit d435c80. Revisada y aceptada por Canal B contra los 16 criterios, con los seis desvios aceptados y anotados.
 - Canal C: proyecto en Vercel e import del repo. Las cuatro URLs verificadas a mano: /, /d/northline, /d/norte y /d/inexistente. Numeros correctos en pantalla en los dos clientes, cada uno con su idioma, su unidad y su moneda.
 - Canal B: SPEC.md 1.2 (interfaz del preview con visual, escala en metros, colores derivados del theme, caida sin WebGL, prohibiciones de assets en la vertical 3D), EXECUTION del bloque 2 y TAREA_003. Commit 4b54fa1.
-- TAREA_003: escena 3D base de la vertical, mas el fix del padding de la barra en mobile y "strict": true explicito. 63 tests.
+- TAREA_003: escena 3D base de la vertical, mas el fix del padding de la barra en mobile y "strict": true explicito. 63 tests. Commits 4b54fa1 (docs) y 07928b2 (codigo). Revisada y aceptada por Canal B contra los 17 criterios: 14 al pie de la letra y 3 con desvio aceptado (advertencia de tamano de chunk, fps medidos sobre SwiftShader y la barra de precio a mitad de scroll).
+- Canal B: SPEC.md 1.3 (presupuesto de bundle, tres modos de luz, bloom fuera del MVP, totem y poste, barrido de camara, degradacion por niveles), EXECUTION del bloque 2 y TAREA_004, mas once decisiones nuevas.
 
 ## Estado del codigo
 
@@ -31,9 +32,10 @@ Siguiente: TAREA_004, iluminacion, totem, autorotacion y presupuesto de rendimie
 ## Pendientes menores con destino asignado
 
 - Resuelto en TAREA_003: el padding inferior del panel en mobile se deriva de la altura real de la barra, medida con ResizeObserver sobre el border box y publicada en --q-price-h. Con los dos clientes la barra mide 160 px en 390 px y el padding queda en 192 px.
-- El bundle pasa de 386 kB a 1294 kB al entrar three, y Vite avisa que el chunk supera los 500 kB. Decision de Canal B: partir el bundle, subir el limite o dejarlo. El lugar natural es TAREA_004.
-- R3F 9.7.0 deja un warning de consola por canvas, `THREE.Clock` deprecado en three r183. No es codigo del proyecto. Candidato a subir R3F en TAREA_004.
-- La vidriera pesa mas que el cartel en la composicion: es el unico elemento con color de acento y el cartel todavia no emite. TAREA_004 le da emision al cartel y deberia reequilibrar. Si no alcanza, va a TAREA_007.
+- Resuelto por decision de Canal B, se aplica en TAREA_004: el vendor 3D va a un chunk propio con manualChunks y chunkSizeWarningLimit sube a 1000, como presupuesto declarado de SPEC 3. Sin lazy loading del preview.
+- Resuelto por decision de Canal B, se aplica en TAREA_004: el warning de `THREE.Clock` se intenta sacar subiendo @react-three/fiber dentro de 9.x, ultimo paso y commit propio. Si no sale o rompe algo, se revierte y se acepta como ruido de tercero.
+- Resuelto por decision de Canal B, se aplica en TAREA_004: la vidriera baja a 0.07 de emision y la direccional sube a 0.8, mas la emision del cartel en los modos con luz. El criterio 14 de TAREA_004 lo mide con luminancia. Si no alcanza, va a TAREA_007.
+- Pendiente de Joaquin, antes de cerrar el bloque 2: confirmar los 60 fps de TAREA_003 en su maquina con GPU real, y ver las dos demos en un telefono.
 - El encabezado muestra el logo y al lado repite `brand.name`. Va a TAREA_007.
 - El indice de `/` muestra los slugs crudos. Va a TAREA_008, con la landing real.
 - Bastante aire abajo en la columna del preview en 1440 px. Va a TAREA_007.
@@ -48,6 +50,6 @@ Siguiente: TAREA_004, iluminacion, totem, autorotacion y presupuesto de rendimie
 
 ## Convenciones que no se olvidan
 
-- `docs/tareas/_ULTIMO.md` guarda el proximo numero libre. Hoy dice 003, que es el numero de la tarea en curso. Al cerrarla pasa a 004.
+- `docs/tareas/_ULTIMO.md` guarda el proximo numero libre. Hoy dice 004, que es el numero de la tarea en curso. Al cerrarla pasa a 005.
 - Commit de docs separado del commit de codigo.
 - Nada de parches: si algo pide un workaround, se frena y se decide en Canal B.

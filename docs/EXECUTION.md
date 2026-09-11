@@ -37,9 +37,11 @@ Bloque 1 cerrado.
 
 - TAREA_003 · escena base: fachada, vereda, puerta, vidriera, cartel tipo facade con dimensiones reactivas, materiales, ambiente nocturno, cámara con órbita limitada. Incluye dos arreglos acotados que no esperan al bloque 4: el padding inferior del panel en mobile derivado de la altura real de la barra de precio, y `"strict": true` explícito en tsconfig.app.json. Detalle en docs/tareas/TAREA_003_escena_3d_base.md.
   - Aceptación: G1 a G6. Mover los sliders cambia la caja del cartel con transición suave. Cambiar material cambia color, metalness y roughness. La cámara no se pierde. 60 fps en desktop. En 390 px la barra de precio no tapa el stepper de cantidad.
-- TAREA_004 · iluminación (none, front-lit, back-lit), tótem con poste, autorotación, presupuesto de rendimiento en mobile.
-  - Aceptación: G1 a G6. Los tres modos de luz se distinguen a simple vista. El tótem aparece delante del local. En un teléfono medio la escena se mantiene fluida al mover sliders. Si hubo que quitar bloom o sombras, queda anotado en docs/DECISIONES.md.
-- Punto de control del día: si el 3D no está fluido en mobile, se aplica la degradación de SPEC 12 en este orden: bloom, sombras, órbita. No se vuelve a 2D.
+- TAREA_004 · iluminación (none, front-lit, back-lit), tótem con poste, autorotación, presupuesto de rendimiento en mobile, más el presupuesto de bundle y el reequilibrio de la composición. Detalle en docs/tareas/TAREA_004_iluminacion_totem_rendimiento.md.
+  - Aceptación: G1 a G6, con G1 ya sin la advertencia de tamaño de chunk. Los tres modos de luz se distinguen con luminancia medida, no a ojo. El tótem aparece de pie delante del local, con transición continua desde facade y sin crecer en geometrías. El barrido de cámara se detiene al arrastrar y se reanuda sin salto. El descenso de nivel de rendimiento respeta el orden de SPEC 12, no vuelve a subir y no cae a 2D. Con el modo por defecto el cartel ya no pesa menos que la vidriera. Los 18 criterios de la tarea, uno por uno.
+- Punto de control del día: si el 3D no está fluido en mobile, se aplica la degradación de SPEC 12 en este orden: sombras de contacto y techo de dpr, después órbita y barrido de cámara. Sin bloom, que quedó fuera del MVP. No se vuelve a 2D.
+
+Al cierre de TAREA_004 se cierra el bloque 2 y el preview no se vuelve a tocar hasta TAREA_007.
 
 ## Bloque 3 · miércoles 16 · lead, datos, quote, dominio
 
@@ -71,4 +73,4 @@ Sin tareas de código salvo arreglos bloqueantes.
 
 ## Colchón
 
-Si el bloque 2 se pasa al miércoles, lo que se recorta es, en este orden: bloom y sombras, tótem, autorotación. Nunca se recortan el lead, el deploy ni el material de venta.
+Si el bloque 2 se pasa al miércoles, lo que se recorta es, en este orden: sombras de contacto, tótem, barrido de cámara. Nunca se recortan el lead, el deploy ni el material de venta.

@@ -3,7 +3,7 @@
 Fuente de verdad del alcance. Si algo no está acá, no se construye.
 Este documento se edita, no se contradice. Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 
-Versión: 1.2 · 11/09/2026
+Versión: 1.3 · 11/09/2026
 
 ## 1. Objetivo
 
@@ -37,6 +37,7 @@ Fecha de DONE: viernes 18/09/2026.
 - Vitest para los tests del motor de precios.
 - Deploy estático en Vercel. Dominio quote.lokebox.com.
 - Versiones fijadas en package.json. React ~19.2.8 y three ~0.185.1 por compatibilidad con R3F y con @types/three.
+- Presupuesto de bundle: el código de la app y el vendor 3D van en chunks separados. La app por debajo de 500 kB y el vendor 3D por debajo de 1000 kB sin comprimir. El build avisa si alguno se pasa. No hay lazy loading del preview: el preview es el producto y no puede aparecer después que el resto de la página.
 
 ## 4. Arquitectura en tres capas
 
@@ -56,7 +57,7 @@ Se escribe una vez y no conoce ninguna vertical ni ningún cliente concreto.
 ### 4.2 Vertical: cartelería
 
 - Esquema de opciones y validaciones.
-- Componente de preview 3D específico, que recibe la selección y el tema y no hace nada más.
+- Componente de preview 3D específico, con la interfaz de la sección 12: recibe `selection`, `visual` y `theme`, y no hace nada más.
 - Nombres de materiales, tipos de cartel y modos de iluminación.
 
 ### 4.3 Cliente: JSON
@@ -281,15 +282,16 @@ Prohibido en toda la vertical 3D: modelos importados, texturas, fuentes tipográ
 - Fachada: caja para el frente del local, plano para la vereda, dos cajas para puerta y vidriera. Colores neutros oscuros.
 - Cartel: caja cuyas dimensiones siguen ancho y alto en tiempo real con transición suave. Espesor fijo.
 - Material: cambia color, metalness y roughness según el `visual` del material.
-- Iluminación: material emisivo cuando hay luz. Frontal con una luz puntual hacia la cara del cartel. Retroiluminado con halo emisivo detrás. Bloom de drei solo si no cuesta rendimiento en mobile.
-- Tótem: la misma caja sobre un poste, delante del local.
+- Iluminación: tres modos. `none` sin emisión y sin luz agregada. `front` con emisión baja en el cartel más una luz puntual por delante y por arriba, apuntando a la cara. `back` con emisión alta en el cartel más un plano emisivo apenas más grande detrás y una luz puntual entre el cartel y su apoyo, que lava la superficie de atrás. Nunca más de una luz dinámica en escena. El color emisivo y el del halo salen del `visual` del material.
+- Sin bloom. El postprocessing está prohibido en esta misma sección, así que el bloom queda fuera del MVP y no es parte de la degradación por rendimiento.
+- Tótem: la misma caja sobre un poste, de pie sobre la vereda delante del local, centrada en x. El poste va del piso al borde inferior del cartel, con un solapamiento mínimo para que no se vea la junta, y su ancho escala con el ancho del cartel dentro de un mínimo y un máximo. El cambio de tipo es una transición continua, no un salto.
 - Ambiente: escena nocturna, luz ambiente baja, una direccional suave, sombras de contacto de drei.
-- Cámara: fija con órbita limitada. Autorotación lenta cuando no hay interacción.
+- Cámara: fija con órbita limitada. Cuando no hay interacción, barrido lento de ida y vuelta dentro del clamp de azimut, nunca hasta el tope. Arrastrar lo detiene y al soltar se reanuda con retardo y sin salto. No corre con `prefers-reduced-motion`.
 - Interfaz del componente: recibe `selection`, `visual` y `theme`. Nada más. `visual` es lo que devuelve `resolveSignVisual(config, selection)` de la vertical: el `visual` del material elegido, el `visual` de la iluminación elegida y el factor de conversión de la unidad de longitud del cliente a metros. El preview no recibe la config del cliente y no busca nada por id.
 - Escala: la escena trabaja siempre en metros. Las medidas de la selección se multiplican por el factor de `visual` (1 en metros, 0.3048 en pies).
 - Colores de la escena: se derivan del `theme` del cliente con operaciones de color. Ningún hexadecimal escrito en un componente de escena. El color del cartel sale del `visual` del material.
 - Si el navegador no tiene WebGL, el preview cae a un bloque plano equivalente al provisorio de TAREA_002. Esa caída es por ausencia de WebGL, no la degradación por rendimiento de la última línea de esta sección.
-- Rendimiento: fluido en un teléfono medio. Si no lo es, se quitan bloom y sombras. Si sigue sin serlo, cámara fija sin órbita. No se vuelve a 2D.
+- Rendimiento: fluido en un teléfono medio. Se mide en ventanas de 2 segundos, descartando el primer segundo, y el umbral es 45 fps. La degradación tiene tres niveles y baja de uno en uno, en este orden: nivel 0 todo; nivel 1 sin sombras de contacto y con techo de dpr más bajo; nivel 2 además sin órbita y sin barrido de cámara, dpr 1 y cámara de vuelta en su posición. El descenso es monótono: el nivel nunca vuelve a subir, para que la escena no parpadee entre configuraciones. No se vuelve a 2D: el bloque plano es solo la caída por ausencia de WebGL.
 
 ## 13. Landing (quote.lokebox.com)
 
