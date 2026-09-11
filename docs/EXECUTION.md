@@ -5,6 +5,7 @@ Orden de bloques y criterios de aceptación. El alcance está en SPEC.md. El est
 Reglas:
 
 - Un bloque se cierra solo cuando todos sus criterios están verificados, no cuando el código "parece andar".
+- El chat orquestador (Desktop) trabaja con un tope de 3 turnos por chat, y los pasos manuales de Canal C van agrupados al final de cada bloque, nunca intercalados entre tareas de código.
 - Al cerrar cada tarea: commit, docs/STATE.md y docs/tareas/_ULTIMO.md actualizados.
 - Criterios técnicos que se repiten en todas las tareas de código (G):
   - G1 `npm run build` en verde, sin errores ni warnings.
@@ -49,16 +50,20 @@ Prerrequisito Canal C, antes de TAREA_005: crear el proyecto de Supabase, las do
 
 - TAREA_005 · capa de datos, insert de lead, CTA WhatsApp con mensaje armado, formulario, pantalla de confirmación, insert de visita. Detalle en docs/tareas/TAREA_005_lead_supabase_cta.md. Sin SDK de Supabase: dos inserts por fetch contra PostgREST.
   - Aceptación: G1 a G6, y los 18 criterios de la tarea, uno por uno. Un lead por formulario aparece en la tabla con selection, total, min, max y contacto. El CTA de WhatsApp abre `wa.me` con el mensaje completo y legible. Si Supabase está caído, el flujo sigue y el usuario no ve un error. Una carga de `/d/northline` inserta una visita y un refresco en la misma sesión no duplica.
-- TAREA_006 · hoja de cotización imprimible y demo ES completa.
-  - Aceptación: G1 a G6. Imprimir a PDF desde el navegador da una página limpia con logo, desglose, total, rango, fecha, validez y disclaimer. `/d/norte` está en español, en metros y en pesos, con `prices_placeholder` visible solo en el código, no en pantalla.
+- TAREA_006 · hoja de cotización imprimible en `/d/<slug>/quote` con la selección en la query, y demo ES completa. Detalle en docs/tareas/TAREA_006_quote_imprimible_demo_es.md. Incluye las cinco claves de texto nuevas de SPEC 1.4, el formateo de medidas con Intl por locale y la limpieza de los nueve guiones largos de docs/comercial/.
+  - Aceptación: G1 a G6, y los 19 criterios de la tarea, uno por uno. Imprimir a PDF desde el navegador da una sola página con logo, desglose, total, rango, fecha, validez y disclaimer, sin los controles de la hoja. Un link con parámetros faltantes o inválidos muestra la pantalla de error, no un precio inventado. La hoja no escribe nada: 0 POST a leads y a visits. `/d/norte` está en español, en metros con coma decimal y en pesos, con `prices_placeholder` visible solo en el código, no en pantalla.
 - Canal C al cierre del bloque: apuntar `quote.lokebox.com` a Vercel (registro CNAME) y verificar el certificado.
   - Aceptación: `https://quote.lokebox.com/d/northline` abre con candado.
+- Canal C, sin bloquear TAREA_006: ver las dos demos en un teléfono real y confirmar fps y nivel de rendimiento con GPU de verdad. Todas las mediciones de fps de los bloques 2 y 3 están hechas sobre SwiftShader por software.
+- Canal C, sin bloquear TAREA_006: en el Table Editor, borrar las dos filas con `client_slug` `__smoke` que dejó el gate, y decidir qué hacer con las filas reales de prueba (7 en `leads` y 6 en `visits`, slugs northline, norte y prueba, contacto ana.*@test.example). Conviene que la tabla esté limpia antes de grabar el video.
+
+Al cierre de TAREA_006 cierra el bloque 3 del lado del código y queda solo el CNAME de Canal C.
 
 ## Bloque 4 · jueves 17 · pulido, landing y material de venta
 
-- TAREA_007 · pulido visual y mobile: tipografía, espaciados, estados de foco, transiciones, orden de tabulación, textos finales de las dos demos en nivel B2.
+- TAREA_007 · pulido visual y mobile: tipografía, espaciados, estados de foco, transiciones, orden de tabulación, textos finales de las dos demos en nivel B2. Incluye tres pendientes que venían anotados en STATE: el encabezado muestra el logo y al lado repite `brand.name`, queda bastante aire abajo en la columna del preview en 1440 px, y el preview vuelve a abrirse acá por primera vez desde que cerró el bloque 2.
   - Aceptación: G1 a G6. Revisión en 390 px, 768 px y 1440 px sin defectos visibles. Los tres criterios subjetivos de DONE (10 segundos, apariencia de producto, sin errores visibles) se validan con Joaquín antes de cerrar.
-- TAREA_008 · landing en `/`: qué es, para quién, dos botones a las demos, los dos tiers con precio, contacto, footer.
+- TAREA_008 · landing en `/`: qué es, para quién, dos botones a las demos, los dos tiers con precio, contacto, footer. Reemplaza el índice temporal, que hoy muestra los slugs crudos.
   - Aceptación: G1 a G6. La landing carga en menos de 2 segundos y los botones llevan a las demos.
 - Canal C al cierre del bloque: grabar el video de 30 segundos y sacar las capturas (desktop y mobile, demo EN).
 

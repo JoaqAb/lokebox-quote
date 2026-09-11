@@ -2,70 +2,50 @@
 
 ## Qué es
 
-Lokebox Quote es un cotizador interactivo comercial, paralelo al producto Lokebox.
-
-- Demo inicial: cartelería.
-- Deadline: viernes 18/09/2026.
-- Existe para conseguir clientes.
+Lokebox Quote es un cotizador interactivo comercial, paralelo al producto Lokebox. Demo inicial: cartelería. Deadline: viernes 18/09/2026. Existe para conseguir clientes.
 
 ## Stack
 
-- Vite + React + TypeScript.
-- Tailwind v4, configurado como plugin de Vite.
-- Framer Motion para animaciones.
-- React Three Fiber + drei para el preview 3D.
-- Vitest para los tests del motor de precios.
-- Supabase propio (proyecto separado del de Lokebox).
-- Deploy en Vercel, dominio quote.lokebox.com, una ruta /d/<slug> por cliente.
+Vite + React + TypeScript · Tailwind v4 como plugin de Vite · Framer Motion · React Three Fiber + drei · Vitest · Supabase propio, proyecto separado del de Lokebox · Vercel, dominio quote.lokebox.com, una ruta `/d/<slug>` por cliente.
 
 ## Arquitectura en tres capas
 
 Regla no negociable: core / vertical / cliente (JSON).
 
 - **core**: layout, panel de opciones, motor de precios, captura de lead, quote imprimible y tracking. No sabe nada de una vertical concreta ni de un cliente concreto.
-- **vertical**: por ejemplo cartelería. Aporta el esquema de opciones y el componente de preview 3D.
-- **cliente**: un archivo JSON con nombre, logo, colores, precios y opciones habilitadas.
+- **vertical**: aporta el esquema de opciones y el componente de preview 3D. Hoy, cartelería.
+- **cliente**: un JSON con nombre, logo, colores, precios y opciones habilitadas. Personalizar un cliente nuevo es editar un JSON y reemplazar un logo, sin tocar código.
 
-Personalizar un cliente nuevo es editar un JSON y reemplazar un logo, sin tocar código.
-
-Otras reglas de arquitectura:
+Además:
 
 - El motor de precios es una función pura, con la firma de SPEC 6. Sin React, sin Supabase, sin efectos, sin formateo de moneda adentro.
-- El preview es un componente enchufable que recibe el estado como props.
-- La escena 3D es simple: fachada, cartel como caja emisiva, una luz, órbita limitada.
-- Sin shaders custom, sin física, sin modelos pesados.
+- El preview es un componente enchufable que recibe el estado como props. La escena es simple: fachada, cartel como caja emisiva, una luz, órbita limitada. Sin shaders custom, sin física, sin modelos pesados.
 - Cero strings de UI hardcodeados. Todo texto visible sale de `texts` en el JSON del cliente.
 
-## Alcance
+## Protocolo de contexto
 
-SPEC.md es la fuente de verdad. Resumen:
-
-IN: UI visual fuerte y responsive, panel de opciones desde el esquema de la vertical, precio dinámico mostrado como rango con disclaimer, preview 3D, lead a Supabase, CTA de WhatsApp con mensaje armado y formulario, quote imprimible en HTML, demo en inglés y en español desde el mismo esquema de JSON, tracking de visitas por slug, landing y deploy.
-
-OUT: CRM, auth, usuarios, backoffice, multi-tenant, permisos, integraciones, email transaccional, generación de PDF en servidor, 3D avanzado, modelos importados, editor visual del JSON, más de dos tipos de cartel, más de una vertical.
-
-DONE: se entiende en menos de 10 segundos, parece un producto de más valor que su precio, flujo completo sin errores visibles, fluido en mobile, se puede grabar video y sacar capturas, desplegado en quote.lokebox.com, listado del Catalog publicable.
-
-Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
-
-## Restricción
-
-No usar retaining walls, concrete blocks, takeoff ni flujos de productos de construcción para contractors.
+- Code corre en Sonnet por defecto. Opus solo para una decisión de arquitectura atascada, y se vuelve a Sonnet apenas se resuelve.
+- Code expande los briefs del chat orquestador (Desktop) a `docs/tareas/TAREA_NNN_titulo.md`. El orquestador no redacta esos documentos.
+- Reporte de Code al orquestador: máximo 15 líneas. Archivos tocados, criterios cumplidos sí o no, bloqueos en una línea. Sin código, sin diffs, sin capturas.
+- Entre tareas se usa `/clear`, nunca `/compact`.
+- Las tareas dan rutas de archivo exactas. Code no explora el repo para encontrarlas.
 
 ## Reglas de trabajo
 
-- Soluciones sólidas, nada de parches.
+- Soluciones sólidas, nada de parches. Si algo pide un workaround, se frena y se reporta.
 - Nada se declara terminado sin verificar los criterios de aceptación.
-- Commit al cerrar cada tarea, con mensaje claro.
+- Si una tarea contradice SPEC.md, frenar y reportar. No resolverlo por cuenta propia.
+- Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
+- Tres commits por tarea, en orden: docs de apertura, código, docs de cierre (STATE, DECISIONES y `_ULTIMO.md`).
+- No se reescribe historia ya pusheada.
 - Los textos en inglés de la demo van en nivel B2, frases simples.
 - Nunca guiones largos.
-- Al cerrar cada tarea, actualizar docs/STATE.md y docs/tareas/_ULTIMO.md.
-- Si una tarea contradice SPEC.md, frenar y reportar. No resolverlo por cuenta propia.
+- No usar retaining walls, concrete blocks, takeoff ni flujos de productos de construcción para contractors.
 
 ## Documentos
 
-- SPEC.md
-- docs/EXECUTION.md
-- docs/STATE.md
-- docs/DECISIONES.md
-- docs/tareas/TAREA_NNN_titulo.md
+- `SPEC.md`: alcance y fuente de verdad. Se edita, no se contradice.
+- `docs/EXECUTION.md`: bloques, criterios de aceptación y pasos de Canal C.
+- `docs/STATE.md`: estado vivo, formato fijo, tope 30 líneas.
+- `docs/DECISIONES.md`: una línea por decisión, con fecha.
+- `docs/tareas/TAREA_NNN_titulo.md`: la tarea en curso.
