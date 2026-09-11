@@ -43,17 +43,40 @@ Objetivo: que el prospecto pueda probarlo solo.
 
 No enviar al home general de Lokebox cuando el interés es Quote. Enviar al demo o landing específica de Quote.
 
-### 4. Landing corta de producto
+### 4. Landing premium de producto
 
-Debe resolver en una pantalla inicial:
+La landing de Lokebox Quote no debe ser una página corporativa genérica. Debe funcionar como una pieza de producto y una demostración de la calidad visual que Lokebox puede entregar.
+
+Objetivos simultáneos:
+- explicar Quote en segundos;
+- producir efecto WOW antes de una conversación;
+- transmitir nivel premium y confianza;
+- llevar al demo;
+- servir como portfolio vivo de Lokebox;
+- generar inbound secundario si alguien pregunta quién diseñó/desarrolló la experiencia.
+
+Dirección:
+- experiencia visual fuerte, inspirada en sitios interactivos/premium de producto;
+- usar 3D/interacción solo cuando eleve percepción o comprensión, no por exhibición técnica;
+- protagonista: el producto/configurador y su transformación;
+- copy corto;
+- performance y mobile siguen siendo obligatorios;
+- una landing premium no debe retrasar la salida si la demo y el outreach ya están listos.
+
+La landing puede demostrar una capacidad comercial adicional de Lokebox: experiencias web interactivas/premium para empresas. Esa capacidad no se promueve de entrada como una nueva línea genérica de "diseño web"; se acepta y cotiza cuando nace naturalmente del interés del prospecto o cuando el proyecto esté alineado con el posicionamiento de Lokebox.
+
+Si un prospecto pregunta quién hizo la landing, respuesta natural: Lokebox.
+
+No convertir Lokebox en agencia de páginas web ni competir por sitios institucionales commodity.
+
+Debe resolver en la primera experiencia:
 - qué es;
 - para quién sirve;
 - qué problema resuelve;
+- transformación visual;
 - demo;
 - cómo funciona;
 - llamada a acción.
-
-No convertirla en una web corporativa grande.
 
 ### 5. One-pager solo cuando haya interés
 
@@ -138,12 +161,14 @@ El primer activo debe provocar: “quiero ver eso”.
 El segundo debe provocar: “esto podría servir para mi negocio”.
 La conversación recién después explica alcance, precios e implementación.
 
+La landing debe sumar una tercera percepción: “esta gente también sabe construir experiencias digitales de alto nivel”.
+
 ## Pendientes al cerrar Code
 
 - elegir hero shot;
 - grabar clip 10–20 s para outreach;
 - preparar versión 30–45 s para portfolio/Upwork;
-- definir landing final;
+- definir landing premium final;
 - crear one-pager;
 - preparar 3 variantes de primer contacto según tipo de lead;
 - decidir si Photo-to-Sign alcanza calidad comercial;
