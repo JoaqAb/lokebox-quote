@@ -1,3 +1,71 @@
-# EXECUTION
+# EXECUTION · Lokebox Quote
 
-Pendiente hasta SPEC.md.
+Orden de bloques y criterios de aceptación. El alcance está en SPEC.md. El estado vivo está en docs/STATE.md.
+
+Reglas:
+
+- Un bloque se cierra solo cuando todos sus criterios están verificados, no cuando el código "parece andar".
+- Al cerrar cada tarea: commit, docs/STATE.md y docs/tareas/_ULTIMO.md actualizados.
+- Criterios técnicos que se repiten en todas las tareas de código (G):
+  - G1 `npm run build` en verde, sin errores ni warnings.
+  - G2 `npx tsc -b --force` con 0 errores.
+  - G3 `npm run lint` sin hallazgos.
+  - G4 `npm test` en verde cuando hay tests.
+  - G5 Sin guiones largos en ningún archivo nuevo o editado.
+  - G6 Nada de parches. Si algo pide un workaround, se frena y se reporta.
+
+## Bloque 0 · viernes 11 (cerrado)
+
+TAREA_000: scaffold, docs base, repo público. Cerrado, commit 0f789a0.
+Canal B: SPEC.md y docs/EXECUTION.md escritos. Cerrado.
+
+## Bloque 1 · lunes 14 · fundamentos y primer deploy
+
+Objetivo: precio correcto y panel usable, sin 3D. Al final del día ya hay una URL pública.
+
+- TAREA_001 · tipos, JSON de clientes, motor de precios con tests.
+  - Aceptación: G1 a G6. Los cinco casos de la tarea dan los números exactos esperados. `src/core/pricing` no importa React, three ni Supabase (verificado con grep). Los dos JSON validan.
+- TAREA_002 · layout core, panel de opciones genérico, precio animado, tema desde el JSON.
+  - Aceptación: G1 a G6. `/d/northline` y `/d/norte` renderizan el panel completo desde su JSON. Cambiar cualquier opción actualiza el precio en menos de 100 ms. El contador anima. El rango y el disclaimer están visibles. Mobile 390 px sin scroll horizontal ni solapamientos. Cero strings de UI hardcodeados (verificado con una búsqueda de texto visible en los componentes).
+- Canal C al cierre del bloque: crear el proyecto en Vercel e importar el repo. Primer deploy sin dominio propio. Sin variables de entorno todavía.
+  - Aceptación: la URL `*.vercel.app` abre `/d/northline` y `/d/norte`.
+
+## Bloque 2 · martes 15 · preview 3D
+
+- TAREA_003 · escena base: fachada, vereda, puerta, vidriera, cartel tipo facade con dimensiones reactivas, materiales, ambiente nocturno, cámara con órbita limitada.
+  - Aceptación: G1 a G6. Mover los sliders cambia la caja del cartel con transición suave. Cambiar material cambia color, metalness y roughness. La cámara no se pierde. 60 fps en desktop.
+- TAREA_004 · iluminación (none, front-lit, back-lit), tótem con poste, autorotación, presupuesto de rendimiento en mobile.
+  - Aceptación: G1 a G6. Los tres modos de luz se distinguen a simple vista. El tótem aparece delante del local. En un teléfono medio la escena se mantiene fluida al mover sliders. Si hubo que quitar bloom o sombras, queda anotado en docs/DECISIONES.md.
+- Punto de control del día: si el 3D no está fluido en mobile, se aplica la degradación de SPEC 12 en este orden: bloom, sombras, órbita. No se vuelve a 2D.
+
+## Bloque 3 · miércoles 16 · lead, datos, quote, dominio
+
+Prerrequisito Canal C, antes de TAREA_005: crear el proyecto de Supabase, las dos tablas, el RLS y las policies de insert, y cargar `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` en `.env.local` y en Vercel. Sin esto la tarea no arranca.
+
+- TAREA_005 · cliente Supabase, insert de lead, CTA WhatsApp con mensaje armado, formulario, pantalla de confirmación, insert de visita.
+  - Aceptación: G1 a G6. Un lead por formulario aparece en la tabla con selection, total, min, max y contacto. El CTA de WhatsApp abre `wa.me` con el mensaje completo y legible. Si Supabase está caído, el flujo sigue y el usuario no ve un error. Una carga de `/d/northline` inserta una visita y un refresco en la misma sesión no duplica.
+- TAREA_006 · hoja de cotización imprimible y demo ES completa.
+  - Aceptación: G1 a G6. Imprimir a PDF desde el navegador da una página limpia con logo, desglose, total, rango, fecha, validez y disclaimer. `/d/norte` está en español, en metros y en pesos, con `prices_placeholder` visible solo en el código, no en pantalla.
+- Canal C al cierre del bloque: apuntar `quote.lokebox.com` a Vercel (registro CNAME) y verificar el certificado.
+  - Aceptación: `https://quote.lokebox.com/d/northline` abre con candado.
+
+## Bloque 4 · jueves 17 · pulido, landing y material de venta
+
+- TAREA_007 · pulido visual y mobile: tipografía, espaciados, estados de foco, transiciones, orden de tabulación, textos finales de las dos demos en nivel B2.
+  - Aceptación: G1 a G6. Revisión en 390 px, 768 px y 1440 px sin defectos visibles. Los tres criterios subjetivos de DONE (10 segundos, apariencia de producto, sin errores visibles) se validan con Joaquín antes de cerrar.
+- TAREA_008 · landing en `/`: qué es, para quién, dos botones a las demos, los dos tiers con precio, contacto, footer.
+  - Aceptación: G1 a G6. La landing carga en menos de 2 segundos y los botones llevan a las demos.
+- Canal C al cierre del bloque: grabar el video de 30 segundos y sacar las capturas (desktop y mobile, demo EN).
+
+## Bloque 5 · viernes 18 · publicación
+
+Sin tareas de código salvo arreglos bloqueantes.
+
+- Canal C: publicar el listado en Upwork Project Catalog con los dos tiers, el video y las capturas.
+- Canal C: armar la planilla plantilla de precios para el cliente.
+- Canal C: lista de 40 cartelerías de Tucumán con WhatsApp, y plantilla del mensaje de salida en frío.
+- Cierre: docs/STATE.md con el resultado del DONE de SPEC 17, punto por punto.
+
+## Colchón
+
+Si el bloque 2 se pasa al miércoles, lo que se recorta es, en este orden: bloom y sombras, tótem, autorotación. Nunca se recortan el lead, el deploy ni el material de venta.
