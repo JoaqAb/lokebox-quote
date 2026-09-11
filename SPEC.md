@@ -3,7 +3,7 @@
 Fuente de verdad del alcance. Si algo no está acá, no se construye.
 Este documento se edita, no se contradice. Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 
-Versión: 1.1 · 11/09/2026
+Versión: 1.2 · 11/09/2026
 
 ## 1. Objetivo
 
@@ -276,6 +276,8 @@ Sin marcas reales, sin fotos reales, sin logos de terceros.
 
 Escena mínima. Sin modelos externos, sin texturas pesadas, sin física, sin partículas, sin shaders custom.
 
+Prohibido en toda la vertical 3D: modelos importados, texturas, fuentes tipográficas (`Text` de drei), `Environment` o cualquier asset que se descargue en runtime, postprocessing y sombras de mapa. Las sombras son las de contacto de drei.
+
 - Fachada: caja para el frente del local, plano para la vereda, dos cajas para puerta y vidriera. Colores neutros oscuros.
 - Cartel: caja cuyas dimensiones siguen ancho y alto en tiempo real con transición suave. Espesor fijo.
 - Material: cambia color, metalness y roughness según el `visual` del material.
@@ -283,7 +285,10 @@ Escena mínima. Sin modelos externos, sin texturas pesadas, sin física, sin par
 - Tótem: la misma caja sobre un poste, delante del local.
 - Ambiente: escena nocturna, luz ambiente baja, una direccional suave, sombras de contacto de drei.
 - Cámara: fija con órbita limitada. Autorotación lenta cuando no hay interacción.
-- Interfaz del componente: recibe `selection` y `theme`. Nada más.
+- Interfaz del componente: recibe `selection`, `visual` y `theme`. Nada más. `visual` es lo que devuelve `resolveSignVisual(config, selection)` de la vertical: el `visual` del material elegido, el `visual` de la iluminación elegida y el factor de conversión de la unidad de longitud del cliente a metros. El preview no recibe la config del cliente y no busca nada por id.
+- Escala: la escena trabaja siempre en metros. Las medidas de la selección se multiplican por el factor de `visual` (1 en metros, 0.3048 en pies).
+- Colores de la escena: se derivan del `theme` del cliente con operaciones de color. Ningún hexadecimal escrito en un componente de escena. El color del cartel sale del `visual` del material.
+- Si el navegador no tiene WebGL, el preview cae a un bloque plano equivalente al provisorio de TAREA_002. Esa caída es por ausencia de WebGL, no la degradación por rendimiento de la última línea de esta sección.
 - Rendimiento: fluido en un teléfono medio. Si no lo es, se quitan bloom y sombras. Si sigue sin serlo, cámara fija sin órbita. No se vuelve a 2D.
 
 ## 13. Landing (quote.lokebox.com)

@@ -2,36 +2,46 @@
 
 11/09/2026
 
-Bloque 0 cerrado. Bloque 1 cerrado del lado del codigo: TAREA_001 y TAREA_002 cerradas.
-Queda pendiente Canal C: crear el proyecto en Vercel e importar el repo para el primer deploy.
+Bloque 0 cerrado. Bloque 1 cerrado, incluido Canal C: hay URL publica.
+Produccion: https://lokebox-quote.vercel.app. Proyecto de Vercel lokebox-quote, sin variables de entorno.
+Siguiente: TAREA_003, escena 3D base de la vertical carteleria. Detalle en docs/tareas/TAREA_003_escena_3d_base.md.
+
+## Hecho
 
 - TAREA_000: repo creado, scaffold funcionando, docs base. Commit 0f789a0.
-- Canal B: SPEC.md version 1.0, docs/EXECUTION.md, docs/DECISIONES.md, CLAUDE.md y TAREA_001 commiteados. Commit bd69e10.
-- TAREA_001: tipos del dominio, los dos JSON de cliente, validacion en runtime, motor de precios y formateo de moneda, con tests. Commit 6d83a02.
-- Canal B: SPEC.md version 1.1, EXECUTION del bloque 1 y TAREA_002 commiteados. Commit 1b5c4a0.
-- TAREA_002: layout core, panel de opciones generico, precio animado, tema por variables CSS, rutas por cliente, registro por descubrimiento de archivos y vercel.json.
+- Canal B: SPEC.md 1.0, docs/EXECUTION.md, docs/DECISIONES.md, CLAUDE.md y TAREA_001. Commit bd69e10.
+- TAREA_001: tipos del dominio, los dos JSON de cliente, validacion en runtime, motor de precios y formateo de moneda, con 42 tests. Commit 6d83a02.
+- Canal B: SPEC.md 1.1, EXECUTION del bloque 1 y TAREA_002. Commit 1b5c4a0.
+- TAREA_002: layout core, panel de opciones generico, precio animado, tema por variables CSS, rutas por cliente, registro por descubrimiento de archivos y vercel.json. 52 tests. Commit d435c80. Revisada y aceptada por Canal B contra los 16 criterios, con los seis desvios aceptados y anotados.
+- Canal C: proyecto en Vercel e import del repo. Las cuatro URLs verificadas a mano: /, /d/northline, /d/norte y /d/inexistente. Numeros correctos en pantalla en los dos clientes, cada uno con su idioma, su unidad y su moneda.
+- Canal B: SPEC.md 1.2 (interfaz del preview con visual, escala en metros, colores derivados del theme, caida sin WebGL, prohibiciones de assets en la vertical 3D), EXECUTION del bloque 2 y TAREA_003.
 
-Estado de TAREA_002:
+## Estado del codigo
 
-- `src/core/theme.ts`: `themeFromClient` devuelve las cinco variables CSS del cliente. Se aplican una sola vez, en el contenedor raiz. Ningun componente tiene un hexadecimal.
-- `src/core/ui/QuoteLayout.tsx`: layout de SPEC 4.1. Desktop dos columnas, preview al 58% a la izquierda, panel con scroll propio a la derecha y precio al pie de esa columna. Mobile una columna, preview 16/9 arriba y barra de precio fija al pie con safe area.
-- `src/core/ui/panelTypes.ts` y `OptionsPanel.tsx`: panel generico por descriptores, con los cuatro controles en `src/core/ui/controls`. El core no sabe que existen materiales ni carteles.
-- `src/core/ui/AnimatedAmount.tsx`: contador con Framer Motion, 350 ms, salida suave, y cambio de golpe con prefers-reduced-motion. Siempre formatea con `formatCurrency`.
-- `src/core/ui/PriceBar.tsx` y `PriceBreakdown.tsx`: total, rango, disclaimer siempre visible y desglose por concepto con el area arriba.
-- `src/core/pricing/lineLabels.ts`: `resolveLineLabel` traduce el labelKey del motor a texto del cliente, o lanza.
-- `src/verticals/signs/fields.ts`: la vertical arma los siete descriptores desde el JSON y adapta en las dos direcciones contra `SignSelection`.
-- `src/verticals/signs/SignPreview.tsx`: interfaz final `{ selection, theme }` con cuerpo provisorio. TAREA_003 reemplaza solo el cuerpo.
-- `src/pages`: `QuotePage` (composicion y unico lugar que decide vertical), `IndexPage` (indice temporal) y `ErrorScreen` (unica pantalla con texto fijo).
-- `src/clients/index.ts`: registro por `import.meta.glob` eager. Agregar un cliente es agregar el JSON y el logo. Verificado copiando northline a demo.json: `/d/demo` anduvo sin tocar ningun `.ts`.
-- `vercel.json` con el rewrite de SPA. `npm run build && npm run preview` sirve `/d/northline` por URL directa.
-- 52 tests en verde: los 42 de TAREA_001 sin tocar, mas los 10 nuevos de la seccion 12 de la tarea.
-- Verificacion de UI con un navegador headless en 390, 768 y 1440 px: los siete campos, precio, rango, disclaimer y desglose en los dos idiomas, sin scroll horizontal, sin solapamientos, sin errores de consola y con la barra de precio sin tapar el ultimo control.
-- Criterios de aceptacion de la seccion 14 de la tarea: los 16 verificados, con la salvedad del criterio 14 anotada en docs/DECISIONES.md (el grep da cero en codigo de produccion y da los imports de los tests, que cargan los JSON reales a proposito).
+- `src/core`: tipos, motor de precios puro, formateo de moneda, validacion de config, tema por cinco variables CSS, layout, panel generico por descriptores con cuatro controles, precio animado, rango, disclaimer y desglose. No importa nada de verticals ni de clients en codigo de produccion.
+- `src/verticals/signs`: `fields.ts` arma los siete descriptores desde el JSON y adapta en las dos direcciones contra `SignSelection`. `SignPreview.tsx` tiene el cuerpo provisorio de TAREA_002, que TAREA_003 reemplaza. La interfaz pasa a `{ selection, visual, theme }`.
+- `src/clients`: registro por `import.meta.glob` eager. Agregar un cliente es agregar el JSON y el logo, sin tocar un solo `.ts`. Verificado.
+- `src/pages`: `QuotePage` es el unico lugar que decide vertical, `IndexPage` es un indice temporal y `ErrorScreen` es la unica pantalla con texto fijo.
+- 52 tests en verde. TAREA_003 deja 62.
+- Sin tocar todavia: Supabase, lead, CTA, quote imprimible, tracking de visitas, escena 3D, totem, iluminacion y landing real.
 
-Decisiones nuevas en docs/DECISIONES.md: precio al pie de la columna con flex en vez de sticky, escala del preview provisorio por proporcion, colores neutros en ErrorScreen e IndexPage, alcance de la regla de aislamiento de src/core, reinicio de estado por key de slug y borrado del directorio vacio src/verticals/signage.
+## Pendientes menores con destino asignado
 
-Siguiente: TAREA_003 (escena 3D base de la vertical carteleria). Antes, Canal C hace el primer deploy en Vercel.
+- La barra de precio tapa el stepper de cantidad en 390 px, porque el padding inferior del panel es un valor fijo de 13rem. Se arregla en TAREA_003, seccion 9.
+- El encabezado muestra el logo y al lado repite `brand.name`. Va a TAREA_007.
+- El indice de `/` muestra los slugs crudos. Va a TAREA_008, con la landing real.
+- Bastante aire abajo en la columna del preview en 1440 px. Va a TAREA_007.
 
-Pendiente de Canal C, en orden: proyecto en Vercel (lunes, ya con los commits pusheados), proyecto y tablas en Supabase con RLS y variables de entorno (miercoles, antes de TAREA_005), CNAME de quote.lokebox.com (miercoles), video y capturas (jueves), listado del Catalog (viernes).
+## Canal C, en orden
 
-Nada tocado todavia de: Supabase, lead, quote imprimible, tracking de visitas, escena 3D y landing real.
+1. Hecho: proyecto en Vercel y primer deploy.
+2. Antes de TAREA_005: proyecto de Supabase separado del de Lokebox, tablas `leads` y `visits`, RLS con policy de insert para anon, y `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` en `.env.local` y en Vercel.
+3. CNAME de quote.lokebox.com a Vercel y verificacion del certificado.
+4. Video de 30 segundos y capturas, desktop y mobile, demo EN.
+5. Listado del Project Catalog, planilla de precios, lista de 40 carteleria de Tucuman y plantilla del mensaje de salida en frio.
+
+## Convenciones que no se olvidan
+
+- `docs/tareas/_ULTIMO.md` guarda el proximo numero libre. Hoy dice 003, que es el numero de la tarea en curso. Al cerrarla pasa a 004.
+- Commit de docs separado del commit de codigo.
+- Nada de parches: si algo pide un workaround, se frena y se decide en Canal B.
