@@ -1,10 +1,17 @@
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { ErrorScreen } from './pages/ErrorScreen'
+import { IndexPage } from './pages/IndexPage'
+import { QuotePage } from './pages/QuotePage'
+
 function App() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-white">
-      <h1 className="text-4xl font-semibold tracking-tight text-neutral-900">
-        Lokebox Quote
-      </h1>
-    </main>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<IndexPage />} />
+        <Route path="/d/:slug" element={<QuotePage />} />
+        <Route path="*" element={<ErrorScreen />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 
