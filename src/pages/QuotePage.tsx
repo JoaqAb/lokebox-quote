@@ -2,8 +2,13 @@ import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { getClient } from '../clients'
 import { defaultSelection, priceRulesFromClient } from '../core/clientConfig'
+import { insertRow } from '../core/data/insertRow'
+import { useVisitOnce } from '../core/data/useVisitOnce'
+import { buildLeadRow, type LeadContact } from '../core/lead/leadRow'
+import { buildWhatsappMessage } from '../core/lead/whatsapp'
 import { calculatePrice } from '../core/pricing/calculatePrice'
 import { themeFromClient } from '../core/theme'
+import { LeadSection } from '../core/ui/LeadSection'
 import { OptionsPanel } from '../core/ui/OptionsPanel'
 import { PriceBar } from '../core/ui/PriceBar'
 import { PriceBreakdown } from '../core/ui/PriceBreakdown'
@@ -12,6 +17,7 @@ import type { SelectionValue } from '../core/ui/panelTypes'
 import type { ClientConfig } from '../core/types'
 import { SignPreview } from '../verticals/signs/SignPreview'
 import { selectionFromValues, signFields, valuesFromSelection } from '../verticals/signs/fields'
+import { signLeadSelection, signLeadTokens } from '../verticals/signs/leadTokens'
 import { resolveSignVisual } from '../verticals/signs/visuals'
 import { ErrorScreen } from './ErrorScreen'
 
@@ -55,14 +61,48 @@ function QuoteScreen({ config }: QuoteScreenProps) {
     document.title = brandName
   }, [brandName])
 
+  // Una visita por sesion y por slug. No espera el insert y no renderiza nada.
+  useVisitOnce(config.slug)
+
   // Sin useEffect, sin debounce y sin estado derivado: el precio y el visual de la
   // escena se calculan en el render, sobre la misma seleccion.
   const selection = selectionFromValues(values)
   const result = calculatePrice(rules, selection)
   const visual = resolveSignVisual(config, selection)
 
+  // El mensaje de WhatsApp se arma aca: la vertical traduce ids a etiquetas y el core
+  // solo reemplaza los placeholders de la plantilla del cliente.
+  const tokens = signLeadTokens(config, selection, result)
+  const whatsappMessage = buildWhatsappMessage(config.texts.whatsappMessage, tokens)
+
   function handleChange(fieldId: string, value: SelectionValue): void {
     setValues((current) => ({ ...current, [fieldId]: value }))
+  }
+
+  // El insert se dispara y no se espera: el navegador abre wa.me con el gesto del click.
+  function handleWhatsappClick(): void {
+    void insertRow(
+      'leads',
+      buildLeadRow({
+        clientSlug: config.slug,
+        channel: 'whatsapp',
+        selection: signLeadSelection(config, selection),
+        result,
+      }),
+    )
+  }
+
+  async function handleSubmitForm(contact: LeadContact): Promise<void> {
+    await insertRow(
+      'leads',
+      buildLeadRow({
+        clientSlug: config.slug,
+        channel: 'form',
+        selection: signLeadSelection(config, selection),
+        result,
+        contact,
+      }),
+    )
   }
 
   return (
@@ -79,6 +119,14 @@ function QuoteScreen({ config }: QuoteScreenProps) {
             onChange={handleChange}
           />
           <PriceBreakdown result={result} config={config} />
+          <LeadSection
+            cta={config.cta}
+            texts={config.texts}
+            whatsappNumber={config.brand.whatsapp}
+            whatsappMessage={whatsappMessage}
+            onSubmitForm={handleSubmitForm}
+            onWhatsappClick={handleWhatsappClick}
+          />
         </>
       }
       price={<PriceBar result={result} config={config} />}

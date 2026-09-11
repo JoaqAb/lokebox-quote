@@ -3,9 +3,10 @@
 11/09/2026
 
 Bloque 0 cerrado. Bloque 1 cerrado, incluido Canal C: hay URL publica.
-Produccion: https://lokebox-quote.vercel.app. Proyecto de Vercel lokebox-quote, sin variables de entorno.
+Produccion: https://lokebox-quote.vercel.app. Proyecto de Vercel lokebox-quote, con VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY como Config en production y preview.
 Bloque 2 cerrado: TAREA_003 y TAREA_004 cerradas. El preview 3D esta completo y no se vuelve a tocar hasta TAREA_007.
-Siguiente: bloque 3, TAREA_005. Prerrequisito de Canal C antes de arrancar: proyecto de Supabase, tablas, RLS y variables de entorno.
+Bloque 3 en curso: TAREA_005 cerrada. El flujo del lead esta completo de punta a punta contra Supabase real.
+Siguiente: TAREA_006, hoja de cotizacion imprimible y demo ES completa.
 
 ## Hecho
 
@@ -20,7 +21,9 @@ Siguiente: bloque 3, TAREA_005. Prerrequisito de Canal C antes de arrancar: proy
 - Canal B: SPEC.md 1.3 (presupuesto de bundle, tres modos de luz, bloom fuera del MVP, totem y poste, barrido de camara, degradacion por niveles), EXECUTION del bloque 2 y TAREA_004, mas diez decisiones nuevas. Commit 5e0f971 (era d9568ec antes del rebase).
 - Canal C: estrategia comercial y estrategia de Upwork escritas a mano por Joaquin en docs/comercial/. Commits 5f49c7d y f45a871.
 - TAREA_004: los tres modos de iluminacion con halo y una sola luz dinamica, totem con poste, barrido de camara, presupuesto de rendimiento en tres niveles, presupuesto de bundle y reequilibrio de la composicion. 76 tests. Commits 5e0f971 (docs) y 43c4d1e (codigo), rebasados sobre los dos commits comerciales. Revisada y aceptada por Canal B contra los 18 criterios: 17 al pie de la letra, el 10 con reporte parcial aceptado (bounding box en pantalla solo en el extremo maximo de cada cliente, que es el unico que puede salirse de cuadro; los cuatro extremos quedan cubiertos por el test 12.5) y el 13 pendiente de medicion con GPU real. Los once desvios aceptados y anotados en DECISIONES.
-- Canal B: TAREA_005 escrita, EXECUTION del bloque 3 apuntada al archivo y siete decisiones nuevas. SPEC queda en 1.3: la tarea no cambia alcance.
+- Canal B: TAREA_005 escrita, EXECUTION del bloque 3 apuntada al archivo y siete decisiones nuevas. SPEC queda en 1.3: la tarea no cambia alcance. Commit 5bff501.
+- Canal C, cerrado: las dos variables quedaron como Config en production y preview, con los valores verificados por hash contra .env.local en los dos entornos. El gate de Supabase dio 200, 200, 201 y 201: las tablas existen y la policy de insert para anon anda.
+- TAREA_005: capa de datos sin SDK, lead por WhatsApp y por formulario, validacion, pantalla de gracias y visitas por sesion. 93 tests.
 
 ## Estado del codigo
 
@@ -31,7 +34,10 @@ Siguiente: bloque 3, TAREA_005. Prerrequisito de Canal C antes de arrancar: proy
 - 76 tests en verde: los 63 previos sin tocar y los 13 de la seccion 12 de TAREA_004 mapeados uno a uno.
 - Una sola geometria por pieza: caja unitaria para el cartel y para el poste, plano unitario para el halo. Todo se dimensiona con scale y se acomoda con damp en un solo useFrame. Verificado con `renderer.info.memory.geometries`: 6 en frio, 7 cuando el poste se dibuja por primera vez, y estable despues de ir y volver tres veces entre facade y totem.
 - Presupuesto de bundle aplicado: chunk de la app 385 kB (123 kB gzip) y chunk del vendor 3D 913 kB (244 kB gzip), los dos adentro de SPEC 3 y sin advertencia en el build.
-- Sin tocar todavia: Supabase, lead, CTA, quote imprimible, tracking de visitas y landing real.
+- `src/core/data`: `config.ts` (puro, recibe el env), `insertRow.ts` (unico punto de escritura, nunca lanza) y `useVisitOnce.ts`. `src/core/lead`: `leadRow.ts`, `whatsapp.ts`, `validateLeadForm.ts` y `visit.ts`, todos puros. `src/core/ui`: `LeadSection.tsx` con los cuatro estados, `LeadForm.tsx` y `ThanksScreen.tsx`. `src/verticals/signs/leadTokens.ts` es el unico lugar que traduce ids a etiquetas.
+- 93 tests en verde: los 76 previos sin tocar y los 17 nuevos de la seccion 11 de TAREA_005 mapeados uno a uno.
+- Chunk de la app 393 kB (126 kB gzip), vendor 3D sin moverse en 913 kB. Los dos adentro de SPEC 3.
+- Sin tocar todavia: quote imprimible y landing real.
 
 ## Pendientes menores con destino asignado
 
