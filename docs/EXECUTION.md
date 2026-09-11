@@ -24,10 +24,11 @@ Canal B: SPEC.md y docs/EXECUTION.md escritos. Cerrado.
 Objetivo: precio correcto y panel usable, sin 3D. Al final del día ya hay una URL pública.
 
 - TAREA_001 · tipos, JSON de clientes, motor de precios con tests.
-  - Aceptación: G1 a G6. Los cinco casos de la tarea dan los números exactos esperados. `src/core/pricing` no importa React, three ni Supabase (verificado con grep). Los dos JSON validan.
-- TAREA_002 · layout core, panel de opciones genérico, precio animado, tema desde el JSON.
-  - Aceptación: G1 a G6. `/d/northline` y `/d/norte` renderizan el panel completo desde su JSON. Cambiar cualquier opción actualiza el precio en menos de 100 ms. El contador anima. El rango y el disclaimer están visibles. Mobile 390 px sin scroll horizontal ni solapamientos. Cero strings de UI hardcodeados (verificado con una búsqueda de texto visible en los componentes).
+  - Aceptación: G1 a G6. Los siete casos de la tarea dan los números exactos esperados. `src/core/pricing` no importa React, three ni Supabase (verificado con grep). Los dos JSON validan.
+- TAREA_002 · layout core, panel de opciones genérico, precio animado, tema desde el JSON, rutas `/d/:slug`. Detalle en docs/tareas/TAREA_002_layout_panel_precio.md.
+  - Aceptación: G1 a G6. `/d/northline` y `/d/norte` renderizan el panel completo desde su JSON. Cambiar cualquier opción actualiza el precio en menos de 100 ms. El contador anima. El rango y el disclaimer están visibles. Mobile 390 px sin scroll horizontal ni solapamientos. Cero strings de UI hardcodeados, con la única excepción de la pantalla de error. `src/core` no importa nada de `src/verticals` ni de `src/clients`. Agregar un JSON nuevo alcanza para tener su ruta funcionando, sin editar código. `vercel.json` con el rewrite de SPA presente.
 - Canal C al cierre del bloque: crear el proyecto en Vercel e importar el repo. Primer deploy sin dominio propio. Sin variables de entorno todavía.
+  - Prerrequisito: los commits de TAREA_002 pusheados a origin/main.
   - Aceptación: la URL `*.vercel.app` abre `/d/northline` y `/d/norte`.
 
 ## Bloque 2 · martes 15 · preview 3D

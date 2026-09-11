@@ -3,7 +3,7 @@
 Fuente de verdad del alcance. Si algo no está acá, no se construye.
 Este documento se edita, no se contradice. Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 
-Versión: 1.0 · 11/09/2026
+Versión: 1.1 · 11/09/2026
 
 ## 1. Objetivo
 
@@ -30,6 +30,7 @@ Fecha de DONE: viernes 18/09/2026.
 ## 3. Stack
 
 - Vite + React + TypeScript + Tailwind v4 (plugin de Vite).
+- React Router para las rutas `/d/<slug>`. Deploy estático con rewrite de SPA en `vercel.json`.
 - React Three Fiber + drei para el preview 3D.
 - Framer Motion para transiciones de UI y contador de precio.
 - Supabase, proyecto propio separado del de Lokebox, para leads y visitas.
@@ -61,6 +62,8 @@ Se escribe una vez y no conoce ninguna vertical ni ningún cliente concreto.
 ### 4.3 Cliente: JSON
 
 Un archivo por cliente en `src/clients/<slug>.json`. Ruta pública `/d/<slug>`. Contiene marca, idioma, unidades, moneda, opciones habilitadas, precios, textos, CTA y contacto.
+
+El registro descubre los JSON de la carpeta por nombre de archivo. Agregar un cliente es agregar el JSON y el logo, sin editar código.
 
 ## 5. Vertical cartelería
 
@@ -229,7 +232,7 @@ La forma de `leads` sigue la que usaría Lokebox para un pedido en gestación. S
   "brand": {
     "name": "Northline Signs",
     "logo": "/clients/northline/logo.svg",
-    "colors": { "primary": "#0B0D10", "accent": "#FF7A18", "bg": "#07080A", "text": "#F2F2F0" },
+    "colors": { "bg": "#07080A", "primary": "#101317", "accent": "#FF7A18", "text": "#F4F2EF", "muted": "#8A8F98" },
     "phone": "+1 555 010 2233",
     "whatsapp": "15550102233",
     "email": "hello@northlinesigns.test"
@@ -254,7 +257,7 @@ La forma de `leads` sigue la que usaría Lokebox para un pedido en gestación. S
 }
 ```
 
-Claves de `texts` requeridas, iguales en los dos idiomas:
+Las 35 claves de `texts` requeridas, iguales en los dos idiomas:
 
 `headline`, `subheadline`, `configureTitle`, `typeLabel`, `widthLabel`, `heightLabel`, `materialLabel`, `lightingLabel`, `installationLabel`, `installationYes`, `installationNo`, `quantityLabel`, `priceLabel`, `priceRangeNote`, `disclaimer`, `ctaWhatsapp`, `ctaForm`, `formTitle`, `formName`, `formContact`, `formNote`, `formSubmit`, `formSending`, `thanksTitle`, `thanksBody`, `viewQuote`, `quoteTitle`, `quoteValidity`, `lineMaterial`, `lineLighting`, `lineType`, `lineInstallation`, `lineDiscount`, `poweredBy`, `whatsappMessage`.
 

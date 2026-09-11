@@ -15,10 +15,17 @@
 - 11/09/2026: los precios ES se derivan de los EN con dólar de referencia 1500 y factor de mercado local 0,45, redondeados al millar, y quedan marcados como placeholder hasta tener precios reales de una cartelería.
 - 11/09/2026: vitest como runner de tests. Es la única librería nueva del bloque 1.
 - 11/09/2026: el primer deploy en Vercel se hace al cerrar el bloque del lunes, sin dominio propio, para no dejar el deploy para el final. El dominio quote.lokebox.com se conecta el miércoles.
-- 11/09/2026: cero strings de UI hardcodeados. Todo texto visible sale de texts en el JSON del cliente, con las 34 claves listadas en SPEC 10.
+- 11/09/2026: cero strings de UI hardcodeados. Todo texto visible sale de texts en el JSON del cliente, con las 35 claves listadas en SPEC 10.
 - 11/09/2026: si el 3D no rinde en mobile, el orden de degradación es bloom, sombras, órbita. No se vuelve a 2D.
 - 11/09/2026: la linea de iluminacion del desglose se incluye siempre, tambien cuando el importe es 0. Asi el desglose tiene la misma forma en todas las selecciones y el quote imprimible no cambia de altura al elegir "sin luz". Las lineas de type, installation y discount, en cambio, aparecen solo cuando suman.
 - 11/09/2026: los importes de las lineas del desglose son por unidad, no por cantidad. El subtotal es unitTotal por quantity. El descuento tambien se expresa por unidad.
 - 11/09/2026: el campo `detail` de cada linea es un string tecnico y determinista, sin moneda ni locale, con formato fijo: material e iluminacion `area x precio`, tipo `precio fijo`, instalacion `fijo + area x porArea`, descuento `pct%`.
 - 11/09/2026: vitest 5.0.0, instalado sin fijar version y sin conflicto de peers con vite 8 y TypeScript 6.
-- 11/09/2026: SPEC 10 lista 35 claves de `texts`, no 34. El numero 34 que aparece en la prosa de SPEC, de DECISIONES y de TAREA_001 es un error de conteo. La lista de claves es la misma en los tres lugares y es la que manda. El tipo ClientTexts tiene las 35.
+- 11/09/2026: SPEC 10 lista 35 claves de `texts`, no 34. El numero 34 venia de un error de conteo en la prosa de DECISIONES y de TAREA_001. Corregido en DECISIONES y en SPEC 1.1, que ahora dice 35 explicito. La lista de claves manda. El tipo ClientTexts tiene las 35.
+- 11/09/2026: brand.colors tiene cinco claves, bg, primary, accent, text y muted. El ejemplo de SPEC 10 tenia cuatro y quedo corregido en SPEC 1.1.
+- 11/09/2026: el registro de clientes descubre los JSON de src/clients con import.meta.glob eager, y valida que el slug de adentro coincida con el nombre del archivo. La version de TAREA_001 pedia agregar una linea de codigo por cliente, lo que contradecia el principio 2 de SPEC. Se corrige en TAREA_002.
+- 11/09/2026: las rutas se resuelven con react-router-dom, que ya venia en el scaffold, mas un rewrite de SPA en vercel.json. Sin esto las URLs directas dan 404 en Vercel. No es libreria nueva.
+- 11/09/2026: el tema del cliente se aplica como cinco variables CSS (--q-bg, --q-primary, --q-accent, --q-text, --q-muted) en el contenedor raiz, y la UI las consume con valores arbitrarios de Tailwind. Prohibido armar nombres de clase por concatenacion: Tailwind v4 no los ve en build.
+- 11/09/2026: el panel de opciones es generico por descriptores de campo (PanelField y FieldControl con cuatro kinds: choice, range, boolean, stepper). La vertical arma los descriptores desde el JSON y el core solo los renderiza. El core no importa nada de verticals ni de clients.
+- 11/09/2026: la pantalla de error de cliente inexistente o config invalida es la unica con texto fijo en el codigo, en ingles, porque aparece justamente cuando no hay JSON valido del que sacar texto.
+- 11/09/2026: AGENTS.md se borra. La fuente unica de contexto para agentes es CLAUDE.md, para que no haya dos documentos que se desincronizan.
