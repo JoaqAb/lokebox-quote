@@ -1,6 +1,7 @@
 # Mercado inicial: Tucumán
 
 Fecha de apertura: 2026-09-11
+Última auditoría: 2026-09-11
 
 ## Rol de Tucumán en la estrategia
 
@@ -17,6 +18,13 @@ Objetivos:
 No se debe esperar a validar Tucumán para vender afuera. La estrategia es de dos velocidades:
 1. Tucumán = aprendizaje profundo y cierre asistido;
 2. mercado global = volumen de outreach y tickets mayores.
+
+## CRM operativo
+
+Fuente operativa del pipeline local y futuro global:
+https://docs.google.com/spreadsheets/d/1z7BtPI8cN8sE7pkxGYGbZrUNgeppIzyI87DO45Nhjvo/edit
+
+El CRM debe mantenerse deliberadamente simple. Campos clave: empresa, prioridad, fit, estado, canal, contacto, oferta sugerida, próxima acción, fechas y resultado/notas.
 
 ## ICP local inicial
 
@@ -49,103 +57,108 @@ Valor:
 - lead estructurado listo para revisar;
 - más adelante: WhatsApp + IA + automatización Lokebox.
 
-## Primeros prospectos detectados
+## Auditoría inicial — primera tanda
 
-### Tier A — estudiar primero
+### 1. Multigráfica Tucumán — prioridad A / fit 5
 
-1. Multigráfica Tucumán
-- Sitio: multigraficatucuman.com
-- Contacto visible: WhatsApp 381 6615591 / info@multigraficatucuman.com
-- Señales: desde 2012, +2000 clientes declarados, letras corpóreas, cartelería luminosa, proyectos de locales, instalación y grandes formatos.
-- Proceso web observado: formularios y CTA de consulta; los precios de carteles se resuelven por presupuesto personalizado.
-- Fit: MUY ALTO.
-- Razón: tiene volumen/apariencia profesional y exactamente el problema de cotización personalizada que Quote intenta estructurar.
+- Sitio: https://multigraficatucuman.com/
+- WhatsApp / teléfono: 381 661-5591
+- Email visible: info@multigraficatucuman.com
+- Dirección pública: Av. América, San Miguel de Tucumán.
+- Señales: desde 2012; +2.000 clientes declarados; letras corpóreas, cartelería luminosa, proyectos de locales, instalación, vinilos y gran formato.
+- Proceso observado: CTA a consulta/formulario/WhatsApp; el sitio dice explícitamente que el precio depende de medidas y características y requiere presupuesto personalizado.
+- Problema para Quote: MUY CLARO.
+- Ángulo de venta: reducir ida y vuelta y convertir consultas vagas en configuraciones completas antes de que el equipo presupueste.
+- Oferta founding sugerida: una familia de corpóreas + pricing/estimación + lead/quote.
+- Precio de prueba sugerido: USD 250 setup + USD 39/mes.
+- Primer canal: WhatsApp.
 
-2. Lumilet
-- Sitio: lumilet.com.ar
-- Contacto visible: +54 9 381 2094376 / lumiletventas@gmail.com
-- Dirección: Pje. Cabildo 115, Banda del Río Salí.
-- Señales: fabricante, más de 30/40 años declarados, corpóreas, frontlight, backlight, LED, tótems, rotulación, diseño e instalación.
-- Tiene algunos productos estandarizados con precios publicados, mientras los personalizados siguen por solicitud de cotización.
-- Fit: MUY ALTO.
-- Razón: permite mostrar muy bien la diferencia entre producto estándar y configurador para proyectos a medida.
+### 2. Lumilet — prioridad A / fit 5
 
-3. GB Cartelería y Diseño
-- Canal visible: Facebook / teléfono 3815632375.
-- Señales recientes: publica frentes, corpóreas, retroiluminados, acero, acrílico, marquesinas y trabajos personalizados.
-- Fit: ALTO.
-- Razón: actividad reciente y fuerte componente visual; posible buen receptor de Photo-to-Sign.
+- Sitio: https://lumilet.com.ar/
+- Teléfono público: +54 381 209-4376.
+- Dirección pública: Cabildo 115, Banda del Río Salí.
+- Señales: fabricante con más de 30 años declarados; corpóreas, frontlight/backlight, LED, tótems, neón, señalización, rotulación.
+- Tiene algunos productos estandarizados con precios visibles y un catálogo muy amplio de corpóreas por material/iluminación donde la acción sigue siendo "Solicitar Cotización".
+- Problema para Quote: MUY CLARO y estructurable.
+- Ángulo de venta: su catálogo ya se parece a un modelo configurable; podemos convertir una familia en una experiencia visual con estimación y quote.
+- Oferta founding sugerida: letras corpóreas + materiales + iluminación + medidas + quote.
+- Precio de prueba sugerido: USD 250 setup + USD 39/mes.
+- Primer canal: WhatsApp o llamada breve.
 
-### Tier B — calificar
+### 3. GB Cartelería y Diseño — prioridad A / fit 4.5
 
-4. Alpha Cartelería & Publicidad
-- Dirección: Corrientes 2217, San Miguel de Tucumán.
-- Teléfono: 381 6437588.
-- Buen volumen de reseñas locales.
-- Fit preliminar: ALTO, falta revisar mix exacto y proceso comercial.
+- Teléfono publicado: 381 563-2375.
+- Presencia detectada: Facebook / publicaciones replicadas en directorios.
+- Señales recientes 2025–2026: marquesinas, fachadas, acero inoxidable, acrílico, polyfan, corpóreas iluminadas/retroiluminadas, rotulación y trabajos personalizados.
+- Su comunicación comercial es muy visual y suele cerrar con "Consultanos".
+- Problema para Quote: bueno, pero el mejor gancho probablemente sea la visualización antes que el pricing.
+- Ángulo de venta: Photo-to-Sign / preview de fachada como apertura; luego configurador + quote.
+- Oferta founding sugerida: demo Photo-to-Sign + Quote para una familia de corpóreas.
+- Precio de prueba sugerido: USD 200 setup + USD 30/mes.
+- Primer canal: WhatsApp.
 
-5. Cartelería Dap
-- Dirección: Av. Soldati 380, San Miguel de Tucumán.
-- Teléfono: +54 9 381 5391731.
-- Presencia indicada en Instagram y buen volumen de reseñas.
-- Fit preliminar: ALTO, falta revisar productos y proceso de cotización.
+### 4. Alpha Cartelería & Publicidad — prioridad A/B / fit 4.5
 
-6. Polcam Letras y Carteles
-- Dirección: Piedras 172, San Miguel de Tucumán.
-- Teléfono: 381 6351756.
-- Fit preliminar: MEDIO/ALTO, requiere calificación visual/comercial.
+- Teléfono público: +54 381 643-7588.
+- Dirección pública actual: Av. Mate de Luna 2468, San Miguel de Tucumán.
+- Señal fuerte: 4,9/5 con 39 reseñas en el resultado local consultado.
+- Dominio reportado: https://alphacarteleria.com/ ; durante la auditoría devolvió error y no permitió analizar el sitio.
+- Problema para Quote: probable, pero todavía falta confirmar mix de productos y flujo de cotización.
+- Ángulo de venta: no contactar con mensaje genérico hasta revisar trabajos/redes y detectar el producto de mayor ticket/configuración.
+- Oferta preliminar: demo visual + discovery corto; founding hasta USD 250 + USD 39/mes si encaja.
+- Primer canal: WhatsApp; visita si responde/interesa.
 
-7. DF Cartelería Tucumán
-- Dirección: Miguel Lillo 476.
-- Teléfono: 381 6817992.
-- Fit preliminar: MEDIO, requiere investigar catálogo y actividad.
+### 5. Cartelería DAP — prioridad A/B / fit 4.5
 
-8. HM Letreros
-- Dirección: Santiago del Estero 4228.
-- Teléfono: 381 6932082.
-- Fit preliminar: MEDIO, requiere investigar catálogo y actividad.
+- Teléfono / WhatsApp público: +54 9 381 539-1731.
+- Dirección pública: Av. Soldati 380, San Miguel de Tucumán.
+- Señal fuerte: 5,0/5 con 33 reseñas en el resultado local consultado.
+- Presencia web observada: Instagram listado como canal principal; no apareció una web propia clara en el primer barrido.
+- Problema para Quote: especialmente interesante porque Quote puede operar como URL independiente sin exigirles rehacer una web.
+- Ángulo de venta: link desde Instagram/WhatsApp donde el prospecto configura y pide presupuesto.
+- Oferta founding sugerida: URL white-label + quote capture para una familia.
+- Precio de prueba sugerido: USD 200 setup + USD 30/mes.
+- Próximo paso antes de contacto: localizar handle exacto y auditar trabajos/productos.
 
-9. Tucumán Letreros
-- Sitio listado: tucumanletreros.com.ar
-- Dirección: Entre Ríos 1415 / Matheu 375.
-- Teléfono principal listado: 381 5893735.
-- Fit preliminar: MEDIO/ALTO; revisar sitio y oferta actual antes de contacto.
+## Ranking actual para primer contacto
 
-## Orden de ataque propuesto
+1. Lumilet — mejor estructura de catálogo para demostrar Quote.
+2. Multigráfica — mejor evidencia explícita del problema de cotización y empresa profesional.
+3. GB — mejor candidato para gancho WOW / Photo-to-Sign.
+4. Alpha — empresa fuerte, pero falta completar auditoría de producto.
+5. DAP — empresa fuerte y buen caso para Quote como URL independiente; falta auditar contenido social.
 
-No mandar 20 mensajes iguales.
+El ranking no implica enviar cinco mensajes seguidos. Primera prueba recomendada: preparar tres contactos personalizados (Lumilet, Multigráfica, GB), medir y ajustar antes de ampliar.
 
-Fase 1:
-- investigar profundamente 5 prospectos;
-- seleccionar 3;
-- personalizar un mensaje para cada uno;
-- si el demo permite hacerlo rápido, usar una captura/mockup relacionada con su tipo de trabajo;
-- priorizar WhatsApp cuando sea un canal comercial publicado;
-- ofrecer demo breve, no reunión genérica.
+## Oferta de entrada local
 
-Fase 2:
-- medir respuesta;
-- ajustar mensaje/gancho;
-- contactar siguientes 5.
+Founding offer de referencia para los primeros 2–3 casos:
+- setup real pero reducido: USD 200–250;
+- mensual: USD 30–39;
+- una sola familia de producto;
+- alcance cerrado;
+- branding, configuración estándar, pricing/estimación y quote/lead;
+- feedback y permiso de caso comercial cuando sea posible.
 
-## Oferta de entrada local — hipótesis
+Reglas:
+- no construir proyectos completos gratis;
+- el descuento compra aprendizaje, no alcance infinito;
+- personalización no reutilizable pasa a Custom;
+- mantener setup + mensualidad porque Lokebox opera hosting, mantenimiento, soporte y evolución.
 
-No cerrada todavía.
+## Orden de ataque
 
-Para primeros clientes se evaluará una Founding Offer claramente acotada, con pago real pero bajo, a cambio de feedback/caso comercial.
+1. Terminar demo en estado comercial presentable.
+2. Preparar assets específicos para corpóreas/fachadas.
+3. Contactar primero Lumilet, Multigráfica y GB con mensajes distintos.
+4. Registrar cada contacto y follow-up en el CRM.
+5. Medir respuesta antes de escalar.
+6. En paralelo levantar leads internacionales; Tucumán no bloquea el mercado global.
 
-Posibles formatos a validar:
-- demo personalizada gratuita + implementación paga;
-- setup reducido + mensualidad;
-- Photo-to-Sign de muestra como apertura;
-- piloto de una única familia de carteles.
+## Fuentes públicas usadas en la auditoría
 
-Regla: no construir proyectos completos gratis.
-
-## Siguiente acción
-
-1. Auditar Multigráfica, Lumilet, GB, Alpha y Dap en detalle.
-2. Identificar contacto decisor/canal más directo.
-3. Preparar un mensaje por lead.
-4. No contactar hasta que la demo tenga un estado visual que represente bien el producto.
-5. Mientras tanto, preparar lista paralela internacional para no depender del mercado local.
+- Multigráfica: https://multigraficatucuman.com/ y https://multigraficatucuman.com/hablemos/
+- Lumilet: https://lumilet.com.ar/ y https://lumilet.com.ar/letras-corporeas/
+- GB: https://www.findglocal.com/AR/San-Miguel-de-Tucum%C3%A1n/442596472430721/GB-Carteler%C3%ADa-y-Dise%C3%B1o
+- Alpha / DAP: resultados de negocio locales y https://www.poidata.io/report/advertising-agency/argentina/tucum%C3%A1n-province
