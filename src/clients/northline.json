@@ -1,0 +1,77 @@
+{
+  "slug": "northline",
+  "locale": "en",
+  "vertical": "signs",
+  "currency": { "code": "USD", "symbol": "$", "decimals": 0 },
+  "units": { "length": "ft", "area": "sqft" },
+  "brand": {
+    "name": "Northline Signs",
+    "logo": "/clients/northline/logo.svg",
+    "colors": { "bg": "#07080A", "primary": "#101317", "accent": "#FF7A18", "text": "#F4F2EF", "muted": "#8A8F98" },
+    "phone": "+1 555 010 2233",
+    "whatsapp": "15550102233",
+    "email": "hello@northlinesigns.example"
+  },
+  "cta": "both",
+  "poweredBy": true,
+  "prices_placeholder": false,
+  "options": {
+    "types": [
+      { "id": "facade", "label": "Facade sign", "priceFixed": 0 },
+      { "id": "totem", "label": "Totem sign", "priceFixed": 400 }
+    ],
+    "width": { "min": 2, "max": 20, "step": 0.5, "default": 8 },
+    "height": { "min": 1, "max": 8, "step": 0.5, "default": 3 },
+    "materials": [
+      { "id": "pvc", "label": "PVC", "pricePerArea": 15, "visual": { "color": "#E8E8E4", "metalness": 0, "roughness": 0.8 } },
+      { "id": "aluminum", "label": "Aluminum", "pricePerArea": 25, "visual": { "color": "#B8BDC4", "metalness": 0.9, "roughness": 0.35 } },
+      { "id": "acrylic", "label": "Acrylic", "pricePerArea": 35, "visual": { "color": "#F2F5F7", "metalness": 0.1, "roughness": 0.15 } }
+    ],
+    "lighting": [
+      { "id": "none", "label": "None", "pricePerArea": 0, "visual": { "mode": "none" } },
+      { "id": "front", "label": "Front-lit", "pricePerArea": 60, "visual": { "mode": "front" } },
+      { "id": "back", "label": "Back-lit", "pricePerArea": 80, "visual": { "mode": "back" } }
+    ],
+    "installation": { "fixed": 350, "perArea": 10 },
+    "quantity": { "min": 1, "max": 10, "default": 1 },
+    "discounts": [{ "minQty": 2, "pct": 5 }, { "minQty": 5, "pct": 10 }],
+    "rangePct": 8
+  },
+  "texts": {
+    "headline": "Your sign price in 60 seconds",
+    "subheadline": "Choose the size, the material and the lighting. See it in 3D and get an instant estimate.",
+    "configureTitle": "Build your sign",
+    "typeLabel": "Sign type",
+    "widthLabel": "Width",
+    "heightLabel": "Height",
+    "materialLabel": "Material",
+    "lightingLabel": "Lighting",
+    "installationLabel": "Installation",
+    "installationYes": "Yes, install it for me",
+    "installationNo": "No, I install it",
+    "quantityLabel": "Quantity",
+    "priceLabel": "Estimated price",
+    "priceRangeNote": "Estimated range",
+    "disclaimer": "This is an estimate. The final price is confirmed by Northline Signs.",
+    "ctaWhatsapp": "Send on WhatsApp",
+    "ctaForm": "Request this quote",
+    "formTitle": "Where do we send the quote?",
+    "formName": "Your name",
+    "formContact": "Email or phone",
+    "formNote": "Anything we should know?",
+    "formSubmit": "Send request",
+    "formSending": "Sending",
+    "thanksTitle": "Thanks, we got your request",
+    "thanksBody": "We will answer within one business day.",
+    "viewQuote": "View my quote",
+    "quoteTitle": "Sign quote",
+    "quoteValidity": "This quote is valid for 15 days.",
+    "lineMaterial": "Material",
+    "lineLighting": "Lighting",
+    "lineType": "Sign structure",
+    "lineInstallation": "Installation",
+    "lineDiscount": "Quantity discount",
+    "poweredBy": "Powered by Lokebox",
+    "whatsappMessage": "Hi, I want a quote for a {type}, {width} x {height} {unit}, {material}, lighting: {lighting}, installation: {installation}, quantity {quantity}. Estimated range {min} to {max}."
+  }
+}

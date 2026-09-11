@@ -1,0 +1,77 @@
+{
+  "slug": "norte",
+  "locale": "es-AR",
+  "vertical": "signs",
+  "currency": { "code": "ARS", "symbol": "$", "decimals": 0 },
+  "units": { "length": "m", "area": "m2" },
+  "brand": {
+    "name": "Norte Carteles",
+    "logo": "/clients/norte/logo.svg",
+    "colors": { "bg": "#08090C", "primary": "#12161C", "accent": "#4DA3FF", "text": "#F2F4F7", "muted": "#868D99" },
+    "phone": "+54 381 555 0123",
+    "whatsapp": "5493815550123",
+    "email": "hola@nortecarteles.example"
+  },
+  "cta": "both",
+  "poweredBy": true,
+  "prices_placeholder": true,
+  "options": {
+    "types": [
+      { "id": "facade", "label": "Cartel de fachada", "priceFixed": 0 },
+      { "id": "totem", "label": "Tótem", "priceFixed": 270000 }
+    ],
+    "width": { "min": 0.6, "max": 6, "step": 0.1, "default": 2.5 },
+    "height": { "min": 0.3, "max": 2.5, "step": 0.1, "default": 1 },
+    "materials": [
+      { "id": "pvc", "label": "PVC espumado", "pricePerArea": 109000, "visual": { "color": "#E8E8E4", "metalness": 0, "roughness": 0.8 } },
+      { "id": "aluminum", "label": "Chapa", "pricePerArea": 182000, "visual": { "color": "#B8BDC4", "metalness": 0.9, "roughness": 0.35 } },
+      { "id": "acrylic", "label": "Acrílico", "pricePerArea": 254000, "visual": { "color": "#F2F5F7", "metalness": 0.1, "roughness": 0.15 } }
+    ],
+    "lighting": [
+      { "id": "none", "label": "Sin luz", "pricePerArea": 0, "visual": { "mode": "none" } },
+      { "id": "front", "label": "Frontal", "pricePerArea": 436000, "visual": { "mode": "front" } },
+      { "id": "back", "label": "Retroiluminado", "pricePerArea": 581000, "visual": { "mode": "back" } }
+    ],
+    "installation": { "fixed": 236000, "perArea": 73000 },
+    "quantity": { "min": 1, "max": 10, "default": 1 },
+    "discounts": [{ "minQty": 2, "pct": 5 }, { "minQty": 5, "pct": 10 }],
+    "rangePct": 8
+  },
+  "texts": {
+    "headline": "El precio de tu cartel en 60 segundos",
+    "subheadline": "Elegí la medida, el material y la iluminación. Miralo en 3D y llevate una estimación al instante.",
+    "configureTitle": "Armá tu cartel",
+    "typeLabel": "Tipo de cartel",
+    "widthLabel": "Ancho",
+    "heightLabel": "Alto",
+    "materialLabel": "Material",
+    "lightingLabel": "Iluminación",
+    "installationLabel": "Instalación",
+    "installationYes": "Sí, quiero que lo instalen",
+    "installationNo": "No, lo instalo yo",
+    "quantityLabel": "Cantidad",
+    "priceLabel": "Precio estimado",
+    "priceRangeNote": "Rango estimado",
+    "disclaimer": "Es una estimación. El presupuesto final lo confirma Norte Carteles.",
+    "ctaWhatsapp": "Enviar por WhatsApp",
+    "ctaForm": "Pedir este presupuesto",
+    "formTitle": "¿A dónde te mandamos el presupuesto?",
+    "formName": "Tu nombre",
+    "formContact": "Email o teléfono",
+    "formNote": "¿Algo que tengamos que saber?",
+    "formSubmit": "Enviar pedido",
+    "formSending": "Enviando",
+    "thanksTitle": "Gracias, recibimos tu pedido",
+    "thanksBody": "Te respondemos dentro de un día hábil.",
+    "viewQuote": "Ver mi presupuesto",
+    "quoteTitle": "Presupuesto de cartel",
+    "quoteValidity": "Este presupuesto tiene 15 días de validez.",
+    "lineMaterial": "Material",
+    "lineLighting": "Iluminación",
+    "lineType": "Estructura",
+    "lineInstallation": "Instalación",
+    "lineDiscount": "Descuento por cantidad",
+    "poweredBy": "Powered by Lokebox",
+    "whatsappMessage": "Hola, quiero un presupuesto de un {type}, {width} x {height} {unit}, {material}, iluminación: {lighting}, instalación: {installation}, cantidad {quantity}. Rango estimado {min} a {max}."
+  }
+}

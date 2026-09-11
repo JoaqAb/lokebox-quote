@@ -17,3 +17,8 @@
 - 11/09/2026: el primer deploy en Vercel se hace al cerrar el bloque del lunes, sin dominio propio, para no dejar el deploy para el final. El dominio quote.lokebox.com se conecta el miércoles.
 - 11/09/2026: cero strings de UI hardcodeados. Todo texto visible sale de texts en el JSON del cliente, con las 34 claves listadas en SPEC 10.
 - 11/09/2026: si el 3D no rinde en mobile, el orden de degradación es bloom, sombras, órbita. No se vuelve a 2D.
+- 11/09/2026: la linea de iluminacion del desglose se incluye siempre, tambien cuando el importe es 0. Asi el desglose tiene la misma forma en todas las selecciones y el quote imprimible no cambia de altura al elegir "sin luz". Las lineas de type, installation y discount, en cambio, aparecen solo cuando suman.
+- 11/09/2026: los importes de las lineas del desglose son por unidad, no por cantidad. El subtotal es unitTotal por quantity. El descuento tambien se expresa por unidad.
+- 11/09/2026: el campo `detail` de cada linea es un string tecnico y determinista, sin moneda ni locale, con formato fijo: material e iluminacion `area x precio`, tipo `precio fijo`, instalacion `fijo + area x porArea`, descuento `pct%`.
+- 11/09/2026: vitest 5.0.0, instalado sin fijar version y sin conflicto de peers con vite 8 y TypeScript 6.
+- 11/09/2026: SPEC 10 lista 35 claves de `texts`, no 34. El numero 34 que aparece en la prosa de SPEC, de DECISIONES y de TAREA_001 es un error de conteo. La lista de claves es la misma en los tres lugares y es la que manda. El tipo ClientTexts tiene las 35.
