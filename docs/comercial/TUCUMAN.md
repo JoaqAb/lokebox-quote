@@ -57,6 +57,21 @@ Valor:
 - lead estructurado listo para revisar;
 - más adelante: WhatsApp + IA + automatización Lokebox.
 
+## Decisión comercial sobre el WOW visual
+
+El MVP actual debe terminar primero con el flujo completo vendible: configuración visual, precio/estimación, lead, WhatsApp/formulario, quote imprimible, deploy, mobile y material comercial.
+
+Si ese alcance queda cerrado con margen antes de la fecha objetivo, la primera mejora visual prioritaria es **letras corpóreas / channel letters**.
+
+Razones:
+- es el producto que más se repite entre los mejores prospectos locales;
+- es visualmente más representativo del trabajo real de Lumilet, Multigráfica y GB;
+- aumenta el efecto WOW del demo;
+- sirve también para mercado internacional;
+- debe implementarse como capacidad reutilizable de la vertical signage, nunca como parche para un cliente concreto.
+
+Regla: corpóreas no puede retrasar lead, quote, deploy, mobile, materiales de venta ni salida comercial. Si no entra con margen real, se vende el MVP actual y se valida la necesidad con conversaciones reales.
+
 ## Auditoría inicial — primera tanda
 
 ### 1. Multigráfica Tucumán — prioridad A / fit 5
@@ -150,11 +165,12 @@ Reglas:
 ## Orden de ataque
 
 1. Terminar demo en estado comercial presentable.
-2. Preparar assets específicos para corpóreas/fachadas.
-3. Contactar primero Lumilet, Multigráfica y GB con mensajes distintos.
-4. Registrar cada contacto y follow-up en el CRM.
-5. Medir respuesta antes de escalar.
-6. En paralelo levantar leads internacionales; Tucumán no bloquea el mercado global.
+2. Si existe margen real después de cerrar el MVP completo, priorizar corpóreas/channel letters como mejora WOW reusable.
+3. Preparar assets específicos para corpóreas/fachadas.
+4. Contactar primero Lumilet, Multigráfica y GB con mensajes distintos.
+5. Registrar cada contacto y follow-up en el CRM.
+6. Medir respuesta antes de escalar.
+7. En paralelo levantar leads internacionales; Tucumán no bloquea el mercado global.
 
 ## Fuentes públicas usadas en la auditoría
 
