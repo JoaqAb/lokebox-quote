@@ -5,7 +5,27 @@ import { defaultSelection } from '../../../core/clientConfig'
 import { themeFromClient } from '../../../core/theme'
 import type { SignSelection } from '../../../core/types'
 import { lengthToMeters } from '../visuals'
-import { SET, WINDOW_TOP, scenePalette, signBoxMeters } from './sceneGeometry'
+import {
+  AUTO_ORBIT,
+  CAMERA,
+  HALO,
+  LAMP,
+  LIGHTING,
+  ORBIT,
+  PREVIEW_ASPECT,
+  SET,
+  TOTEM,
+  WINDOW_TOP,
+  autoAzimuth,
+  haloBox,
+  lampPosition,
+  lightingParams,
+  scenePalette,
+  signBoxMeters,
+  signPlacement,
+  visibleHalfSizeAt,
+  type SignPlacement,
+} from './sceneGeometry'
 import { hasWebGL } from './webgl'
 
 function clientOrFail(slug: string) {
@@ -17,9 +37,9 @@ function clientOrFail(slug: string) {
 }
 
 // Los cuatro extremos de ancho y alto de un cliente.
-function extremeSelections(slug: string): SignSelection[] {
+function extremeSelections(slug: string, type = 'facade'): SignSelection[] {
   const config = clientOrFail(slug)
-  const base = defaultSelection(config)
+  const base = { ...defaultSelection(config), type }
   const { width, height } = config.options
   return [
     { ...base, width: width.min, height: height.min },
@@ -27,6 +47,15 @@ function extremeSelections(slug: string): SignSelection[] {
     { ...base, width: width.max, height: height.min },
     { ...base, width: width.max, height: height.max },
   ]
+}
+
+function factorOf(slug: string): number {
+  return lengthToMeters(clientOrFail(slug).units.length)
+}
+
+function totemPlacement(slug: string, width: number, height: number): SignPlacement {
+  const base = defaultSelection(clientOrFail(slug))
+  return signPlacement({ ...base, type: 'totem', width, height }, factorOf(slug))
 }
 
 function luminance(hex: string): number {
@@ -100,5 +129,192 @@ describe('hasWebGL', () => {
   // 12.10
   it('devuelve false en entorno node y no lanza', () => {
     expect(hasWebGL()).toBe(false)
+  })
+})
+
+
+describe('signBoxMeters y signPlacement con totem', () => {
+  // 12.1
+  it('el centro del cartel de totem sale de la altura libre, en los dos clientes', () => {
+    for (const slug of listClientSlugs()) {
+      const config = clientOrFail(slug)
+      const selection: SignSelection = { ...defaultSelection(config), type: 'totem' }
+      const box = signBoxMeters(selection, factorOf(slug))
+      expect(box.centerY).toBeCloseTo(TOTEM.clearance + box.height / 2, 10)
+    }
+  })
+
+  // 12.2
+  it('facade deja el cartel sobre la fachada y sin poste', () => {
+    for (const slug of listClientSlugs()) {
+      const config = clientOrFail(slug)
+      const placement = signPlacement(defaultSelection(config), factorOf(slug))
+      expect(placement.position).toEqual([0, placement.box.centerY, SET.sign.z])
+      expect(placement.post).toBeNull()
+    }
+  })
+
+  // 12.3
+  it('totem deja el cartel sobre la vereda, con el poste del alto fijo y del ancho clampeado', () => {
+    const expectedWidths: Record<string, [number, number, number]> = {
+      northline: [2, 11, 20],
+      norte: [0.6, 3.3, 6],
+    }
+    for (const slug of listClientSlugs()) {
+      const config = clientOrFail(slug)
+      const heights = config.options.height
+      for (const width of expectedWidths[slug]) {
+        const placement = totemPlacement(slug, width, heights.default)
+        expect(placement.position).toEqual([TOTEM.x, placement.box.centerY, TOTEM.z])
+        const post = placement.post
+        if (post === null) {
+          throw new Error('el totem tiene que tener poste')
+        }
+        expect(post.size[1]).toBeCloseTo(TOTEM.clearance + TOTEM.post.overlap, 10)
+        expect(post.size[2]).toBe(TOTEM.post.depth)
+        expect(post.position).toEqual([TOTEM.x, post.size[1] / 2, TOTEM.z])
+        const free = placement.box.width * TOTEM.post.widthFactor
+        const clamped = Math.min(Math.max(free, TOTEM.post.minWidth), TOTEM.post.maxWidth)
+        expect(post.size[0]).toBeCloseTo(clamped, 10)
+      }
+      // El minimo y el maximo se tocan de verdad con los rangos de cada cliente.
+      const narrow = totemPlacement(slug, config.options.width.min, heights.default)
+      const wide = totemPlacement(slug, config.options.width.max, heights.default)
+      expect(narrow.post?.size[0]).toBe(TOTEM.post.minWidth)
+      expect(wide.post?.size[0]).toBe(TOTEM.post.maxWidth)
+    }
+  })
+
+  // 12.4
+  it('las dos funciones lanzan con un tipo desconocido, con el id en el mensaje', () => {
+    const config = clientOrFail('northline')
+    const selection: SignSelection = { ...defaultSelection(config), type: 'banner' }
+    expect(() => signBoxMeters(selection, 1)).toThrow(/banner/)
+    expect(() => signPlacement(selection, 1)).toThrow(/banner/)
+  })
+
+  // 12.5
+  it('en los cuatro extremos el totem entra en cuadro, en los dos clientes', () => {
+    const visible = visibleHalfSizeAt(TOTEM.z, PREVIEW_ASPECT)
+    const visibleTop = CAMERA.position[1] + visible.halfHeight
+    for (const slug of listClientSlugs()) {
+      for (const selection of extremeSelections(slug, 'totem')) {
+        const placement = signPlacement(selection, factorOf(slug))
+        expect(placement.box.width / 2).toBeLessThanOrEqual(visible.halfWidth - 0.2)
+        expect(placement.box.centerY + placement.box.height / 2).toBeLessThanOrEqual(visibleTop)
+      }
+    }
+  })
+
+  // 12.6
+  it('en los mismos casos el borde inferior queda a la altura libre y el poste lo alcanza', () => {
+    for (const slug of listClientSlugs()) {
+      for (const selection of extremeSelections(slug, 'totem')) {
+        const placement = signPlacement(selection, factorOf(slug))
+        expect(placement.box.centerY - placement.box.height / 2).toBeCloseTo(TOTEM.clearance, 10)
+        const post = placement.post
+        if (post === null) {
+          throw new Error('el totem tiene que tener poste')
+        }
+        expect(post.size[1]).toBeGreaterThanOrEqual(TOTEM.clearance)
+      }
+    }
+  })
+})
+
+describe('iluminacion', () => {
+  // 12.7
+  it('lightingParams devuelve la tabla de los tres modos y lanza con cualquier otro', () => {
+    expect(lightingParams('none')).toEqual(LIGHTING.none)
+    expect(lightingParams('front')).toEqual(LIGHTING.front)
+    expect(lightingParams('back')).toEqual(LIGHTING.back)
+    expect(lightingParams('none').lampIntensity).toBe(0)
+    expect(lightingParams('back').haloIntensity).toBeGreaterThan(0)
+    expect(() => lightingParams('neon')).toThrow(/neon/)
+  })
+
+  // 12.8
+  it('el halo es mas grande que el cartel y queda entre el apoyo y la cara trasera', () => {
+    for (const slug of listClientSlugs()) {
+      const config = clientOrFail(slug)
+      const base = defaultSelection(config)
+      for (const type of ['facade', 'totem']) {
+        const placement = signPlacement({ ...base, type }, factorOf(slug))
+        const halo = haloBox(placement)
+        expect(halo.size[0]).toBeCloseTo(placement.box.width + 2 * HALO.padding, 10)
+        expect(halo.size[1]).toBeCloseTo(placement.box.height + 2 * HALO.padding, 10)
+        const backFace = placement.position[2] - SET.sign.thickness / 2
+        expect(halo.position[2]).toBeLessThan(backFace)
+        expect(halo.position[2]).toBeCloseTo(backFace - HALO.gap, 10)
+      }
+      // En facade el apoyo es la cara frontal de la fachada, en z = 0.
+      const facade = signPlacement({ ...base, type: 'facade' }, factorOf(slug))
+      expect(haloBox(facade).position[2]).toBeGreaterThan(0)
+    }
+  })
+
+  // 12.9
+  it('la luz dinamica esta donde corresponde en cada modo y en los dos tipos', () => {
+    for (const slug of listClientSlugs()) {
+      const base = defaultSelection(clientOrFail(slug))
+      for (const type of ['facade', 'totem']) {
+        const placement = signPlacement({ ...base, type }, factorOf(slug))
+        expect(lampPosition('none', placement)).toBeNull()
+
+        const front = lampPosition('front', placement)
+        if (front === null) {
+          throw new Error('front tiene que tener luz')
+        }
+        expect(front[1]).toBeGreaterThan(placement.position[1] + placement.box.height / 2)
+        expect(front[2]).toBeGreaterThan(placement.position[2])
+        expect(front[1]).toBeCloseTo(
+          placement.position[1] + placement.box.height / 2 + LAMP.frontOffsetY,
+          10,
+        )
+
+        const back = lampPosition('back', placement)
+        if (back === null) {
+          throw new Error('back tiene que tener luz')
+        }
+        expect(back[2]).toBeCloseTo(haloBox(placement).position[2], 10)
+        expect(back[1]).toBeCloseTo(placement.position[1], 10)
+      }
+    }
+  })
+})
+
+describe('scenePalette con el poste', () => {
+  // 12.10
+  it('devuelve el color del poste derivado de muted, mas oscuro, y lanza si falta', () => {
+    for (const slug of listClientSlugs()) {
+      const theme = themeFromClient(clientOrFail(slug))
+      const palette = scenePalette(theme)
+      expect(luminance(palette.post)).toBeLessThan(luminance(theme['--q-muted']))
+      expect(luminance(palette.post)).toBeGreaterThan(0)
+    }
+    const sinMuted = themeFromClient(clientOrFail('northline'))
+    delete sinMuted['--q-muted']
+    expect(() => scenePalette(sinMuted)).toThrow(/--q-muted/)
+  })
+})
+
+describe('autoAzimuth', () => {
+  // 12.11
+  it('barre dentro del clamp, pasa por los dos extremos y por el cero', () => {
+    // La amplitud queda adentro del clamp por los dos lados: el barrido nunca lo toca.
+    expect(AUTO_ORBIT.amplitude).toBeLessThan(ORBIT.maxAzimuthAngle)
+    expect(AUTO_ORBIT.amplitude).toBeLessThan(-ORBIT.minAzimuthAngle)
+
+    const samples: number[] = []
+    const steps = 400
+    for (let i = 0; i <= steps; i += 1) {
+      const value = autoAzimuth((AUTO_ORBIT.periodSeconds * i) / steps)
+      expect(Math.abs(value)).toBeLessThanOrEqual(AUTO_ORBIT.amplitude + 1e-12)
+      samples.push(value)
+    }
+    expect(Math.max(...samples)).toBeCloseTo(AUTO_ORBIT.amplitude, 4)
+    expect(Math.min(...samples)).toBeCloseTo(-AUTO_ORBIT.amplitude, 4)
+    expect(Math.min(...samples.map((value) => Math.abs(value)))).toBeLessThan(1e-6)
+    expect(autoAzimuth(0)).toBeCloseTo(0, 10)
   })
 })

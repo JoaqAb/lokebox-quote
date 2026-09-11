@@ -4,8 +4,8 @@
 
 Bloque 0 cerrado. Bloque 1 cerrado, incluido Canal C: hay URL publica.
 Produccion: https://lokebox-quote.vercel.app. Proyecto de Vercel lokebox-quote, sin variables de entorno.
-Bloque 2 en curso: TAREA_003 cerrada, revisada y aceptada por Canal B.
-Siguiente: TAREA_004, escrita en docs/tareas/TAREA_004_iluminacion_totem_rendimiento.md. Cierra el bloque 2.
+Bloque 2 cerrado: TAREA_003 y TAREA_004 cerradas. El preview 3D esta completo y no se vuelve a tocar hasta TAREA_007.
+Siguiente: bloque 3, TAREA_005. Prerrequisito de Canal C antes de arrancar: proyecto de Supabase, tablas, RLS y variables de entorno.
 
 ## Hecho
 
@@ -17,25 +17,26 @@ Siguiente: TAREA_004, escrita en docs/tareas/TAREA_004_iluminacion_totem_rendimi
 - Canal C: proyecto en Vercel e import del repo. Las cuatro URLs verificadas a mano: /, /d/northline, /d/norte y /d/inexistente. Numeros correctos en pantalla en los dos clientes, cada uno con su idioma, su unidad y su moneda.
 - Canal B: SPEC.md 1.2 (interfaz del preview con visual, escala en metros, colores derivados del theme, caida sin WebGL, prohibiciones de assets en la vertical 3D), EXECUTION del bloque 2 y TAREA_003. Commit 4b54fa1.
 - TAREA_003: escena 3D base de la vertical, mas el fix del padding de la barra en mobile y "strict": true explicito. 63 tests. Commits 4b54fa1 (docs) y 07928b2 (codigo). Revisada y aceptada por Canal B contra los 17 criterios: 14 al pie de la letra y 3 con desvio aceptado (advertencia de tamano de chunk, fps medidos sobre SwiftShader y la barra de precio a mitad de scroll).
-- Canal B: SPEC.md 1.3 (presupuesto de bundle, tres modos de luz, bloom fuera del MVP, totem y poste, barrido de camara, degradacion por niveles), EXECUTION del bloque 2 y TAREA_004, mas once decisiones nuevas.
+- Canal B: SPEC.md 1.3 (presupuesto de bundle, tres modos de luz, bloom fuera del MVP, totem y poste, barrido de camara, degradacion por niveles), EXECUTION del bloque 2 y TAREA_004, mas diez decisiones nuevas. Commit d9568ec.
+- TAREA_004: los tres modos de iluminacion con halo y una sola luz dinamica, totem con poste, barrido de camara, presupuesto de rendimiento en tres niveles, presupuesto de bundle y reequilibrio de la composicion. 76 tests.
 
 ## Estado del codigo
 
 - `src/core`: tipos, motor de precios puro, formateo de moneda, validacion de config, tema por cinco variables CSS, layout, panel generico por descriptores con cuatro controles, precio animado, rango, disclaimer y desglose. No importa nada de verticals ni de clients en codigo de produccion.
-- `src/verticals/signs`: `fields.ts` arma los siete descriptores desde el JSON y adapta en las dos direcciones contra `SignSelection`. `visuals.ts` arma el `SignVisual` (visual del material, visual de la luz y factor a metros). `SignPreview.tsx` es el host del canvas con la interfaz `{ selection, visual, theme }`, y cae a `SignPreviewFallback` si no hay WebGL. `scene/` tiene `sceneGeometry.ts` (todas las medidas, posiciones y colores, puro y testeado), `Storefront.tsx`, `SignBoard.tsx`, `SignScene.tsx` y `webgl.ts`.
+- `src/verticals/signs`: `fields.ts` arma los siete descriptores desde el JSON y adapta en las dos direcciones contra `SignSelection`. `visuals.ts` arma el `SignVisual` (visual del material, visual de la luz y factor a metros). `SignPreview.tsx` es el host del canvas con la interfaz `{ selection, visual, theme }`, guarda el nivel de rendimiento y cae a `SignPreviewFallback` si no hay WebGL. `scene/` tiene `sceneGeometry.ts` (todas las medidas, posiciones, colores, tabla de iluminacion y barrido, puro y testeado), `Storefront.tsx`, `SignBoard.tsx` (cartel, poste, halo y luz en un solo useFrame), `SignScene.tsx`, `AutoOrbit.tsx`, `perfTier.ts`, `usePerfTier.ts` y `webgl.ts`.
 - `src/clients`: registro por `import.meta.glob` eager. Agregar un cliente es agregar el JSON y el logo, sin tocar un solo `.ts`. Verificado.
 - `src/pages`: `QuotePage` es el unico lugar que decide vertical, `IndexPage` es un indice temporal y `ErrorScreen` es la unica pantalla con texto fijo.
-- 63 tests en verde: los 52 previos sin tocar, los 10 de la seccion 12 de TAREA_003 mapeados uno a uno, y uno extra por el error de tema faltante en `scenePalette`.
-- El cartel usa una sola boxGeometry unitaria: el tamano va por scale y la transicion por damp en useFrame. Verificado con `renderer.info.memory.geometries`, que se mantiene en 6 despues de barrer los dos sliders de punta a punta.
-- Sin tocar todavia: Supabase, lead, CTA, quote imprimible, tracking de visitas, totem, modos de iluminacion y landing real.
+- 76 tests en verde: los 63 previos sin tocar y los 13 de la seccion 12 de TAREA_004 mapeados uno a uno.
+- Una sola geometria por pieza: caja unitaria para el cartel y para el poste, plano unitario para el halo. Todo se dimensiona con scale y se acomoda con damp en un solo useFrame. Verificado con `renderer.info.memory.geometries`: 6 en frio, 7 cuando el poste se dibuja por primera vez, y estable despues de ir y volver tres veces entre facade y totem.
+- Presupuesto de bundle aplicado: chunk de la app 385 kB (123 kB gzip) y chunk del vendor 3D 913 kB (244 kB gzip), los dos adentro de SPEC 3 y sin advertencia en el build.
+- Sin tocar todavia: Supabase, lead, CTA, quote imprimible, tracking de visitas y landing real.
 
 ## Pendientes menores con destino asignado
 
 - Resuelto en TAREA_003: el padding inferior del panel en mobile se deriva de la altura real de la barra, medida con ResizeObserver sobre el border box y publicada en --q-price-h. Con los dos clientes la barra mide 160 px en 390 px y el padding queda en 192 px.
-- Resuelto por decision de Canal B, se aplica en TAREA_004: el vendor 3D va a un chunk propio con manualChunks y chunkSizeWarningLimit sube a 1000, como presupuesto declarado de SPEC 3. Sin lazy loading del preview.
-- Resuelto por decision de Canal B, se aplica en TAREA_004: el warning de `THREE.Clock` se intenta sacar subiendo @react-three/fiber dentro de 9.x, ultimo paso y commit propio. Si no sale o rompe algo, se revierte y se acepta como ruido de tercero.
-- Resuelto por decision de Canal B, se aplica en TAREA_004: la vidriera baja a 0.07 de emision y la direccional sube a 0.8, mas la emision del cartel en los modos con luz. El criterio 14 de TAREA_004 lo mide con luminancia. Si no alcanza, va a TAREA_007.
-- Pendiente de Joaquin, antes de cerrar el bloque 2: confirmar los 60 fps de TAREA_003 en su maquina con GPU real, y ver las dos demos en un telefono.
+- Resuelto en TAREA_004: presupuesto de bundle con manualChunks y limite 1000. El build no avisa mas.
+- Resuelto en TAREA_004: la vidriera bajo a 0.07 y la direccional subio a 0.8. Medido con luminancia sobre captura: el cartel con el modo none da 0.54 contra 0.28 de la vidriera, en los dos clientes. Antes era al reves.
+- Pendiente de Joaquin, sin bloquear el bloque 3: ver las dos demos en un telefono real y confirmar fps con GPU de verdad. Todas las mediciones de fps de los bloques 2 y 3 estan hechas sobre SwiftShader por software.
 - El encabezado muestra el logo y al lado repite `brand.name`. Va a TAREA_007.
 - El indice de `/` muestra los slugs crudos. Va a TAREA_008, con la landing real.
 - Bastante aire abajo en la columna del preview en 1440 px. Va a TAREA_007.
