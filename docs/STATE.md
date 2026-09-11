@@ -17,8 +17,10 @@ Siguiente: bloque 3, TAREA_005. Prerrequisito de Canal C antes de arrancar: proy
 - Canal C: proyecto en Vercel e import del repo. Las cuatro URLs verificadas a mano: /, /d/northline, /d/norte y /d/inexistente. Numeros correctos en pantalla en los dos clientes, cada uno con su idioma, su unidad y su moneda.
 - Canal B: SPEC.md 1.2 (interfaz del preview con visual, escala en metros, colores derivados del theme, caida sin WebGL, prohibiciones de assets en la vertical 3D), EXECUTION del bloque 2 y TAREA_003. Commit 4b54fa1.
 - TAREA_003: escena 3D base de la vertical, mas el fix del padding de la barra en mobile y "strict": true explicito. 63 tests. Commits 4b54fa1 (docs) y 07928b2 (codigo). Revisada y aceptada por Canal B contra los 17 criterios: 14 al pie de la letra y 3 con desvio aceptado (advertencia de tamano de chunk, fps medidos sobre SwiftShader y la barra de precio a mitad de scroll).
-- Canal B: SPEC.md 1.3 (presupuesto de bundle, tres modos de luz, bloom fuera del MVP, totem y poste, barrido de camara, degradacion por niveles), EXECUTION del bloque 2 y TAREA_004, mas diez decisiones nuevas. Commit d9568ec.
-- TAREA_004: los tres modos de iluminacion con halo y una sola luz dinamica, totem con poste, barrido de camara, presupuesto de rendimiento en tres niveles, presupuesto de bundle y reequilibrio de la composicion. 76 tests.
+- Canal B: SPEC.md 1.3 (presupuesto de bundle, tres modos de luz, bloom fuera del MVP, totem y poste, barrido de camara, degradacion por niveles), EXECUTION del bloque 2 y TAREA_004, mas diez decisiones nuevas. Commit 5e0f971 (era d9568ec antes del rebase).
+- Canal C: estrategia comercial y estrategia de Upwork escritas a mano por Joaquin en docs/comercial/. Commits 5f49c7d y f45a871.
+- TAREA_004: los tres modos de iluminacion con halo y una sola luz dinamica, totem con poste, barrido de camara, presupuesto de rendimiento en tres niveles, presupuesto de bundle y reequilibrio de la composicion. 76 tests. Commits 5e0f971 (docs) y 43c4d1e (codigo), rebasados sobre los dos commits comerciales. Revisada y aceptada por Canal B contra los 18 criterios: 17 al pie de la letra, el 10 con reporte parcial aceptado (bounding box en pantalla solo en el extremo maximo de cada cliente, que es el unico que puede salirse de cuadro; los cuatro extremos quedan cubiertos por el test 12.5) y el 13 pendiente de medicion con GPU real. Los once desvios aceptados y anotados en DECISIONES.
+- Canal B: TAREA_005 escrita, EXECUTION del bloque 3 apuntada al archivo y siete decisiones nuevas. SPEC queda en 1.3: la tarea no cambia alcance.
 
 ## Estado del codigo
 
@@ -44,13 +46,13 @@ Siguiente: bloque 3, TAREA_005. Prerrequisito de Canal C antes de arrancar: proy
 ## Canal C, en orden
 
 1. Hecho: proyecto en Vercel y primer deploy.
-2. Antes de TAREA_005: proyecto de Supabase separado del de Lokebox, tablas `leads` y `visits`, RLS con policy de insert para anon, y `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` en `.env.local` y en Vercel.
+2. Antes de TAREA_005: organizacion Free nueva (`Lokebox Quote`), proyecto de Supabase separado del de Lokebox, tablas `leads` y `visits`, RLS con policy de insert para anon, y `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` en `.env.local` y en Vercel. Parcial: las dos variables estan cargadas en production y preview. La anon key quedo como Config y su valor coincide con `.env.local` por hash en los dos entornos. La URL entro como Secret y se rehace como Config en el arranque de TAREA_005, con su verificacion por hash. El proyecto, las tablas y el RLS los verifica Code con un curl antes de escribir codigo: si ese curl no da 201, este punto no esta cerrado. El proyecto Free se pausa a los 7 dias de inactividad; si eso pasa, se despausa desde el dashboard. Cuando haya cliente real, transfer a la org paga sin cambiar URL ni keys.
 3. CNAME de quote.lokebox.com a Vercel y verificacion del certificado.
 4. Video de 30 segundos y capturas, desktop y mobile, demo EN.
 5. Listado del Project Catalog, planilla de precios, lista de 40 carteleria de Tucuman y plantilla del mensaje de salida en frio.
 
 ## Convenciones que no se olvidan
 
-- `docs/tareas/_ULTIMO.md` guarda el proximo numero libre. Hoy dice 004, que es el numero de la tarea en curso. Al cerrarla pasa a 005.
+- `docs/tareas/_ULTIMO.md` guarda el proximo numero libre. Hoy dice 005, que es el numero de la tarea en curso. Al cerrarla pasa a 006.
 - Commit de docs separado del commit de codigo.
 - Nada de parches: si algo pide un workaround, se frena y se decide en Canal B.

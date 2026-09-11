@@ -47,8 +47,8 @@ Al cierre de TAREA_004 se cierra el bloque 2 y el preview no se vuelve a tocar h
 
 Prerrequisito Canal C, antes de TAREA_005: crear el proyecto de Supabase, las dos tablas, el RLS y las policies de insert, y cargar `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` en `.env.local` y en Vercel. Sin esto la tarea no arranca.
 
-- TAREA_005 · cliente Supabase, insert de lead, CTA WhatsApp con mensaje armado, formulario, pantalla de confirmación, insert de visita.
-  - Aceptación: G1 a G6. Un lead por formulario aparece en la tabla con selection, total, min, max y contacto. El CTA de WhatsApp abre `wa.me` con el mensaje completo y legible. Si Supabase está caído, el flujo sigue y el usuario no ve un error. Una carga de `/d/northline` inserta una visita y un refresco en la misma sesión no duplica.
+- TAREA_005 · capa de datos, insert de lead, CTA WhatsApp con mensaje armado, formulario, pantalla de confirmación, insert de visita. Detalle en docs/tareas/TAREA_005_lead_supabase_cta.md. Sin SDK de Supabase: dos inserts por fetch contra PostgREST.
+  - Aceptación: G1 a G6, y los 18 criterios de la tarea, uno por uno. Un lead por formulario aparece en la tabla con selection, total, min, max y contacto. El CTA de WhatsApp abre `wa.me` con el mensaje completo y legible. Si Supabase está caído, el flujo sigue y el usuario no ve un error. Una carga de `/d/northline` inserta una visita y un refresco en la misma sesión no duplica.
 - TAREA_006 · hoja de cotización imprimible y demo ES completa.
   - Aceptación: G1 a G6. Imprimir a PDF desde el navegador da una página limpia con logo, desglose, total, rango, fecha, validez y disclaimer. `/d/norte` está en español, en metros y en pesos, con `prices_placeholder` visible solo en el código, no en pantalla.
 - Canal C al cierre del bloque: apuntar `quote.lokebox.com` a Vercel (registro CNAME) y verificar el certificado.
