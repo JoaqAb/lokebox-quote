@@ -1,5 +1,12 @@
+import { formatLength } from '../../pricing/format'
+
+// La medida visible se formatea con el locale del cliente (SPEC 1.4): /d/norte muestra
+// 2,5 m con coma. El valor del input sigue siendo el numero crudo, que es lo que el
+// control nativo entiende.
+
 type RangeSliderProps = {
   label: string
+  locale: string
   value: number
   min: number
   max: number
@@ -8,7 +15,16 @@ type RangeSliderProps = {
   onChange: (value: number) => void
 }
 
-export function RangeSlider({ label, value, min, max, step, unit, onChange }: RangeSliderProps) {
+export function RangeSlider({
+  label,
+  locale,
+  value,
+  min,
+  max,
+  step,
+  unit,
+  onChange,
+}: RangeSliderProps) {
   return (
     <div className="flex items-center gap-4">
       <input
@@ -24,7 +40,7 @@ export function RangeSlider({ label, value, min, max, step, unit, onChange }: Ra
         }}
       />
       <output className="w-20 shrink-0 text-right text-sm font-medium tabular-nums">
-        {value} {unit}
+        {formatLength(value, locale)} {unit}
       </output>
     </div>
   )

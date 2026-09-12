@@ -12,3 +12,10 @@ export function formatCurrency(value: number, currency: CurrencyConfig, locale: 
   })
   return formatter.format(value)
 }
+
+// Medidas de longitud. Mismo criterio que la moneda: el locale del cliente manda,
+// asi /d/norte muestra 2,5 y /d/northline 2.5. La unidad la pone quien llama.
+export function formatLength(value: number, locale: string): string {
+  const formatter = new Intl.NumberFormat(locale, { maximumFractionDigits: 2 })
+  return formatter.format(value)
+}

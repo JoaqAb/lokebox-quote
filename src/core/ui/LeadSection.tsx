@@ -17,7 +17,7 @@ type LeadSectionProps = {
   whatsappMessage: string
   onSubmitForm: (contact: LeadContact) => Promise<void>
   onWhatsappClick: () => void
-  onViewQuote?: () => void
+  quoteHref?: string
 }
 
 const PRIMARY =
@@ -32,7 +32,7 @@ export function LeadSection({
   whatsappMessage,
   onSubmitForm,
   onWhatsappClick,
-  onViewQuote,
+  quoteHref,
 }: LeadSectionProps) {
   const [state, setState] = useState<LeadState>('idle')
 
@@ -52,7 +52,7 @@ export function LeadSection({
   if (state === 'thanks') {
     return (
       <section className="mt-8">
-        <ThanksScreen texts={texts} onViewQuote={onViewQuote} />
+        <ThanksScreen texts={texts} quoteHref={quoteHref} />
       </section>
     )
   }

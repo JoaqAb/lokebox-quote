@@ -121,3 +121,39 @@ describe('priceRulesFromClient y defaultSelection', () => {
     }
   })
 })
+
+// Las cinco claves de la hoja de cotizacion, de SPEC 1.4.
+const CLAVES_DE_LA_HOJA = [
+  'quoteDateLabel',
+  'quoteSelectionTitle',
+  'quoteBreakdownTitle',
+  'quotePrint',
+  'quoteBack',
+] as const
+
+describe('claves de texto de los dos clientes', () => {
+  // 13.16
+  it('los dos JSON tienen las mismas 40 claves, ninguna vacia', () => {
+    const juegos = listClientSlugs().map((slug) => {
+      const texts = clientOrFail(slug).texts
+      for (const [key, value] of Object.entries(texts)) {
+        expect(value.trim(), `${slug}.texts.${key}`).not.toBe('')
+      }
+      return Object.keys(texts).sort()
+    })
+    expect(juegos[0]).toHaveLength(40)
+    for (const juego of juegos) {
+      expect(juego).toEqual(juegos[0])
+    }
+  })
+
+  // 13.17
+  it('el validador rechaza una config a la que le falta cada clave nueva', () => {
+    for (const key of CLAVES_DE_LA_HOJA) {
+      const broken = structuredClone(northline)
+      delete (broken.texts as Partial<typeof broken.texts>)[key]
+      expect(() => validateClientConfig(broken)).toThrow(new RegExp(key))
+      expect(() => validateClientConfig(broken)).toThrow(/northline/)
+    }
+  })
+})

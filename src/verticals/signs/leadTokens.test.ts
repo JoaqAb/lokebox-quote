@@ -61,11 +61,14 @@ describe('signLeadTokens', () => {
     }
   })
 
-  // 11.15
-  it('ancho y alto salen sin decimales cuando son enteros y con uno cuando no', () => {
+  // 11.15 (editada en TAREA_006: las medidas pasan a formatLength con el locale del
+  // cliente, asi el mensaje de norte dice "2,5 x 1 m" con coma. Los enteros siguen sin
+  // decimales y ahora se admiten dos, no uno.)
+  it('ancho y alto usan el separador decimal del locale del cliente', () => {
     expect(tokensOf('northline', { width: 8, height: 3 }).width).toBe('8')
     expect(tokensOf('northline', { width: 8.5, height: 3 }).width).toBe('8.5')
     expect(tokensOf('northline', { width: 8, height: 2.5 }).height).toBe('2.5')
+    expect(tokensOf('norte', { width: 2.5, height: 1 }).width).toBe('2,5')
     expect(tokensOf('norte', { width: 2.5, height: 1 }).height).toBe('1')
   })
 

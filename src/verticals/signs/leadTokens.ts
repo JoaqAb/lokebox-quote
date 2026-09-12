@@ -1,4 +1,4 @@
-import { formatCurrency } from '../../core/pricing/format'
+import { formatCurrency, formatLength } from '../../core/pricing/format'
 import type { ClientConfig, PriceResult, SignSelection } from '../../core/types'
 
 // Unico lugar que traduce ids de la vertical a etiquetas legibles. Puro, sin React.
@@ -26,9 +26,17 @@ function labelOf(list: { id: string; label: string }[], id: string, what: string
   return found.label
 }
 
-// Sin decimales cuando es entero, con uno cuando no.
-function measure(value: number): string {
-  return Number.isInteger(value) ? String(value) : value.toFixed(1)
+// Las tres etiquetas de id de la vertical, en un solo lugar. Las usan el mensaje de
+// WhatsApp y las filas de la hoja de cotizacion, asi la busqueda por id no se duplica.
+export type SignIdLabels = { type: string; material: string; lighting: string }
+
+export function signIdLabels(config: ClientConfig, selection: SignSelection): SignIdLabels {
+  const { options } = config
+  return {
+    type: labelOf(options.types, selection.type, 'tipo de cartel'),
+    material: labelOf(options.materials, selection.materialId, 'material'),
+    lighting: labelOf(options.lighting, selection.lightingId, 'iluminacion'),
+  }
 }
 
 export function signLeadTokens(
@@ -36,14 +44,15 @@ export function signLeadTokens(
   selection: SignSelection,
   result: PriceResult,
 ): SignLeadTokens {
-  const { options, texts, units, currency, locale } = config
+  const { texts, units, currency, locale } = config
+  const labels = signIdLabels(config, selection)
   return {
-    type: labelOf(options.types, selection.type, 'tipo de cartel'),
-    width: measure(selection.width),
-    height: measure(selection.height),
+    type: labels.type,
+    width: formatLength(selection.width, locale),
+    height: formatLength(selection.height, locale),
     unit: units.length,
-    material: labelOf(options.materials, selection.materialId, 'material'),
-    lighting: labelOf(options.lighting, selection.lightingId, 'iluminacion'),
+    material: labels.material,
+    lighting: labels.lighting,
     installation: selection.installation ? texts.installationYes : texts.installationNo,
     quantity: String(selection.quantity),
     min: formatCurrency(result.min, currency, locale),

@@ -1,4 +1,4 @@
-# Lokebox Quote — Estrategia Upwork
+# Lokebox Quote: Estrategia Upwork
 
 **Fecha base:** 11/09/2026  
 **Estado:** V1 comercial a validar  
@@ -108,7 +108,7 @@ Referencia tentativa posterior: subir hacia aproximadamente 129 / 299 / 699 o m�
 
 ## 5. Alcance de tiers
 
-### Starter — USD 79
+### Starter: USD 79
 
 Propósito: que un cliente pueda ver su marca/producto dentro de un configurador sin asumir mucho riesgo.
 
@@ -128,7 +128,7 @@ Alcance inicial propuesto:
 
 Debe reutilizar el core existente. No aceptar un alcance que obligue a construir un producto nuevo por USD 79.
 
-### Standard — USD 199
+### Standard: USD 199
 
 Producto que se espera vender con mayor frecuencia.
 
@@ -144,7 +144,7 @@ Alcance propuesto:
 - deploy/embed según alcance;
 - 2 revisiones.
 
-### Advanced — USD 449
+### Advanced: USD 449
 
 Alcance propuesto:
 

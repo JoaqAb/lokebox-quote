@@ -1,18 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { getClient } from '../clients'
 import { defaultSelection, priceRulesFromClient } from '../core/clientConfig'
 import { insertRow } from '../core/data/insertRow'
 import { useVisitOnce } from '../core/data/useVisitOnce'
 import { buildLeadRow, type LeadContact } from '../core/lead/leadRow'
 import { buildWhatsappMessage } from '../core/lead/whatsapp'
 import { calculatePrice } from '../core/pricing/calculatePrice'
+import { encodeQuoteParams } from '../core/quote/quoteParams'
 import { themeFromClient } from '../core/theme'
 import { LeadSection } from '../core/ui/LeadSection'
 import { OptionsPanel } from '../core/ui/OptionsPanel'
 import { PriceBar } from '../core/ui/PriceBar'
 import { PriceBreakdown } from '../core/ui/PriceBreakdown'
 import { QuoteLayout } from '../core/ui/QuoteLayout'
+import { useHtmlLang } from '../core/ui/useHtmlLang'
 import type { SelectionValue } from '../core/ui/panelTypes'
 import type { ClientConfig } from '../core/types'
 import { SignPreview } from '../verticals/signs/SignPreview'
@@ -20,29 +21,11 @@ import { selectionFromValues, signFields, valuesFromSelection } from '../vertica
 import { signLeadSelection, signLeadTokens } from '../verticals/signs/leadTokens'
 import { resolveSignVisual } from '../verticals/signs/visuals'
 import { ErrorScreen } from './ErrorScreen'
+import { resolveClient } from './resolveClient'
 
-// Punto de composicion: es el unico lugar que decide vertical y que junta core,
-// vertical y cliente. Si el cliente no existe o su config no valida, se muestra
-// ErrorScreen y no se renderiza el cotizador a medias (SPEC 10).
-
-const SIGNS_VERTICAL = 'signs'
-
-type Resolution = { ok: true; config: ClientConfig } | { ok: false; detail: string }
-
-function resolveClient(slug: string): Resolution {
-  try {
-    const config = getClient(slug)
-    if (config === null) {
-      return { ok: false, detail: `/d/${slug}` }
-    }
-    if (config.vertical !== SIGNS_VERTICAL) {
-      return { ok: false, detail: `/d/${slug}: vertical "${config.vertical}"` }
-    }
-    return { ok: true, config }
-  } catch (error) {
-    return { ok: false, detail: error instanceof Error ? error.message : String(error) }
-  }
-}
+// Punto de composicion del cotizador: junta core, vertical y cliente. Decide vertical
+// junto con QuoteSheetPage, las dos unicas paginas que lo hacen. La resolucion del
+// cliente vive en ./resolveClient, compartida por las dos.
 
 type QuoteScreenProps = {
   config: ClientConfig
@@ -61,6 +44,8 @@ function QuoteScreen({ config }: QuoteScreenProps) {
     document.title = brandName
   }, [brandName])
 
+  useHtmlLang(config.locale)
+
   // Una visita por sesion y por slug. No espera el insert y no renderiza nada.
   useVisitOnce(config.slug)
 
@@ -74,6 +59,10 @@ function QuoteScreen({ config }: QuoteScreenProps) {
   // solo reemplaza los placeholders de la plantilla del cliente.
   const tokens = signLeadTokens(config, selection, result)
   const whatsappMessage = buildWhatsappMessage(config.texts.whatsappMessage, tokens)
+
+  // La hoja se abre con un enlace nativo, no con window.open: asi el navegador no lo
+  // bloquea y la pestana del cotizador conserva el estado del visitante.
+  const quoteHref = `/d/${config.slug}/quote?${encodeQuoteParams(selection)}`
 
   function handleChange(fieldId: string, value: SelectionValue): void {
     setValues((current) => ({ ...current, [fieldId]: value }))
@@ -116,6 +105,7 @@ function QuoteScreen({ config }: QuoteScreenProps) {
             fields={fields}
             values={values}
             texts={config.texts}
+            locale={config.locale}
             onChange={handleChange}
           />
           <PriceBreakdown result={result} config={config} />
@@ -126,6 +116,7 @@ function QuoteScreen({ config }: QuoteScreenProps) {
             whatsappMessage={whatsappMessage}
             onSubmitForm={handleSubmitForm}
             onWhatsappClick={handleWhatsappClick}
+            quoteHref={quoteHref}
           />
         </>
       }

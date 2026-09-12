@@ -127,6 +127,11 @@ export type ClientTexts = {
   viewQuote: string
   quoteTitle: string
   quoteValidity: string
+  quoteDateLabel: string
+  quoteSelectionTitle: string
+  quoteBreakdownTitle: string
+  quotePrint: string
+  quoteBack: string
   lineMaterial: string
   lineLighting: string
   lineType: string

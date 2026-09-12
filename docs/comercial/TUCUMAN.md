@@ -72,9 +72,9 @@ Razones:
 
 Regla: corpóreas no puede retrasar lead, quote, deploy, mobile, materiales de venta ni salida comercial. Si no entra con margen real, se vende el MVP actual y se valida la necesidad con conversaciones reales.
 
-## Auditoría inicial — primera tanda
+## Auditoría inicial: primera tanda
 
-### 1. Multigráfica Tucumán — prioridad A / fit 5
+### 1. Multigráfica Tucumán: prioridad A / fit 5
 
 - Sitio: https://multigraficatucuman.com/
 - WhatsApp / teléfono: 381 661-5591
@@ -88,7 +88,7 @@ Regla: corpóreas no puede retrasar lead, quote, deploy, mobile, materiales de v
 - Precio de prueba sugerido: USD 250 setup + USD 39/mes.
 - Primer canal: WhatsApp.
 
-### 2. Lumilet — prioridad A / fit 5
+### 2. Lumilet: prioridad A / fit 5
 
 - Sitio: https://lumilet.com.ar/
 - Teléfono público: +54 381 209-4376.
@@ -101,7 +101,7 @@ Regla: corpóreas no puede retrasar lead, quote, deploy, mobile, materiales de v
 - Precio de prueba sugerido: USD 250 setup + USD 39/mes.
 - Primer canal: WhatsApp o llamada breve.
 
-### 3. GB Cartelería y Diseño — prioridad A / fit 4.5
+### 3. GB Cartelería y Diseño: prioridad A / fit 4.5
 
 - Teléfono publicado: 381 563-2375.
 - Presencia detectada: Facebook / publicaciones replicadas en directorios.
@@ -113,7 +113,7 @@ Regla: corpóreas no puede retrasar lead, quote, deploy, mobile, materiales de v
 - Precio de prueba sugerido: USD 200 setup + USD 30/mes.
 - Primer canal: WhatsApp.
 
-### 4. Alpha Cartelería & Publicidad — prioridad A/B / fit 4.5
+### 4. Alpha Cartelería & Publicidad: prioridad A/B / fit 4.5
 
 - Teléfono público: +54 381 643-7588.
 - Dirección pública actual: Av. Mate de Luna 2468, San Miguel de Tucumán.
@@ -124,7 +124,7 @@ Regla: corpóreas no puede retrasar lead, quote, deploy, mobile, materiales de v
 - Oferta preliminar: demo visual + discovery corto; founding hasta USD 250 + USD 39/mes si encaja.
 - Primer canal: WhatsApp; visita si responde/interesa.
 
-### 5. Cartelería DAP — prioridad A/B / fit 4.5
+### 5. Cartelería DAP: prioridad A/B / fit 4.5
 
 - Teléfono / WhatsApp público: +54 9 381 539-1731.
 - Dirección pública: Av. Soldati 380, San Miguel de Tucumán.
@@ -138,11 +138,11 @@ Regla: corpóreas no puede retrasar lead, quote, deploy, mobile, materiales de v
 
 ## Ranking actual para primer contacto
 
-1. Lumilet — mejor estructura de catálogo para demostrar Quote.
-2. Multigráfica — mejor evidencia explícita del problema de cotización y empresa profesional.
-3. GB — mejor candidato para gancho WOW / Photo-to-Sign.
-4. Alpha — empresa fuerte, pero falta completar auditoría de producto.
-5. DAP — empresa fuerte y buen caso para Quote como URL independiente; falta auditar contenido social.
+1. Lumilet: mejor estructura de catálogo para demostrar Quote.
+2. Multigráfica: mejor evidencia explícita del problema de cotización y empresa profesional.
+3. GB: mejor candidato para gancho WOW / Photo-to-Sign.
+4. Alpha: empresa fuerte, pero falta completar auditoría de producto.
+5. DAP: empresa fuerte y buen caso para Quote como URL independiente; falta auditar contenido social.
 
 El ranking no implica enviar cinco mensajes seguidos. Primera prueba recomendada: preparar tres contactos personalizados (Lumilet, Multigráfica, GB), medir y ajustar antes de ampliar.
 

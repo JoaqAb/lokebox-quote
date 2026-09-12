@@ -45,3 +45,19 @@ describe('resolveLineLabel', () => {
     expect(() => resolveLineLabel('lineNoExiste', config.texts)).toThrow(/lineNoExiste/)
   })
 })
+
+describe('lineas del desglose segun la cantidad', () => {
+  // 13.15
+  it('con cantidad 1 no hay linea de descuento y con cantidad 5 el descuento es negativo', () => {
+    const config = clientOrFail('northline')
+    const rules = priceRulesFromClient(config)
+
+    const sinDescuento = calculatePrice(rules, { ...fullSelection('northline'), quantity: 1 })
+    expect(sinDescuento.lines.some((line) => line.id === 'discount')).toBe(false)
+
+    const conDescuento = calculatePrice(rules, fullSelection('northline'))
+    expect(conDescuento.lines).toHaveLength(5)
+    const descuento = conDescuento.lines.find((line) => line.id === 'discount')
+    expect(descuento?.amount).toBeLessThan(0)
+  })
+})

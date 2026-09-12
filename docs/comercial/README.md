@@ -1,4 +1,4 @@
-# Lokebox Quote — Frente Comercial
+# Lokebox Quote: Frente Comercial
 
 **Estado:** activo  
 **Inicio:** 11/09/2026  

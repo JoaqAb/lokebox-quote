@@ -13,6 +13,7 @@ type OptionsPanelProps = {
   fields: PanelField[]
   values: Record<string, SelectionValue>
   texts: ClientTexts
+  locale: string
   onChange: (fieldId: string, value: SelectionValue) => void
 }
 
@@ -44,11 +45,12 @@ function readBoolean(fieldId: string, value: SelectionValue): boolean {
 type FieldRowProps = {
   field: PanelField
   label: string
+  locale: string
   value: SelectionValue
   onChange: (fieldId: string, value: SelectionValue) => void
 }
 
-function FieldControlView({ field, label, value, onChange }: FieldRowProps) {
+function FieldControlView({ field, label, locale, value, onChange }: FieldRowProps) {
   const control = field.control
   if (control.kind === 'choice') {
     return (
@@ -66,6 +68,7 @@ function FieldControlView({ field, label, value, onChange }: FieldRowProps) {
     return (
       <RangeSlider
         label={label}
+        locale={locale}
         value={readNumber(field.id, value)}
         min={control.min}
         max={control.max}
@@ -104,7 +107,14 @@ function FieldControlView({ field, label, value, onChange }: FieldRowProps) {
   )
 }
 
-export function OptionsPanel({ title, fields, values, texts, onChange }: OptionsPanelProps) {
+export function OptionsPanel({
+  title,
+  fields,
+  values,
+  texts,
+  locale,
+  onChange,
+}: OptionsPanelProps) {
   return (
     <section className="pt-6">
       <h2 className="text-xs font-semibold tracking-[0.18em] text-[var(--q-muted)] uppercase">{title}</h2>
@@ -117,6 +127,7 @@ export function OptionsPanel({ title, fields, values, texts, onChange }: Options
               <FieldControlView
                 field={field}
                 label={label}
+                locale={locale}
                 value={values[field.id]}
                 onChange={onChange}
               />

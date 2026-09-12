@@ -45,3 +45,30 @@
   outline: 2px solid var(--q-accent);
   outline-offset: 4px;
 }
+
+/* Impresion de la hoja de cotizacion (SPEC 8). La exportacion a PDF la hace el navegador:
+   sin librerias de PDF. Papel blanco, texto negro, sin sombras, y el logo sobre blanco
+   para que un fondo oscuro de marca no arruine la impresion. */
+
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+
+  html,
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  .q-sheet,
+  .q-sheet * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  .q-sheet {
+    font-size: 11pt;
+  }
+}
