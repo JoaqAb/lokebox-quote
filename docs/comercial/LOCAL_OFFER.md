@@ -7,17 +7,34 @@ Estado: V1 cerrada para primeros clientes de Tucumán
 
 Vender Lokebox Quote como una implementación productizada, de alcance cerrado y rápida puesta en marcha. El cliente compra un resultado concreto; no compra horas de desarrollo ni un proyecto abierto.
 
+Lokebox Quote es además una puerta de entrada a la relación con Lokebox. El objetivo inicial no es maximizar el ticket del configurador sino entrar con una herramienta visible, útil y fácil de comprar, aprender cómo funciona realmente el proceso comercial del cliente y detectar luego oportunidades de automatización más profundas.
+
 ## Founding Tucumán
 
-Precio de referencia para los primeros 2–3 clientes locales:
+Precio base de referencia para los primeros 2–3 clientes locales:
 
-- Setup: USD 250 equivalente en ARS
+- Setup base: USD 250 equivalente en ARS
 - Lokebox Quote Platform: USD 39/mes equivalente en ARS
-- Alcance: Starter local
-- Una familia de producto
+- Alcance base: una familia principal de producto configurada sobre capacidades existentes
 - Una ronda de revisión
 
-El precio externo debe presentarse como una cifra única. USD 200 de setup queda únicamente como excepción privada para un caso estratégico y no como tarifa publicada.
+El precio externo debe presentarse como una cifra única para el alcance acordado. USD 200 de setup queda únicamente como excepción privada para un caso estratégico y no como tarifa publicada.
+
+## Cómo escala el setup
+
+El setup escala con el trabajo inicial de implementación, no automáticamente con la mensualidad.
+
+Una familia de producto es un conjunto que comparte esencialmente la misma lógica visual, de opciones y de pricing. Por ejemplo, una línea completa de letras corpóreas puede incluir distintos materiales, medidas, colores e iluminación y seguir siendo una sola familia.
+
+Si el cliente quiere sumar familias adicionales que reutilicen módulos y lógica existentes, pueden cotizarse como incremento de setup sin aumentar automáticamente la mensualidad. Referencia inicial interna:
+
+- una familia principal: USD 250 de setup;
+- familia adicional compatible: desde USD 100 adicionales;
+- si una nueva familia requiere nueva experiencia visual, nueva lógica importante o desarrollo específico, se cotiza como add-on/Custom.
+
+Regla:
+
+> El setup escala por trabajo de implementación. La mensualidad escala por operación y valor recurrente.
 
 ## Qué recibe el cliente
 
@@ -29,9 +46,9 @@ El precio externo debe presentarse como una cifra única. USD 200 de setup queda
 - experiencia responsive para desktop y mobile;
 - sin necesidad de rehacer su sitio actual.
 
-### 2. Una familia de producto
+### 2. Familia principal de producto
 
-Se configura una única familia comercial reutilizando las capacidades existentes de la vertical signage.
+Se configura una familia comercial reutilizando las capacidades existentes de la vertical signage.
 
 Ejemplos:
 - letras corpóreas;
@@ -78,7 +95,7 @@ No incluye diseñar desde cero un sistema complejo de costos internos.
 - resumen estructurado de la solicitud;
 - almacenamiento del lead dentro de la infraestructura de Quote cuando corresponda.
 
-No incluye CRM, pipeline comercial ni backoffice de gestión.
+No incluye CRM, pipeline comercial ni backoffice de gestión dentro del setup base.
 
 ### 6. Quote / resumen
 
@@ -116,10 +133,10 @@ Para iniciar:
 
 Si la información llega incompleta, contradictoria o requiere rediseñar el proceso comercial antes de poder configurarlo, el plazo se pausa hasta resolverlo.
 
-## Qué NO incluye el setup de USD 250
+## Qué NO incluye el setup base de USD 250
 
 No incluye:
-- más de una familia de producto;
+- familias adicionales fuera del alcance acordado;
 - modelado 3D bespoke complejo desde cero;
 - creación de assets 3D altamente específicos para un solo cliente;
 - rediseño de la web actual del cliente;
@@ -138,7 +155,7 @@ No incluye:
 - revisiones ilimitadas;
 - cambios de alcance una vez aprobado el onboarding.
 
-Todo lo anterior se cotiza como add-on, Pro, Custom o implementación de Lokebox Platform según el caso.
+Todo lo anterior se cotiza como add-on, Custom o implementación de Lokebox Platform según el caso.
 
 ## Qué cubre la mensualidad de USD 39
 
@@ -154,13 +171,50 @@ Incluye:
 - almacenamiento/operación del flujo estándar de leads;
 - hasta una solicitud agrupada de cambios menores de configuración por mes, por ejemplo texto, contacto o ajuste puntual de un valor existente.
 
-No incluye en la mensualidad:
+La mensualidad NO aumenta automáticamente por sumar una familia adicional durante la implementación.
+
+Solo debe subir cuando exista mayor valor, costo o trabajo recurrente real, por ejemplo:
+- mayor soporte o frecuencia de cambios;
+- analytics/reportes adicionales;
+- dominio/operación especial;
+- integraciones activas;
+- automatizaciones recurrentes;
+- IA o procesamiento con costo variable;
+- mayor monitoreo o volumen operativo relevante.
+
+No incluye en la mensualidad base:
 - nuevas familias de producto;
 - nuevas reglas complejas de pricing;
 - rediseños visuales;
 - nuevas integraciones;
 - features exclusivas para el cliente;
 - cambios que requieran desarrollo específico.
+
+## Quote como puerta de entrada a Lokebox
+
+Quote resuelve inicialmente el frente comercial visible: configuración, visualización, estimación y captura estructurada del lead.
+
+Una vez implementado y después de entender mejor la operación del cliente, Lokebox puede detectar oportunidades adicionales, sin forzarlas dentro de la venta inicial:
+
+- bot de WhatsApp con IA para consultas, captura o seguimiento;
+- automatización de seguimiento comercial;
+- CRM/pipeline o integración con el CRM existente;
+- presupuestos y documentos automáticos;
+- integración con ERP/sistema contable;
+- dashboards;
+- carga y validación de información operativa;
+- workflows administrativos;
+- órdenes de trabajo / producción;
+- automatización de cobranzas o cuentas corrientes;
+- herramientas internas;
+- integraciones entre sistemas;
+- otras implementaciones de Lokebox Platform.
+
+Principio comercial:
+
+> Quote abre la puerta con un problema visible y fácil de demostrar. Lokebox crece dentro de la cuenta resolviendo procesos reales que aparezcan después.
+
+No usar el primer contacto para vender todo Lokebox de golpe. Primero cerrar Quote. Después de generar confianza y conocer el negocio, explorar expansión cuando exista un problema concreto y valor claro.
 
 ## Revisión y cambios
 
@@ -177,10 +231,13 @@ No presentar una lista técnica extensa en el primer contacto.
 Secuencia:
 1. mostrar el resultado;
 2. validar interés;
-3. explicar que es una implementación cerrada para una familia de producto;
+3. explicar que es una implementación cerrada para una línea principal de producto;
 4. presentar setup + mensualidad;
 5. enviar el alcance resumido;
-6. hacer onboarding solo después del sí comercial.
+6. hacer onboarding solo después del sí comercial;
+7. implementar y generar confianza;
+8. observar el proceso real del cliente;
+9. proponer Lokebox Platform solo cuando aparezca una oportunidad concreta.
 
 ## Política de pago sugerida para founding local
 
