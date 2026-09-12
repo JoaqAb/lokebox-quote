@@ -1,42 +1,30 @@
 import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
-import { Color, MathUtils, type Mesh, type MeshStandardMaterial, type PointLight } from 'three'
+import { Color, MathUtils, type Mesh, type MeshBasicMaterial, type MeshStandardMaterial, type PointLight } from 'three'
 import type { MaterialVisual } from '../../../core/types'
 import { supportShadowTexture } from './supportShadow'
 import {
   DAMP_LAMBDA,
-  HALO,
-  SUPPORT_SHADOW,
-  supportShadowBox,
-  POST_FINISH,
   SET,
   SETTLE_EPSILON,
-  TOTEM,
+  SUPPORT_SHADOW,
   UNIT_BOX,
   UNIT_PLANE,
   VISIBLE_EPSILON,
-  WINDOW_TOP,
   haloBox,
   lampPosition,
   lightingParams,
+  supportShadowBox,
   type SignPlacement,
-  type Vec3,
 } from './sceneGeometry'
 
-// El conjunto entero: cartel, poste, halo y la unica luz dinamica, con un solo useFrame.
-// Repartirlos en cuatro componentes con su propio damp los deja desincronizados durante
-// las transiciones, sobre todo al pasar de facade a totem.
+// El conjunto entero: cartel, halo, sombra de apoyo y la unica luz dinamica, con un solo
+// useFrame. Repartirlos los deja desincronizados durante las transiciones de medida.
 // Ninguna medida ni ningun color se escribe aca: todo sale de sceneGeometry y del visual.
 // Nada viaja como prop de JSX si lo maneja el frame loop: React lo aplicaria de una
 // en cada cambio de opcion y pisaria la transicion.
-
-const SIGN_INITIAL_POSITION: Vec3 = [0, WINDOW_TOP + SET.sign.gapOverWindow, SET.sign.z]
-const POST_INITIAL_POSITION: Vec3 = [TOTEM.x, 0, TOTEM.z]
-const HALO_INITIAL_POSITION: Vec3 = [
-  0,
-  WINDOW_TOP + SET.sign.gapOverWindow,
-  SET.sign.z - SET.sign.thickness / 2 - HALO.gap,
-]
+// El cartel esta centrado en el origen: sobre que foto y en que parte se dibuja lo
+// resuelve la capa de composicion (SPEC 12, version 1.9).
 
 // Base del halo: lo que se ve es su emision, no su color iluminado.
 const HALO_BASE_COLOR = new Color(0, 0, 0)
@@ -61,7 +49,6 @@ type SignBoardProps = {
   placement: SignPlacement
   material: MaterialVisual
   lightingMode: string
-  postColor: string
   shadowColor: string
   reducedMotion: boolean
 }
@@ -70,24 +57,22 @@ export function SignBoard({
   placement,
   material,
   lightingMode,
-  postColor,
   shadowColor,
   reducedMotion,
 }: SignBoardProps) {
   const signRef = useRef<Mesh>(null)
   const signMaterialRef = useRef<MeshStandardMaterial>(null)
-  const postRef = useRef<Mesh>(null)
   const haloRef = useRef<Mesh>(null)
   const haloMaterialRef = useRef<MeshStandardMaterial>(null)
   const lampRef = useRef<PointLight>(null)
   const shadowRef = useRef<Mesh>(null)
+  const shadowMaterialRef = useRef<MeshBasicMaterial>(null)
   const started = useRef(false)
   const targetColor = useMemo(() => new Color(material.color), [material.color])
 
   useFrame((_state, delta) => {
     const sign = signRef.current
     const signMaterial = signMaterialRef.current
-    const post = postRef.current
     const halo = haloRef.current
     const haloMaterial = haloMaterialRef.current
     const lamp = lampRef.current
@@ -95,7 +80,6 @@ export function SignBoard({
     if (
       sign === null ||
       signMaterial === null ||
-      post === null ||
       halo === null ||
       haloMaterial === null ||
       lamp === null ||
@@ -107,8 +91,6 @@ export function SignBoard({
     const lighting = lightingParams(lightingMode)
     const haloTarget = haloBox(placement)
     const lampTarget = lampPosition(lightingMode, placement)
-    const postTarget = placement.post
-    const postHeight = postTarget === null ? 0 : postTarget.size[1]
     const haloOpacity = Math.min(1, lighting.haloIntensity)
 
     // El primer frame se acomoda de golpe, para no entrar con una animacion de carga.
@@ -120,9 +102,6 @@ export function SignBoard({
     sign.scale.x = move(sign.scale.x, placement.box.width)
     sign.scale.y = move(sign.scale.y, placement.box.height)
     sign.scale.z = SET.sign.thickness
-    sign.position.x = move(sign.position.x, placement.position[0])
-    sign.position.y = move(sign.position.y, placement.position[1])
-    sign.position.z = move(sign.position.z, placement.position[2])
 
     if (instant) {
       signMaterial.color.copy(targetColor)
@@ -138,20 +117,9 @@ export function SignBoard({
       lighting.emissiveIntensity,
     )
 
-    // El poste crece desde el piso mientras el cartel llega a la vereda.
-    if (postTarget !== null) {
-      post.scale.x = move(post.scale.x, postTarget.size[0])
-      post.scale.z = move(post.scale.z, postTarget.size[2])
-    }
-    post.scale.y = move(post.scale.y, postHeight)
-    post.position.y = post.scale.y / 2
-    post.visible = post.scale.y > VISIBLE_EPSILON
-
     halo.scale.x = move(halo.scale.x, haloTarget.size[0])
     halo.scale.y = move(halo.scale.y, haloTarget.size[1])
-    halo.position.x = move(halo.position.x, haloTarget.position[0])
-    halo.position.y = move(halo.position.y, haloTarget.position[1])
-    halo.position.z = move(halo.position.z, haloTarget.position[2])
+    halo.position.z = haloTarget.z
     if (instant) {
       haloMaterial.emissive.copy(targetColor)
     } else {
@@ -173,33 +141,22 @@ export function SignBoard({
     lamp.decay = lighting.lampDecay
     lamp.distance = lighting.lampDistance
 
-    // La sombra de apoyo sigue al cartel y no depende del nivel de rendimiento: es lo
-    // que impide que el cartel flote en cualquier nivel (SPEC 12).
+    // La sombra de apoyo sigue al cartel: es lo que impide que flote sobre la foto.
     const shadowTarget = supportShadowBox(placement)
     shadow.scale.x = move(shadow.scale.x, shadowTarget.size[0])
     shadow.scale.y = move(shadow.scale.y, shadowTarget.size[1])
-    shadow.position.x = move(shadow.position.x, shadowTarget.position[0])
     shadow.position.y = move(shadow.position.y, shadowTarget.position[1])
-    shadow.position.z = move(shadow.position.z, shadowTarget.position[2])
+    shadow.position.z = shadowTarget.position[2]
   })
 
   return (
     <group>
-      <mesh ref={signRef} position={SIGN_INITIAL_POSITION} scale={UNIT_BOX}>
+      <mesh ref={signRef} scale={UNIT_BOX}>
         <boxGeometry args={UNIT_BOX} />
         <meshStandardMaterial ref={signMaterialRef} />
       </mesh>
 
-      <mesh ref={postRef} position={POST_INITIAL_POSITION} scale={UNIT_BOX}>
-        <boxGeometry args={UNIT_BOX} />
-        <meshStandardMaterial
-          color={postColor}
-          metalness={POST_FINISH.metalness}
-          roughness={POST_FINISH.roughness}
-        />
-      </mesh>
-
-      <mesh ref={haloRef} position={HALO_INITIAL_POSITION} scale={UNIT_BOX}>
+      <mesh ref={haloRef} scale={UNIT_BOX}>
         <planeGeometry args={UNIT_PLANE} />
         <meshStandardMaterial
           ref={haloMaterialRef}
@@ -209,9 +166,10 @@ export function SignBoard({
         />
       </mesh>
 
-      <mesh ref={shadowRef} position={HALO_INITIAL_POSITION} scale={UNIT_BOX}>
+      <mesh ref={shadowRef} scale={UNIT_BOX}>
         <planeGeometry args={UNIT_PLANE} />
         <meshBasicMaterial
+          ref={shadowMaterialRef}
           color={shadowColor}
           alphaMap={supportShadowTexture()}
           transparent

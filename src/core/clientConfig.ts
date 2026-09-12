@@ -1,5 +1,6 @@
 import type {
   ClientConfig,
+  ClientPhoto,
   ClientTexts,
   CtaMode,
   DiscountTier,
@@ -279,6 +280,53 @@ function readOptions(raw: Raw, slug: string): SignOptions {
   }
 }
 
+// Fotos de fondo del preview (SPEC 10, version 1.9). La primera de la lista es la que
+// se muestra al cargar, asi que el orden del JSON importa.
+function readPhotos(raw: Raw, slug: string): ClientPhoto[] {
+  const rawList = readArray(raw, 'photos', slug, 'photos')
+  requireNotEmpty(rawList, slug, 'photos')
+  const photos = rawList.map((item, index): ClientPhoto => {
+    const path = `photos[${String(index)}]`
+    const entry = readEntry(item, slug, path)
+    const anchor = readObject(entry, 'anchor', slug, `${path}.anchor`)
+    const light = readObject(entry, 'light', slug, `${path}.light`)
+    const x = readNumber(anchor, 'x', slug, `${path}.anchor.x`)
+    const y = readNumber(anchor, 'y', slug, `${path}.anchor.y`)
+    const metersToWidth = readNumber(anchor, 'metersToWidth', slug, `${path}.anchor.metersToWidth`)
+    // Fuera de [0, 1] el cartel cae afuera de la foto y el preview queda vacio.
+    if (x < 0 || x > 1 || y < 0 || y > 1) {
+      fail(slug, `${path}.anchor.x e y tienen que estar entre 0 y 1.`)
+    }
+    if (metersToWidth <= 0) {
+      fail(slug, `${path}.anchor.metersToWidth debe ser mayor a 0.`)
+    }
+    return {
+      id: readString(entry, 'id', slug, `${path}.id`),
+      label: readString(entry, 'label', slug, `${path}.label`),
+      src: readString(entry, 'src', slug, `${path}.src`),
+      anchor: {
+        x,
+        y,
+        metersToWidth,
+        yawDeg: readNumber(anchor, 'yawDeg', slug, `${path}.anchor.yawDeg`),
+        pitchDeg: readNumber(anchor, 'pitchDeg', slug, `${path}.anchor.pitchDeg`),
+      },
+      light: {
+        ambient: readNumber(light, 'ambient', slug, `${path}.light.ambient`),
+        keyIntensity: readNumber(light, 'keyIntensity', slug, `${path}.light.keyIntensity`),
+        keyAzimuthDeg: readNumber(light, 'keyAzimuthDeg', slug, `${path}.light.keyAzimuthDeg`),
+        keyElevationDeg: readNumber(light, 'keyElevationDeg', slug, `${path}.light.keyElevationDeg`),
+      },
+    }
+  })
+  requireUniqueIds(
+    photos.map((item) => item.id),
+    slug,
+    'photos',
+  )
+  return photos
+}
+
 function readText(texts: Raw, key: keyof ClientTexts, slug: string): string {
   const value = texts[key]
   if (typeof value !== 'string' || value.length === 0) {
@@ -304,6 +352,7 @@ function readTexts(raw: Raw, slug: string): ClientTexts {
     installationNo: readText(texts, 'installationNo', slug),
     quantityLabel: readText(texts, 'quantityLabel', slug),
     signTextLabel: readText(texts, 'signTextLabel', slug),
+    previewZoomLabel: readText(texts, 'previewZoomLabel', slug),
     priceLabel: readText(texts, 'priceLabel', slug),
     priceRangeNote: readText(texts, 'priceRangeNote', slug),
     disclaimer: readText(texts, 'disclaimer', slug),
@@ -389,6 +438,7 @@ export function validateClientConfig(raw: unknown): ClientConfig {
     cta,
     poweredBy: readBoolean(raw, 'poweredBy', slug, 'poweredBy'),
     prices_placeholder: readBoolean(raw, 'prices_placeholder', slug, 'prices_placeholder'),
+    photos: readPhotos(raw, slug),
     options: readOptions(raw, slug),
     texts: readTexts(raw, slug),
   }

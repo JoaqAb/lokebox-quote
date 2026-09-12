@@ -29,6 +29,37 @@ export type BrandConfig = {
   email: string
 }
 
+// Una foto de fondo del preview, por angulo (SPEC 12, version 1.9).
+// El anclaje dice donde y de que tamano se dibuja el cartel sobre esa foto, y la luz
+// dice de donde viene el sol en ella, para que el volumen del cartel case.
+export type PhotoAnchor = {
+  // Centro del cartel, en fraccion del ancho y del alto, origen arriba a la izquierda.
+  x: number
+  y: number
+  // Que fraccion del ancho de la foto ocupa un metro de cartel. Se expresa asi, y no
+  // como un factor abstracto, para calcularlo contra una medida conocida de la foto.
+  metersToWidth: number
+  yawDeg: number
+  pitchDeg: number
+}
+
+export type PhotoLight = {
+  ambient: number
+  keyIntensity: number
+  keyAzimuthDeg: number
+  keyElevationDeg: number
+}
+
+export type ClientPhoto = {
+  id: string
+  // Etiqueta visible del angulo. Vive aca y no en texts porque la cantidad de fotos
+  // varia por cliente: es el mismo criterio que el label de types y de materials.
+  label: string
+  src: string
+  anchor: PhotoAnchor
+  light: PhotoLight
+}
+
 export type SignTypeOption = {
   id: string
   label: string
@@ -120,6 +151,7 @@ export type ClientTexts = {
   installationNo: string
   quantityLabel: string
   signTextLabel: string
+  previewZoomLabel: string
   priceLabel: string
   priceRangeNote: string
   disclaimer: string
@@ -162,6 +194,7 @@ export type ClientConfig = {
   cta: CtaMode
   poweredBy: boolean
   prices_placeholder: boolean
+  photos: ClientPhoto[]
   options: SignOptions
   texts: ClientTexts
 }

@@ -12,6 +12,22 @@
     "whatsapp": "15550102233",
     "email": "hello@northlinesigns.example"
   },
+  "photos": [
+    {
+      "id": "front",
+      "label": "Storefront",
+      "src": "/clients/northline/photos/front.png",
+      "anchor": { "x": 0.5, "y": 0.4, "metersToWidth": 0.085, "yawDeg": 0, "pitchDeg": 0 },
+      "light": { "ambient": 0.9, "keyIntensity": 1.4, "keyAzimuthDeg": -25, "keyElevationDeg": 35 }
+    },
+    {
+      "id": "angle",
+      "label": "From the street",
+      "src": "/clients/northline/photos/angle.png",
+      "anchor": { "x": 0.44, "y": 0.42, "metersToWidth": 0.072, "yawDeg": 22, "pitchDeg": 0 },
+      "light": { "ambient": 0.85, "keyIntensity": 1.6, "keyAzimuthDeg": 40, "keyElevationDeg": 30 }
+    }
+  ],
   "cta": "both",
   "poweredBy": true,
   "prices_placeholder": false,
@@ -52,6 +68,7 @@
     "installationNo": "No, I will install it",
     "quantityLabel": "Quantity",
     "signTextLabel": "Text on the sign",
+    "previewZoomLabel": "Zoom",
     "priceLabel": "Estimated price",
     "priceRangeNote": "Estimated range",
     "disclaimer": "This is an estimate. Northline Signs confirms the final price.",

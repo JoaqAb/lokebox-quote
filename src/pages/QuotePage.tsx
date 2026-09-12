@@ -98,7 +98,15 @@ function QuoteScreen({ config }: QuoteScreenProps) {
   return (
     <QuoteLayout
       config={config}
-      preview={<SignPreview selection={selection} visual={visual} theme={theme} />}
+      preview={
+        <SignPreview
+          selection={selection}
+          visual={visual}
+          theme={theme}
+          photos={config.photos}
+          zoomLabel={config.texts.previewZoomLabel}
+        />
+      }
       panel={
         <>
           <OptionsPanel

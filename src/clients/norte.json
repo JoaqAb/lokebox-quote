@@ -12,6 +12,22 @@
     "whatsapp": "5493815550123",
     "email": "hola@nortecarteles.example"
   },
+  "photos": [
+    {
+      "id": "front",
+      "label": "De frente",
+      "src": "/clients/norte/photos/front.png",
+      "anchor": { "x": 0.5, "y": 0.4, "metersToWidth": 0.085, "yawDeg": 0, "pitchDeg": 0 },
+      "light": { "ambient": 0.9, "keyIntensity": 1.4, "keyAzimuthDeg": -25, "keyElevationDeg": 35 }
+    },
+    {
+      "id": "angle",
+      "label": "Desde la vereda",
+      "src": "/clients/norte/photos/angle.png",
+      "anchor": { "x": 0.44, "y": 0.42, "metersToWidth": 0.072, "yawDeg": 22, "pitchDeg": 0 },
+      "light": { "ambient": 0.85, "keyIntensity": 1.6, "keyAzimuthDeg": 40, "keyElevationDeg": 30 }
+    }
+  ],
   "cta": "both",
   "poweredBy": true,
   "prices_placeholder": true,
@@ -52,6 +68,7 @@
     "installationNo": "No, lo instalo yo",
     "quantityLabel": "Cantidad",
     "signTextLabel": "Texto del cartel",
+    "previewZoomLabel": "Acercar",
     "priceLabel": "Precio estimado",
     "priceRangeNote": "Rango estimado",
     "disclaimer": "Es una estimación. El presupuesto final lo confirma Norte Carteles.",

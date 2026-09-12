@@ -18,7 +18,7 @@ type SignFaceProps = {
 export function SignFace({ placement, color, text }: SignFaceProps) {
   const layout = useMemo(() => layoutGlyphs(text), [text])
 
-  const { box, position } = placement
+  const { box } = placement
   if (layout.glyphs.length === 0 || box.width <= 0 || box.height <= 0) {
     return null
   }
@@ -28,10 +28,10 @@ export function SignFace({ placement, color, text }: SignFaceProps) {
   const usableWidth = box.width * (1 - 2 * SIGN_TEXT.marginRatio)
   const usableHeight = box.height * SIGN_TEXT.maxHeightRatio
   const glyphHeight = Math.min(usableHeight, usableWidth / layout.totalWidth)
-  const z = position[2] + SET.sign.thickness / 2 + SIGN_TEXT.gap
+  const z = SET.sign.thickness / 2 + SIGN_TEXT.gap
 
   return (
-    <group position={[position[0], position[1], z]}>
+    <group position={[0, 0, z]}>
       {layout.glyphs.map((glyph, index) => (
         <mesh
           key={`${glyph.char}-${String(index)}`}

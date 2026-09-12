@@ -82,7 +82,7 @@ Bloque 3 cerrado: TAREA_006 aceptada con 17 criterios verificados y 2 con desví
   - Las tres capas se componen sin desalineado en 390 px, 768 px y 1440 px, y el zoom por CSS mueve foto y cartel juntos en los tres anchos.
   - `photos` validado en runtime: lista no vacía, ids únicos, `x` e `y` entre 0 y 1, `metersToWidth` mayor que 0 y ángulos finitos. Un JSON al que le falte `photos` o que traiga un anclaje fuera de rango falla con el mensaje que dice qué falta y en qué cliente.
   - Cambiar de ángulo cambia foto y anclaje sin remontar el canvas ni reiniciar la selección.
-  - Los tres modos de luz se distinguen con luminancia medida sobre la región del cartel y su halo, con la misma foto en los tres.
+  - Los tres modos de luz se distinguen con luminancia medida sobre la región del cartel, con la misma foto en los tres: la cara crece de `none` a `front` y el anillo inmediato crece de `front` a `back`. Los tres cuadros son además distintos pixel a pixel.
   - Assets: exactamente dos permitidos, las fotos del cliente y el HDRI único. Ningún otro pedido de red en la pestaña Network al cargar el preview.
   - Si las fotos de Canal C no están, se avanza con placeholders de color sólido del mismo aspect ratio, en la misma ruta, y el punto de reemplazo queda anotado en STATE.
   - Agregar un cliente sigue siendo un JSON más sus assets, sin tocar código.
