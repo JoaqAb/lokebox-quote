@@ -3,6 +3,7 @@ import { BooleanChoice } from './controls/BooleanChoice'
 import { ChoiceGroup } from './controls/ChoiceGroup'
 import { RangeSlider } from './controls/RangeSlider'
 import { Stepper } from './controls/Stepper'
+import { TextInput } from './controls/TextInput'
 import type { PanelField, SelectionValue } from './panelTypes'
 
 // Panel generico: recorre los descriptores en el orden recibido y despacha por kind.
@@ -74,6 +75,18 @@ function FieldControlView({ field, label, locale, value, onChange }: FieldRowPro
         max={control.max}
         step={control.step}
         unit={control.unit}
+        onChange={(next) => {
+          onChange(field.id, next)
+        }}
+      />
+    )
+  }
+  if (control.kind === 'text') {
+    return (
+      <TextInput
+        label={label}
+        value={readString(field.id, value)}
+        maxLength={control.maxLength}
         onChange={(next) => {
           onChange(field.id, next)
         }}

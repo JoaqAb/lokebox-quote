@@ -24,7 +24,7 @@ export function PriceBreakdown({ result, config, areaUnit }: PriceBreakdownProps
         {result.lines.map((line) => (
           <li
             key={line.id}
-            className="flex items-baseline justify-between gap-3 border-t border-white/5 py-2"
+            className="flex items-baseline justify-between gap-3 q-hairline border-t py-2"
           >
             <span className="min-w-0 text-sm">{resolveLineLabel(line.labelKey, texts)}</span>
             <span className="ml-auto shrink-0 text-xs text-[var(--q-muted)] tabular-nums">

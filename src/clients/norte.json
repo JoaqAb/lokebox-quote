@@ -7,7 +7,7 @@
   "brand": {
     "name": "Norte Carteles",
     "logo": "/clients/norte/logo.svg",
-    "colors": { "bg": "#08090C", "primary": "#12161C", "accent": "#4DA3FF", "text": "#F2F4F7", "muted": "#868D99" },
+    "colors": { "bg": "#F1F3F6", "primary": "#C0C6D0", "accent": "#1D6FD0", "text": "#171A1F", "muted": "#676E79" },
     "phone": "+54 381 555 0123",
     "whatsapp": "5493815550123",
     "email": "hola@nortecarteles.example"
@@ -16,6 +16,7 @@
   "poweredBy": true,
   "prices_placeholder": true,
   "options": {
+    "signText": { "default": "NORTE", "maxLength": 18 },
     "types": [
       { "id": "facade", "label": "Cartel de fachada", "priceFixed": 0 },
       { "id": "totem", "label": "Tótem", "priceFixed": 270000 }
@@ -50,6 +51,7 @@
     "installationYes": "Sí, quiero que lo instalen",
     "installationNo": "No, lo instalo yo",
     "quantityLabel": "Cantidad",
+    "signTextLabel": "Texto del cartel",
     "priceLabel": "Precio estimado",
     "priceRangeNote": "Rango estimado",
     "disclaimer": "Es una estimación. El presupuesto final lo confirma Norte Carteles.",

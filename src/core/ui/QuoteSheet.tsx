@@ -35,7 +35,7 @@ export function QuoteSheet({
 }: QuoteSheetProps) {
   return (
     <main className="q-sheet mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 print:max-w-none print:px-0 print:py-0">
-      <header className="flex flex-wrap items-start justify-between gap-4 border-b border-white/10 pb-5 print:border-black/20">
+      <header className="flex flex-wrap items-start justify-between gap-4 q-hairline border-b pb-5">
         <div className="flex items-center gap-3">
           <img src={brand.logo} alt={brand.name} className="h-10 w-auto print:bg-white" />
           <div className="min-w-0">
@@ -64,7 +64,7 @@ export function QuoteSheet({
           {rows.map((row) => (
             <div
               key={row.label}
-              className="flex items-baseline justify-between gap-4 border-t border-white/5 py-2 print:border-black/10"
+              className="flex items-baseline justify-between gap-4 q-hairline border-t py-2"
             >
               <dt className="text-sm text-[var(--q-muted)] print:text-black">{row.label}</dt>
               <dd className="text-right text-sm font-medium">{row.value}</dd>
@@ -81,7 +81,7 @@ export function QuoteSheet({
           {price.lines.map((line) => (
             <li
               key={line.id}
-              className="flex items-baseline justify-between gap-4 border-t border-white/5 py-2 print:border-black/10"
+              className="flex items-baseline justify-between gap-4 q-hairline border-t py-2"
             >
               <span className="min-w-0 text-sm">{resolveLineLabel(line.labelKey, texts)}</span>
               <span className="ml-auto shrink-0 text-xs text-[var(--q-muted)] tabular-nums print:text-black">
@@ -97,7 +97,7 @@ export function QuoteSheet({
         </ul>
       </section>
 
-      <section className="mt-6 border-t border-white/10 pt-4 print:border-black/20">
+      <section className="mt-6 q-hairline border-t pt-4">
         <p className="text-xs font-semibold tracking-[0.18em] text-[var(--q-muted)] uppercase print:text-black">
           {texts.priceLabel}
         </p>

@@ -5,12 +5,19 @@ import type { SignOptions, SignSelection } from '../types'
 // el locale del cliente. El idioma vive en el JSON, no en el link.
 // En la URL no va ningun dato personal.
 
-// Orden fijo de las siete claves.
-const KEYS = ['t', 'w', 'h', 'm', 'l', 'i', 'q'] as const
+// Orden fijo de claves de SPEC 8. En modo area se escriben estas ocho; `lh` y `d` son
+// del modo letters y su sola presencia invalida el link: uno ambiguo no se cotiza.
+const KEYS = ['t', 'x', 'w', 'h', 'm', 'l', 'i', 'q'] as const
+
+// Claves del otro modo. Estan escritas aca y no en el modo letters porque la regla de
+// SPEC 8 se puede cumplir desde hoy, antes de que ese modo exista.
+const OTHER_MODE_KEYS = ['lh', 'd'] as const
 
 export function encodeQuoteParams(selection: SignSelection): string {
   const params = new URLSearchParams()
   params.set('t', selection.type)
+  // URLSearchParams codifica el texto solo: espacios, acentos y signos viajan enteros.
+  params.set('x', selection.text)
   params.set('w', String(selection.width))
   params.set('h', String(selection.height))
   params.set('m', selection.materialId)
@@ -54,7 +61,18 @@ export function decodeQuoteParams(
     raw[key] = value
   }
 
+  for (const key of OTHER_MODE_KEYS) {
+    if (params.get(key) !== null) {
+      return null
+    }
+  }
+
   if (!knownId(options.types, raw.t)) {
+    return null
+  }
+
+  const text = raw.x
+  if (text.length === 0 || text.length > options.signText.maxLength) {
     return null
   }
   if (!knownId(options.materials, raw.m)) {
@@ -84,6 +102,7 @@ export function decodeQuoteParams(
 
   return {
     type: raw.t,
+    text,
     width,
     height,
     materialId: raw.m,

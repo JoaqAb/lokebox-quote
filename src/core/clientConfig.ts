@@ -10,6 +10,7 @@ import type {
   QuantityConfig,
   RangeConfig,
   SignOptions,
+  SignTextConfig,
   SignSelection,
   SignTypeOption,
 } from './types'
@@ -123,6 +124,24 @@ function readQuantity(parent: Raw, key: string, slug: string, path: string): Qua
     fail(slug, `${path}.default (${String(quantity.default)}) esta fuera del rango.`)
   }
   return quantity
+}
+
+function readSignText(options: Raw, slug: string): SignTextConfig {
+  const raw = readObject(options, 'signText', slug, 'options.signText')
+  const config: SignTextConfig = {
+    default: readString(raw, 'default', slug, 'options.signText.default'),
+    maxLength: readNumber(raw, 'maxLength', slug, 'options.signText.maxLength'),
+  }
+  if (!Number.isInteger(config.maxLength) || config.maxLength < 1) {
+    fail(slug, 'options.signText.maxLength debe ser un entero mayor o igual a 1.')
+  }
+  if (config.default.length > config.maxLength) {
+    fail(
+      slug,
+      `options.signText.default tiene ${String(config.default.length)} caracteres y el maximo es ${String(config.maxLength)}.`,
+    )
+  }
+  return config
 }
 
 function requireUniqueIds(ids: string[], slug: string, path: string): void {
@@ -245,6 +264,7 @@ function readOptions(raw: Raw, slug: string): SignOptions {
   const installation = readObject(options, 'installation', slug, 'options.installation')
   return {
     types: readTypes(options, slug),
+    signText: readSignText(options, slug),
     width: readRange(options, 'width', slug, 'options.width'),
     height: readRange(options, 'height', slug, 'options.height'),
     materials: readMaterials(options, slug),
@@ -283,6 +303,7 @@ function readTexts(raw: Raw, slug: string): ClientTexts {
     installationYes: readText(texts, 'installationYes', slug),
     installationNo: readText(texts, 'installationNo', slug),
     quantityLabel: readText(texts, 'quantityLabel', slug),
+    signTextLabel: readText(texts, 'signTextLabel', slug),
     priceLabel: readText(texts, 'priceLabel', slug),
     priceRangeNote: readText(texts, 'priceRangeNote', slug),
     disclaimer: readText(texts, 'disclaimer', slug),
@@ -408,6 +429,7 @@ export function priceRulesFromClient(config: ClientConfig): PriceRules {
 export function defaultSelection(config: ClientConfig): SignSelection {
   return {
     type: config.options.types[0].id,
+    text: config.options.signText.default,
     width: config.options.width.default,
     height: config.options.height.default,
     materialId: config.options.materials[0].id,

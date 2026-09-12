@@ -18,6 +18,7 @@ const norte = rulesFor('norte')
 function selection(overrides: Partial<SignSelection> = {}): SignSelection {
   return {
     type: 'facade',
+    text: 'NORTHLINE',
     width: 8,
     height: 3,
     materialId: 'pvc',

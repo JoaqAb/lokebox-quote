@@ -84,8 +84,16 @@ export type DiscountTier = {
   pct: number
 }
 
+// Texto que va en la cara del cartel (SPEC 5.2). El default viene del JSON y el
+// visitante lo edita: es lo que hace que el preview se lea como su propio cartel.
+export type SignTextConfig = {
+  default: string
+  maxLength: number
+}
+
 export type SignOptions = {
   types: SignTypeOption[]
+  signText: SignTextConfig
   width: RangeConfig
   height: RangeConfig
   materials: MaterialOption[]
@@ -111,6 +119,7 @@ export type ClientTexts = {
   installationYes: string
   installationNo: string
   quantityLabel: string
+  signTextLabel: string
   priceLabel: string
   priceRangeNote: string
   disclaimer: string
@@ -161,6 +170,7 @@ export type ClientConfig = {
 
 export type SignSelection = {
   type: string
+  text: string
   width: number
   height: number
   materialId: string

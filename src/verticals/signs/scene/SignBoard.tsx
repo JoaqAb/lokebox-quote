@@ -2,10 +2,12 @@ import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import { Color, MathUtils, type Mesh, type MeshStandardMaterial, type PointLight } from 'three'
 import type { MaterialVisual } from '../../../core/types'
+import { supportShadowTexture } from './supportShadow'
 import {
   DAMP_LAMBDA,
   HALO,
-  LAMP,
+  SUPPORT_SHADOW,
+  supportShadowBox,
   POST_FINISH,
   SET,
   SETTLE_EPSILON,
@@ -60,6 +62,7 @@ type SignBoardProps = {
   material: MaterialVisual
   lightingMode: string
   postColor: string
+  shadowColor: string
   reducedMotion: boolean
 }
 
@@ -68,6 +71,7 @@ export function SignBoard({
   material,
   lightingMode,
   postColor,
+  shadowColor,
   reducedMotion,
 }: SignBoardProps) {
   const signRef = useRef<Mesh>(null)
@@ -76,6 +80,7 @@ export function SignBoard({
   const haloRef = useRef<Mesh>(null)
   const haloMaterialRef = useRef<MeshStandardMaterial>(null)
   const lampRef = useRef<PointLight>(null)
+  const shadowRef = useRef<Mesh>(null)
   const started = useRef(false)
   const targetColor = useMemo(() => new Color(material.color), [material.color])
 
@@ -86,13 +91,15 @@ export function SignBoard({
     const halo = haloRef.current
     const haloMaterial = haloMaterialRef.current
     const lamp = lampRef.current
+    const shadow = shadowRef.current
     if (
       sign === null ||
       signMaterial === null ||
       post === null ||
       halo === null ||
       haloMaterial === null ||
-      lamp === null
+      lamp === null ||
+      shadow === null
     ) {
       return
     }
@@ -163,6 +170,17 @@ export function SignBoard({
     }
     lamp.color.copy(targetColor)
     lamp.intensity = move(lamp.intensity, lighting.lampIntensity)
+    lamp.decay = lighting.lampDecay
+    lamp.distance = lighting.lampDistance
+
+    // La sombra de apoyo sigue al cartel y no depende del nivel de rendimiento: es lo
+    // que impide que el cartel flote en cualquier nivel (SPEC 12).
+    const shadowTarget = supportShadowBox(placement)
+    shadow.scale.x = move(shadow.scale.x, shadowTarget.size[0])
+    shadow.scale.y = move(shadow.scale.y, shadowTarget.size[1])
+    shadow.position.x = move(shadow.position.x, shadowTarget.position[0])
+    shadow.position.y = move(shadow.position.y, shadowTarget.position[1])
+    shadow.position.z = move(shadow.position.z, shadowTarget.position[2])
   })
 
   return (
@@ -191,7 +209,19 @@ export function SignBoard({
         />
       </mesh>
 
-      <pointLight ref={lampRef} decay={LAMP.decay} distance={LAMP.distance} />
+      <mesh ref={shadowRef} position={HALO_INITIAL_POSITION} scale={UNIT_BOX}>
+        <planeGeometry args={UNIT_PLANE} />
+        <meshBasicMaterial
+          color={shadowColor}
+          alphaMap={supportShadowTexture()}
+          transparent
+          opacity={SUPPORT_SHADOW.opacity}
+          depthWrite={false}
+          toneMapped={false}
+        />
+      </mesh>
+
+      <pointLight ref={lampRef} />
     </group>
   )
 }

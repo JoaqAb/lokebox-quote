@@ -7,7 +7,7 @@
   "brand": {
     "name": "Northline Signs",
     "logo": "/clients/northline/logo.svg",
-    "colors": { "bg": "#07080A", "primary": "#101317", "accent": "#FF7A18", "text": "#F4F2EF", "muted": "#8A8F98" },
+    "colors": { "bg": "#F2F1EE", "primary": "#C7C2B9", "accent": "#D4550A", "text": "#1A1A18", "muted": "#6B6A66" },
     "phone": "+1 555 010 2233",
     "whatsapp": "15550102233",
     "email": "hello@northlinesigns.example"
@@ -16,6 +16,7 @@
   "poweredBy": true,
   "prices_placeholder": false,
   "options": {
+    "signText": { "default": "NORTHLINE", "maxLength": 18 },
     "types": [
       { "id": "facade", "label": "Facade sign", "priceFixed": 0 },
       { "id": "totem", "label": "Totem sign", "priceFixed": 400 }
@@ -50,6 +51,7 @@
     "installationYes": "Yes, install it for me",
     "installationNo": "No, I will install it",
     "quantityLabel": "Quantity",
+    "signTextLabel": "Text on the sign",
     "priceLabel": "Estimated price",
     "priceRangeNote": "Estimated range",
     "disclaimer": "This is an estimate. Northline Signs confirms the final price.",

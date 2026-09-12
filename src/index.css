@@ -75,13 +75,13 @@
 
 /* Tokens compartidos de los controles. La misma cadena de clases se repetia en
    ChoiceGroup, BooleanChoice, LeadSection, ThanksScreen y QuoteSheet: vive aca una vez.
-   El anillo de foco es el mismo en botones, enlaces y controles nativos. */
+   Los tres conservan nombre y firma publica; lo que cambia es de donde sale el color.
+   Antes era bg-white/5 y border-white/10, o sea blanco con opacidad, que sobre un fondo
+   claro es invisible. Ahora sale de --q-surface y --q-border, derivadas con color-mix del
+   texto sobre el fondo del cliente, asi el mismo token sirve en tema claro y en oscuro y
+   no hace falta ni duplicar controles ni una sola variante dark:. */
 
 @layer components {
-  .q-focus {
-    @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--q-accent)];
-  }
-
   .q-control {
     @apply flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-medium transition-colors duration-150;
     @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--q-accent)];
@@ -94,6 +94,22 @@
 
   /* Estado disponible, y accion secundaria. */
   .q-off {
-    @apply border border-white/10 bg-white/5 text-[var(--q-text)] hover:bg-white/10;
+    border: 1px solid var(--q-border);
+    background: var(--q-surface);
+    color: var(--q-text);
+  }
+
+  .q-off:hover {
+    background: color-mix(in srgb, var(--q-text) 12%, var(--q-bg));
+  }
+
+  /* Separador de listas y bordes de bloque. Mismo origen que el borde del control. */
+  .q-hairline {
+    border-color: var(--q-border);
+  }
+
+  /* Superficie de un bloque que se despega del fondo, como el bloque de precio. */
+  .q-panel {
+    background: var(--q-surface);
   }
 }

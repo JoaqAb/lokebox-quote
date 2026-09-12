@@ -6,10 +6,10 @@ import type { ClientTexts } from '../types'
 // Formulario de lead. Los errores no muestran texto: aria-invalid y borde de acento.
 
 const FIELD_BASE =
-  'w-full rounded-xl bg-white/5 px-3 py-2 text-sm text-[var(--q-text)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--q-accent)]'
-const FIELD_OK = `${FIELD_BASE} min-h-11 border border-white/10`
+  'w-full rounded-xl q-panel px-3 py-2 text-sm text-[var(--q-text)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--q-accent)]'
+const FIELD_OK = `${FIELD_BASE} min-h-11 border q-hairline`
 const FIELD_ERROR = `${FIELD_BASE} min-h-11 border border-[var(--q-accent)]`
-const NOTE_CLASS = `${FIELD_BASE} min-h-20 border border-white/10`
+const NOTE_CLASS = `${FIELD_BASE} min-h-20 border q-hairline`
 
 type LeadFormProps = {
   texts: ClientTexts

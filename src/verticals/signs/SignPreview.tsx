@@ -1,12 +1,14 @@
 import { Canvas } from '@react-three/fiber'
 import { useReducedMotion } from 'framer-motion'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { SignSelection } from '../../core/types'
 import { SignPreviewFallback } from './SignPreviewFallback'
 import { SignScene } from './scene/SignScene'
 import { PERF, type PerfTier } from './scene/perfTier'
 import { scenePalette, signPlacement } from './scene/sceneGeometry'
 import { hasWebGL } from './scene/webgl'
+import { disposeGlyphTextures } from './scene/glyphTexture'
+import { disposeSupportShadow } from './scene/supportShadow'
 import type { SignVisual } from './visuals'
 
 // Host del preview. Mantiene el marco del layout y adentro pone el canvas.
@@ -26,6 +28,16 @@ export function SignPreview({ selection, visual, theme }: SignPreviewProps) {
   // veces como maximo en toda la vida del canvas, asi que el re-render no cuesta nada.
   const [tier, setTier] = useState<PerfTier>(0)
   const palette = useMemo(() => scenePalette(theme), [theme])
+
+  // Las CanvasTexture viven mientras vive la escena, no una por render: se liberan aca.
+  useEffect(
+    () => () => {
+      disposeGlyphTextures()
+      disposeSupportShadow()
+    },
+    [],
+  )
+
   const placement = signPlacement(selection, visual.lengthToMeters)
 
   if (!hasWebGL()) {
@@ -35,11 +47,12 @@ export function SignPreview({ selection, visual, theme }: SignPreviewProps) {
   return (
     <div
       style={theme}
-      className="aspect-video w-full overflow-hidden rounded-2xl border border-white/10 bg-[var(--q-bg)]"
+      className="aspect-video w-full overflow-hidden rounded-2xl q-hairline border bg-[var(--q-bg)]"
     >
       <Canvas dpr={PERF.dpr[tier]} gl={{ antialias: true }}>
         <SignScene
           placement={placement}
+          text={selection.text}
           material={visual.material}
           lightingMode={visual.lighting.mode}
           palette={palette}

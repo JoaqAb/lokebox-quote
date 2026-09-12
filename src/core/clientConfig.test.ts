@@ -104,6 +104,7 @@ describe('priceRulesFromClient y defaultSelection', () => {
     const client = clientOrFail('northline')
     expect(defaultSelection(client)).toEqual({
       type: 'facade',
+      text: 'NORTHLINE',
       width: 8,
       height: 3,
       materialId: 'pvc',
@@ -133,7 +134,7 @@ const CLAVES_DE_LA_HOJA = [
 
 describe('claves de texto de los dos clientes', () => {
   // 13.16
-  it('los dos JSON tienen las mismas 40 claves, ninguna vacia', () => {
+  it('los dos JSON tienen las mismas 41 claves, ninguna vacia', () => {
     const juegos = listClientSlugs().map((slug) => {
       const texts = clientOrFail(slug).texts
       for (const [key, value] of Object.entries(texts)) {
@@ -141,7 +142,7 @@ describe('claves de texto de los dos clientes', () => {
       }
       return Object.keys(texts).sort()
     })
-    expect(juegos[0]).toHaveLength(40)
+    expect(juegos[0]).toHaveLength(41)
     for (const juego of juegos) {
       expect(juego).toEqual(juegos[0])
     }

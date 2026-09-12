@@ -13,7 +13,7 @@ type PriceBarProps = {
 export function PriceBar({ result, config }: PriceBarProps) {
   const { texts, currency, locale } = config
   return (
-    <div className="border-t border-white/10 bg-[var(--q-primary)] px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-8 lg:pb-4">
+    <div className="q-hairline q-panel border-t px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-8 lg:pb-4">
       <p className="text-xs font-semibold tracking-[0.18em] text-[var(--q-muted)] uppercase">
         {texts.priceLabel}
       </p>

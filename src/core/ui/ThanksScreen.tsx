@@ -9,7 +9,7 @@ type ThanksScreenProps = {
 
 export function ThanksScreen({ texts, quoteHref }: ThanksScreenProps) {
   return (
-    <div className="rounded-2xl border border-[var(--q-accent)] bg-white/5 p-5">
+    <div className="rounded-2xl q-panel border border-[var(--q-accent)] p-5">
       <p className="text-lg font-semibold">{texts.thanksTitle}</p>
       <p className="mt-1 text-sm text-[var(--q-muted)]">{texts.thanksBody}</p>
       {quoteHref === undefined ? null : (

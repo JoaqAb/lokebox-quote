@@ -31,7 +31,7 @@ export function SignPreviewFallback({ selection, theme }: SignPreviewFallbackPro
   return (
     <div
       style={theme}
-      className="flex aspect-video w-full items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-[var(--q-primary)]"
+      className="flex aspect-video w-full items-center justify-center overflow-hidden rounded-2xl q-hairline border bg-[var(--q-primary)]"
     >
       <div
         style={{ width: `${String(box.width)}%`, height: `${String(box.height)}%` }}

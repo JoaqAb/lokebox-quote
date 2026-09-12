@@ -25,10 +25,10 @@ function decodeOf(overrides: Record<string, string>, slug = 'northline'): SignSe
 
 describe('encodeQuoteParams', () => {
   // 13.1
-  it('devuelve las siete claves en el orden t,w,h,m,l,i,q, con i en 0 o 1', () => {
+  it('devuelve las ocho claves en el orden t,x,w,h,m,l,i,q, con i en 0 o 1', () => {
     const selection = defaultSelection(northline)
     const keys = [...new URLSearchParams(encodeQuoteParams(selection)).keys()]
-    expect(keys).toEqual(['t', 'w', 'h', 'm', 'l', 'i', 'q'])
+    expect(keys).toEqual(['t', 'x', 'w', 'h', 'm', 'l', 'i', 'q'])
     expect(encodeQuoteParams({ ...selection, installation: false })).toContain('i=0')
     expect(encodeQuoteParams({ ...selection, installation: true })).toContain('i=1')
   })
@@ -65,8 +65,8 @@ describe('decodeQuoteParams', () => {
   })
 
   // 13.3
-  it('devuelve null si falta cualquiera de las siete claves, una por una', () => {
-    for (const key of ['t', 'w', 'h', 'm', 'l', 'i', 'q']) {
+  it('devuelve null si falta cualquiera de las ocho claves, una por una', () => {
+    for (const key of ['t', 'x', 'w', 'h', 'm', 'l', 'i', 'q']) {
       const params = new URLSearchParams(encodeQuoteParams(defaultSelection(northline)))
       params.delete(key)
       expect(decodeQuoteParams(northline.options, params)).toBeNull()

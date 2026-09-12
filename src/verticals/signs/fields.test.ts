@@ -30,11 +30,12 @@ function choiceLabels(slug: string, fieldId: string): string[] {
 
 describe('signFields', () => {
   // 12.1
-  it('devuelve los siete campos en el orden de SPEC 5.2, con sus id y labelKey', () => {
+  it('devuelve los ocho campos en el orden de SPEC 5.2, con sus id y labelKey', () => {
     const fields = signFields(clientOrFail('northline'))
-    expect(fields).toHaveLength(7)
+    expect(fields).toHaveLength(8)
     expect(fields.map((field) => field.id)).toEqual([
       'type',
+      'text',
       'width',
       'height',
       'materialId',
@@ -44,6 +45,7 @@ describe('signFields', () => {
     ])
     expect(fields.map((field) => field.labelKey)).toEqual([
       'typeLabel',
+      'signTextLabel',
       'widthLabel',
       'heightLabel',
       'materialLabel',
@@ -54,10 +56,11 @@ describe('signFields', () => {
   })
 
   // 12.2
-  it('los kind son choice, range, range, choice, choice, boolean, stepper', () => {
+  it('los kind son choice, text, range, range, choice, choice, boolean, stepper', () => {
     const fields = signFields(clientOrFail('northline'))
     expect(fields.map((field) => field.control.kind)).toEqual([
       'choice',
+      'text',
       'range',
       'range',
       'choice',

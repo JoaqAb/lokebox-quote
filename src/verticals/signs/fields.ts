@@ -21,6 +21,11 @@ export function signFields(config: ClientConfig): PanelField[] {
       control: { kind: 'choice', choices: labeledChoices(options.types) },
     },
     {
+      id: 'text',
+      labelKey: 'signTextLabel',
+      control: { kind: 'text', maxLength: options.signText.maxLength },
+    },
+    {
       id: 'width',
       labelKey: 'widthLabel',
       control: {
@@ -77,6 +82,7 @@ export function signFields(config: ClientConfig): PanelField[] {
 export function valuesFromSelection(selection: SignSelection): Record<string, SelectionValue> {
   return {
     type: selection.type,
+    text: selection.text,
     width: selection.width,
     height: selection.height,
     materialId: selection.materialId,
@@ -119,6 +125,7 @@ function readFlag(values: Record<string, SelectionValue>, key: string): boolean 
 export function selectionFromValues(values: Record<string, SelectionValue>): SignSelection {
   return {
     type: readText(values, 'type'),
+    text: readText(values, 'text'),
     width: readNumber(values, 'width'),
     height: readNumber(values, 'height'),
     materialId: readText(values, 'materialId'),

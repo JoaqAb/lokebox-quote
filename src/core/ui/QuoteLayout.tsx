@@ -51,7 +51,7 @@ export function QuoteLayout({ config, preview, panel, price }: QuoteLayoutProps)
       style={themeStyle}
       className="flex min-h-dvh flex-col bg-[var(--q-bg)] text-[var(--q-text)] lg:h-dvh lg:overflow-hidden"
     >
-      <header className="shrink-0 border-b border-white/5 px-4 py-4 sm:px-6 lg:px-8">
+      <header className="shrink-0 q-hairline border-b px-4 py-4 sm:px-6 lg:px-8">
         <img src={brand.logo} alt={brand.name} className="h-8 w-auto" />
         <h1 className="mt-3 text-2xl leading-tight font-semibold tracking-tight sm:text-3xl lg:text-4xl">
           {texts.headline}
@@ -66,7 +66,7 @@ export function QuoteLayout({ config, preview, panel, price }: QuoteLayoutProps)
           {preview}
         </div>
 
-        <div className="flex flex-1 flex-col lg:min-h-0 lg:border-l lg:border-white/5">
+        <div className="flex flex-1 flex-col lg:min-h-0 lg:q-hairline lg:border-l">
           <div className="px-4 pb-[calc(var(--q-price-h,13rem)+2rem+env(safe-area-inset-bottom))] sm:px-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:px-8 lg:pb-8">
             {panel}
             {config.poweredBy ? (

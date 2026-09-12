@@ -109,14 +109,55 @@ describe('signBoxMeters', () => {
 
 describe('scenePalette', () => {
   // 12.9
+  // (editada en TAREA_009: el marco dejo de ser --q-bg. Con el fondo del tema no tenia
+  // contraste contra la pared y por eso puerta y vidriera no se leian como escala.)
   it('deriva del tema: la fachada es el primary y la vereda es mas oscura', () => {
     for (const slug of listClientSlugs()) {
       const theme = themeFromClient(clientOrFail(slug))
       const palette = scenePalette(theme)
       expect(palette.facade.toLowerCase()).toBe(theme['--q-primary'].toLowerCase())
-      expect(palette.doorFrame.toLowerCase()).toBe(theme['--q-bg'].toLowerCase())
-      expect(palette.glass.toLowerCase()).toBe(theme['--q-accent'].toLowerCase())
       expect(luminance(palette.sidewalk)).toBeLessThan(luminance(palette.facade))
+    }
+  })
+
+  // 9.2
+  it('el marco de puerta y vidriera contrasta contra la pared, que es lo que los hace leer como escala', () => {
+    for (const slug of listClientSlugs()) {
+      const palette = scenePalette(themeFromClient(clientOrFail(slug)))
+      const salto = Math.abs(luminance(palette.doorFrame) - luminance(palette.facade))
+      expect(salto, `${slug}: marco contra pared`).toBeGreaterThan(0.05)
+      expect(palette.windowFrame).toBe(palette.doorFrame)
+      // El zocalo tambien se despega de la pared, sin llegar al tono del marco.
+      expect(luminance(palette.base)).toBeLessThan(luminance(palette.facade))
+    }
+  })
+
+  // 9.2
+  it('el fondo cierra el cuadro y es mas claro que la pared, y ningun color sale negro', () => {
+    for (const slug of listClientSlugs()) {
+      const palette = scenePalette(themeFromClient(clientOrFail(slug)))
+      expect(luminance(palette.backdrop), slug).toBeGreaterThan(luminance(palette.facade))
+      for (const [nombre, color] of Object.entries(palette)) {
+        if (typeof color === 'string') {
+          expect(luminance(color), `${slug}.${nombre}`).toBeGreaterThan(0.02)
+        }
+      }
+    }
+  })
+
+  // 9.2
+  it('la vidriera dejo de competir con el cartel: emision baja y sin el accent puro', () => {
+    for (const slug of listClientSlugs()) {
+      const theme = themeFromClient(clientOrFail(slug))
+      const palette = scenePalette(theme)
+      expect(palette.glassEmissiveIntensity, slug).toBeLessThanOrEqual(0.05)
+      // El accent puro hacia de la vidriera el rectangulo de mayor contraste del cuadro.
+      expect(palette.glass.toLowerCase()).not.toBe(theme['--q-accent'].toLowerCase())
+      // El contraste real del cartel contra la vidriera se mide sobre la escena
+      // renderizada, no aca: esto solo evita que la vidriera vuelva a ser color de marca.
+      // El vidrio se queda cerca del tono de la pared; lo que la hace legible es el marco.
+      const contra = Math.abs(luminance(palette.glass) - luminance(palette.facade))
+      expect(contra, `${slug}: vidrio contra pared`).toBeLessThan(0.06)
     }
   })
 
