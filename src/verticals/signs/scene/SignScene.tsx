@@ -1,6 +1,4 @@
 import { ContactShadows, OrbitControls, PerspectiveCamera } from '@react-three/drei'
-import { useThree } from '@react-three/fiber'
-import { useEffect } from 'react'
 import type { MaterialVisual } from '../../../core/types'
 import { AutoOrbit } from './AutoOrbit'
 import { SignBoard } from './SignBoard'
@@ -43,18 +41,7 @@ export function SignScene({
   tier,
   onTierChange,
 }: SignSceneProps) {
-  const camera = useThree((state) => state.camera)
-
   usePerfTier(tier, onTierChange)
-
-  useEffect(() => {
-    if (tier < 2) {
-      return
-    }
-    // Nivel 2: sin orbita y sin barrido, asi que la camara vuelve una vez a su lugar.
-    camera.position.set(...CAMERA.position)
-    camera.lookAt(...CAMERA.target)
-  }, [camera, tier])
 
   return (
     <>
@@ -85,8 +72,11 @@ export function SignScene({
         />
       ) : null}
 
-      {/* makeDefault publica los controles en el store: AutoOrbit los lee con useThree. */}
-      {tier < 2 ? <OrbitControls makeDefault target={CAMERA.target} {...ORBIT} /> : null}
+      {/* makeDefault publica los controles en el store: AutoOrbit los lee con useThree.
+          La orbita no depende del nivel: es entrada del usuario, no costo de dibujo, y
+          apagarla no se distingue de una pagina rota (SPEC 12). */}
+      <OrbitControls makeDefault target={CAMERA.target} {...ORBIT} />
+      {/* El barrido si se apaga en el nivel 2: es animacion continua y cosmetica. */}
       {tier < 2 && !reducedMotion ? <AutoOrbit /> : null}
     </>
   )

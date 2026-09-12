@@ -40,3 +40,29 @@ describe('PERF.dpr', () => {
     }
   })
 })
+
+// Umbrales recalibrados en TAREA_008 (SPEC 12, version 1.6).
+describe('umbrales de PERF', () => {
+  // 7.1
+  it('el umbral queda por debajo de todo techo de vsync habitual', () => {
+    for (const hz of [30, 60, 90, 120]) {
+      expect(PERF.minFps, `una pantalla sana a ${String(hz)} Hz no puede degradarse`).toBeLessThan(
+        hz,
+      )
+    }
+    // Por debajo de 24 la escena si se ve a los tirones: el umbral no es simbolico.
+    expect(PERF.minFps).toBeGreaterThanOrEqual(20)
+  })
+
+  // 7.1
+  it('el calentamiento cubre la compilacion de shaders y la ventana no es mas corta', () => {
+    expect(PERF.warmupMs).toBeGreaterThanOrEqual(2000)
+    expect(PERF.windowMs).toBeGreaterThanOrEqual(PERF.warmupMs)
+  })
+
+  // 7.1
+  it('una pantalla a 30 Hz no baja de nivel, que era la causa raiz de TAREA_008', () => {
+    expect(nextTier(0, 30)).toBe(0)
+    expect(nextTier(1, 30)).toBe(1)
+  })
+})

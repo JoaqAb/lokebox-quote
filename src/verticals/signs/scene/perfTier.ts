@@ -1,5 +1,10 @@
 // Presupuesto de rendimiento de SPEC 12. Puro, sin React.
 // Se mide, no se adivina por user agent.
+// El umbral queda por debajo de todo techo de vsync habitual (30, 60, 90 y 120 Hz). Con
+// 45 fps, una ventana con vsync a 30 Hz fallaba siempre toda medicion y la escena caia
+// al nivel 2 a los cinco segundos de cargar, sola (docs/DECISIONES.md, 12/09/2026).
+// El calentamiento cubre la compilacion de shaders y la ventana larga diluye un tiron
+// aislado, que con 2000 ms alcanzaba para bajar un nivel de forma permanente.
 
 export type PerfTier = 0 | 1 | 2
 
@@ -9,9 +14,9 @@ export const PERF: {
   minFps: number
   dpr: Record<PerfTier, [number, number]>
 } = {
-  warmupMs: 1000,
-  windowMs: 2000,
-  minFps: 45,
+  warmupMs: 2000,
+  windowMs: 3000,
+  minFps: 24,
   dpr: { 0: [1, 1.75], 1: [1, 1.25], 2: [1, 1] },
 }
 

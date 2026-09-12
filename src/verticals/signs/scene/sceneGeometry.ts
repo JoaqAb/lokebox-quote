@@ -81,17 +81,29 @@ export const LIGHTS: {
   directionalPosition: [3, 7, 6],
 }
 
-// Orbita limitada de SPEC 12. Sin pan y sin zoom. El barrido lo maneja AutoOrbit.
+// Orbita limitada de SPEC 12. Sin pan. El barrido lo maneja AutoOrbit.
+// Los topes salen de la geometria del set y estan verificados en captura, no a ojo.
+// La fachada es una caja de 9 x 6 con la cara frontal en z = 0 y el objetivo de camara
+// esta a y = 3,2, o sea 2,8 m por debajo de su borde superior. Con fov 36, a 12 m el
+// semialto visible ya es 3,9 m: alejarse mas deja la fachada flotando en el vacio, asi
+// que la distancia inicial es tambien el tope de zoom y solo se puede acercar.
+// El polar minimo se queda en 1,15: por encima la camara pasa el borde superior de la
+// fachada y se ve el vacio de atras. El maximo sube a 1,57, apenas por debajo de pi/2,
+// que es justo la altura del objetivo: pasado ese valor la camara rasa la vereda.
+// El azimut pasa de 0,40 a 0,55 rad, el maximo que no muestra mas borde de set que el
+// que ya mostraba la composicion aceptada del bloque 2.
 export const ORBIT = {
   enablePan: false,
-  enableZoom: false,
+  enableZoom: true,
+  minDistance: 7,
+  maxDistance: 12,
   enableDamping: true,
   dampingFactor: 0.08,
   rotateSpeed: 0.45,
-  minAzimuthAngle: -0.4,
-  maxAzimuthAngle: 0.4,
+  minAzimuthAngle: -0.55,
+  maxAzimuthAngle: 0.55,
   minPolarAngle: 1.15,
-  maxPolarAngle: 1.52,
+  maxPolarAngle: 1.57,
 } as const
 
 export const CONTACT_SHADOW = { opacity: 0.5, blur: 2.4, resolution: 512 } as const

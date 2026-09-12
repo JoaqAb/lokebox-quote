@@ -318,3 +318,45 @@ describe('autoAzimuth', () => {
     expect(autoAzimuth(0)).toBeCloseTo(0, 10)
   })
 })
+
+// Limites de orbita ampliados en TAREA_008 (SPEC 12, version 1.6).
+describe('limites de ORBIT', () => {
+  // 7.2
+  it('el azimut es simetrico y mas ancho que el del bloque 2', () => {
+    expect(ORBIT.maxAzimuthAngle).toBe(-ORBIT.minAzimuthAngle)
+    expect(ORBIT.maxAzimuthAngle).toBeGreaterThan(0.4)
+  })
+
+  // 7.2
+  it('el polar maximo se queda por debajo de pi/2, para no rasar la vereda', () => {
+    expect(ORBIT.maxPolarAngle).toBeLessThan(Math.PI / 2)
+    expect(ORBIT.minPolarAngle).toBeLessThan(ORBIT.maxPolarAngle)
+    expect(ORBIT.minPolarAngle).toBeGreaterThan(0)
+  })
+
+  // 7.2
+  it('el zoom es un rango creciente y positivo, con la distancia inicial adentro', () => {
+    expect(ORBIT.enableZoom).toBe(true)
+    expect(ORBIT.minDistance).toBeGreaterThan(0)
+    expect(ORBIT.maxDistance).toBeGreaterThan(ORBIT.minDistance)
+    const inicial = Math.hypot(
+      CAMERA.position[0] - CAMERA.target[0],
+      CAMERA.position[1] - CAMERA.target[1],
+      CAMERA.position[2] - CAMERA.target[2],
+    )
+    expect(inicial).toBeGreaterThanOrEqual(ORBIT.minDistance)
+    expect(inicial).toBeLessThanOrEqual(ORBIT.maxDistance)
+  })
+
+  // 7.2
+  it('a la distancia maxima el borde de la vereda no entra en cuadro', () => {
+    const semiAlto = Math.tan(((CAMERA.fov * Math.PI) / 180) / 2) * ORBIT.maxDistance
+    const semiAncho = semiAlto * (16 / 9)
+    expect(semiAncho).toBeLessThan(SET.sidewalk.width / 2)
+  })
+
+  // 7.2
+  it('el barrido sigue sin llegar al tope del clamp nuevo', () => {
+    expect(AUTO_ORBIT.amplitude).toBeLessThan(ORBIT.maxAzimuthAngle)
+  })
+})
