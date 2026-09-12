@@ -3,7 +3,7 @@
 Fuente de verdad del alcance. Si algo no está acá, no se construye.
 Este documento se edita, no se contradice. Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 
-Versión: 1.5 · 12/09/2026
+Versión: 1.6 · 12/09/2026
 
 ## 1. Objetivo
 
@@ -302,12 +302,13 @@ Prohibido en toda la vertical 3D: modelos importados, texturas, fuentes tipográ
 - Sin bloom. El postprocessing está prohibido en esta misma sección, así que el bloom queda fuera del MVP y no es parte de la degradación por rendimiento.
 - Tótem: la misma caja sobre un poste, de pie sobre la vereda delante del local, centrada en x. El poste va del piso al borde inferior del cartel, con un solapamiento mínimo para que no se vea la junta, y su ancho escala con el ancho del cartel dentro de un mínimo y un máximo. El cambio de tipo es una transición continua, no un salto.
 - Ambiente: escena nocturna, luz ambiente baja, una direccional suave, sombras de contacto de drei.
-- Cámara: fija con órbita limitada. Cuando no hay interacción, barrido lento de ida y vuelta dentro del clamp de azimut, nunca hasta el tope. Arrastrar lo detiene y al soltar se reanuda con retardo y sin salto. No corre con `prefers-reduced-motion`.
+- Cámara: composición inicial fija, con órbita limitada alrededor de ella. Los límites dejan explorar el modelo sin que entren en cuadro el vacío detrás de la fachada ni el borde de la vereda: azimut ±0.75 rad, polar de 1.00 a 1.57 rad (siempre por debajo de π/2) y zoom acotado entre 7 y 15 m de distancia. Cuando no hay interacción, barrido lento de ida y vuelta dentro del clamp de azimut, nunca hasta el tope. Arrastrar lo detiene y al soltar se reanuda con retardo y sin salto. No corre con `prefers-reduced-motion`.
+- La órbita es entrada del usuario, no costo de dibujo: nunca se apaga por rendimiento, en ningún nivel. Apagarla no se distingue de una página rota, y su costo por cuadro es despreciable frente a las sombras de contacto y al dpr.
 - Interfaz del componente: recibe `selection`, `visual` y `theme`. Nada más. `visual` es lo que devuelve `resolveSignVisual(config, selection)` de la vertical: el `visual` del material elegido, el `visual` de la iluminación elegida y el factor de conversión de la unidad de longitud del cliente a metros. El preview no recibe la config del cliente y no busca nada por id.
 - Escala: la escena trabaja siempre en metros. Las medidas de la selección se multiplican por el factor de `visual` (1 en metros, 0.3048 en pies).
 - Colores de la escena: se derivan del `theme` del cliente con operaciones de color. Ningún hexadecimal escrito en un componente de escena. El color del cartel sale del `visual` del material.
 - Si el navegador no tiene WebGL, el preview cae a un bloque plano equivalente al provisorio de TAREA_002. Esa caída es por ausencia de WebGL, no la degradación por rendimiento de la última línea de esta sección.
-- Rendimiento: fluido en un teléfono medio. Se mide en ventanas de 2 segundos, descartando el primer segundo, y el umbral es 45 fps. La degradación tiene tres niveles y baja de uno en uno, en este orden: nivel 0 todo; nivel 1 sin sombras de contacto y con techo de dpr más bajo; nivel 2 además sin órbita y sin barrido de cámara, dpr 1 y cámara de vuelta en su posición. El descenso es monótono: el nivel nunca vuelve a subir, para que la escena no parpadee entre configuraciones. No se vuelve a 2D: el bloque plano es solo la caída por ausencia de WebGL.
+- Rendimiento: fluido en un teléfono medio. Se mide en ventanas de 3 segundos, descartando los primeros 2 segundos, y el umbral es 24 fps. El umbral queda por debajo de todo techo de vsync habitual (30, 60, 90 y 120 Hz): una pantalla a 30 Hz sana no es un dispositivo que no da abasto, y tratarla como tal apagaba la escena a los 5 segundos de cargar. La degradación tiene tres niveles y baja de uno en uno, en este orden: nivel 0 todo; nivel 1 sin sombras de contacto y con techo de dpr más bajo; nivel 2 además sin barrido de cámara y dpr 1. El descenso es monótono: el nivel nunca vuelve a subir, para que la escena no parpadee entre configuraciones. No se vuelve a 2D: el bloque plano es solo la caída por ausencia de WebGL.
 
 ## 13. Landing (quote.lokebox.com)
 

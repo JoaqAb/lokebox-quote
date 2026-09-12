@@ -63,7 +63,10 @@ Bloque 3 cerrado: TAREA_006 aceptada con 17 criterios verificados y 2 con desví
 
 - TAREA_007 · pulido visual y mobile: tipografía, espaciados, estados de foco, transiciones, orden de tabulación, textos finales de las dos demos en nivel B2. Incluye tres pendientes que venían anotados en STATE: el encabezado muestra el logo y al lado repite `brand.name`, queda bastante aire abajo en la columna del preview en 1440 px, y el preview vuelve a abrirse acá por primera vez desde que cerró el bloque 2.
   - Aceptación: G1 a G6. Revisión en 390 px, 768 px y 1440 px sin defectos visibles. Los tres criterios subjetivos de DONE (10 segundos, apariencia de producto, sin errores visibles) se validan con Joaquín antes de cerrar.
-- TAREA_008 · landing en `/`: qué es, para quién, dos botones a las demos, los dos tiers con precio, contacto, footer. Reemplaza el índice temporal, que hoy muestra los slugs crudos.
+- TAREA_008 · órbita y degradación de rendimiento. Reabre TAREA_007: el criterio 3 de DONE falla en producción. Detalle en docs/tareas/TAREA_008_orbita_degradacion.md.
+  - Aceptación: G1 a G6, y los 13 criterios de la tarea. Causa raíz medida, no supuesta. Arrastrar 60 segundos seguidos sigue respondiendo. Los tres modos de luz siguen distinguiéndose con luminancia medida.
+- TAREA_009 · tema claro.
+- TAREA_010 · landing en `/`: qué es, para quién, dos botones a las demos, los dos tiers con precio, contacto, footer. Reemplaza el índice temporal, que hoy muestra los slugs crudos.
   - Aceptación: G1 a G6. La landing carga en menos de 2 segundos y los botones llevan a las demos.
 - Canal C al cierre del bloque: grabar el video de 30 segundos y sacar las capturas (desktop y mobile, demo EN).
 
