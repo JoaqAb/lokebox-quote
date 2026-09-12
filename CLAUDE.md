@@ -29,6 +29,8 @@ Además:
 - Reporte de Code al orquestador: máximo 15 líneas. Archivos tocados, criterios cumplidos sí o no, bloqueos en una línea. Sin código, sin diffs, sin capturas.
 - Entre tareas se usa `/clear`, nunca `/compact`.
 - Las tareas dan rutas de archivo exactas. Code no explora el repo para encontrarlas.
+- `docs/STATE.md`: máximo 25 líneas. Al cerrar un bloque se reescribe completo, no se acumula: estado actual, último bloque cerrado, próximo bloque, bloqueos. Si no entra en 25 líneas, el detalle va a la tarea o a `docs/DECISIONES.md`.
+- `docs/tareas/_ULTIMO.md`: contador de una línea con el próximo número libre. No lleva tope ni contenido narrativo.
 
 ## Reglas de trabajo
 
@@ -46,6 +48,6 @@ Además:
 
 - `SPEC.md`: alcance y fuente de verdad. Se edita, no se contradice.
 - `docs/EXECUTION.md`: bloques, criterios de aceptación y pasos de Canal C.
-- `docs/STATE.md`: estado vivo, formato fijo, tope 30 líneas.
+- `docs/STATE.md`: estado vivo, formato fijo, tope 25 líneas.
 - `docs/DECISIONES.md`: una línea por decisión, con fecha.
 - `docs/tareas/TAREA_NNN_titulo.md`: la tarea en curso.

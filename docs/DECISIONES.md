@@ -112,3 +112,5 @@
 - 11/09/2026: lo que salio de STATE.md no se pierde: los pendientes vivos quedaron en EXECUTION, en el bloque y el canal que les corresponde. El mapa del estado del codigo se retira sin destino porque su fuente es el codigo.
 - 11/09/2026: CLAUDE.md queda en 51 lineas, por debajo del tope de 60. Se retiro el resumen de alcance, que duplicaba SPEC 1, 16 y 17, y el resto se condenso sin perder ninguna regla que cambie el comportamiento de Code.
 - 11/09/2026: el chat orquestador trabaja con un tope de 3 turnos por chat y los pasos manuales de Canal C van agrupados al final de cada bloque. Intercalar pasos manuales entre tareas de codigo obliga a sostener dos hilos a la vez en el chat que decide.
+- 11/09/2026: docs/STATE.md baja de 30 a 25 lineas y al cerrar un bloque se reescribe completo en vez de acumular. Un tope que solo se recorta cuando molesta vuelve a crecer; reescribir obliga a decidir que sigue vivo.
+- 11/09/2026: docs/tareas/_ULTIMO.md queda como contador de una linea con el proximo numero libre, sin tope ni narrativa. Es un contador y no un cierre, asi que un tope de lineas ahi no significaria nada.
