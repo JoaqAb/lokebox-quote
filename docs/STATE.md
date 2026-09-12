@@ -4,19 +4,19 @@
 
 ## Bloque actual
 
-Bloque 4, TAREA_009: escena clara y legibilidad del cartel. Resuelve los seis defectos que hicieron rechazar el criterio 2 de DONE. Detalle y causa de cada defecto en `docs/tareas/TAREA_009_escena_clara.md`.
+Bloque 4, TAREA_009 cerrada. Cada defecto por su causa: el cartel no tenia letras (ahora glifos con CanvasTexture por caracter); la fachada era un plano negro (la paleta derivaba por multiplicacion, ahora por mezclas entre colores del tema); puerta y vidriera no se leian (les faltaba marco que contraste); el cartel flotaba (no habia sombra que lo toque, ahora un quad de apoyo); la vidriera le ganaba en contraste (era el accent puro); y se veia el canto (la fachada media 9 m, ahora 160 x 34 con fondo detras).
 
 ## Ultimo cerrado
 
-TAREA_008, commits e750499 (apertura), cb03856 (codigo), f0e997e (cierre). TAREA_007 queda cerrada con esto. Bloque 3 cerrado completo. Produccion: https://quote.lokebox.com
+TAREA_009, commits 0d0a7cb (apertura), 33dd207 (codigo). SPEC 1.8. 135 pruebas en verde. Produccion: https://quote.lokebox.com
 
 ## Proximo
 
-TAREA_009 (escena clara y legibilidad del cartel: resuelve los seis defectos del preview y el tema claro), TAREA_010 (letras corporeas como tercer tipo) y TAREA_011 (landing en `/`). Despues, Canal C del bloque 4: video de 30 segundos y capturas. SPEC 1.7 y EXECUTION ya tienen el alcance y los criterios de las tres.
+TAREA_010 (letras corporeas) y TAREA_011 (landing), con criterios ya en EXECUTION.
 
 ## Bloqueos
 
-Los tres criterios subjetivos de DONE los valida Joaquin sobre las cuatro URLs de produccion, ahora con la orbita viva. Pendientes que no bloquean: ver las dos demos en un telefono real y limpiar las filas de prueba de `leads` y `visits`.
+El criterio 2 de DONE lo valida Joaquin en captura antes de dar por cerrada la tarea: las cuatro URLs de produccion, con los tres modos de luz. Pendientes que no bloquean: telefono real y filas de prueba de `leads` y `visits`.
 
 ## Comando para retomar
 
