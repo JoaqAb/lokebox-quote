@@ -19,7 +19,7 @@ import type { ClientConfig } from '../core/types'
 import { SignPreview } from '../verticals/signs/SignPreview'
 import { selectionFromValues, signFields, valuesFromSelection } from '../verticals/signs/fields'
 import { signLeadSelection, signLeadTokens } from '../verticals/signs/leadTokens'
-import { resolveSignVisual } from '../verticals/signs/visuals'
+import { areaUnitSymbol, resolveSignVisual } from '../verticals/signs/visuals'
 import { ErrorScreen } from './ErrorScreen'
 import { resolveClient } from './resolveClient'
 
@@ -38,6 +38,7 @@ function QuoteScreen({ config }: QuoteScreenProps) {
   const fields = useMemo(() => signFields(config), [config])
   const rules = useMemo(() => priceRulesFromClient(config), [config])
   const theme = useMemo(() => themeFromClient(config), [config])
+  const areaUnit = useMemo(() => areaUnitSymbol(config.units.area), [config])
 
   const brandName = config.brand.name
   useEffect(() => {
@@ -108,7 +109,7 @@ function QuoteScreen({ config }: QuoteScreenProps) {
             locale={config.locale}
             onChange={handleChange}
           />
-          <PriceBreakdown result={result} config={config} />
+          <PriceBreakdown result={result} config={config} areaUnit={areaUnit} />
           <LeadSection
             cta={config.cta}
             texts={config.texts}

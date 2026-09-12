@@ -9,6 +9,11 @@ import type { ClientConfig } from '../types'
 // En mobile el padding inferior del panel se deriva de la altura real de la barra, medida
 // con ResizeObserver y publicada en --q-price-h. Un valor fijo tapaba el ultimo control
 // cuando el disclaimer ocupa mas de una linea.
+// En lg la columna del preview centra el marco en vertical. El marco se queda en 16/9
+// porque la escena esta compuesta para esa relacion: estirarlo descuadra la camara, que
+// SPEC 12 fija. Centrado, el sobrante se reparte arriba y abajo en vez de caer todo al
+// pie, que era el aire muerto anotado en STATE.
+// El nombre de la marca no se repite al lado del logo: viaja en el alt de la imagen.
 
 type QuoteLayoutProps = {
   config: ClientConfig
@@ -47,10 +52,7 @@ export function QuoteLayout({ config, preview, panel, price }: QuoteLayoutProps)
       className="flex min-h-dvh flex-col bg-[var(--q-bg)] text-[var(--q-text)] lg:h-dvh lg:overflow-hidden"
     >
       <header className="shrink-0 border-b border-white/5 px-4 py-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3">
-          <img src={brand.logo} alt={brand.name} className="h-8 w-auto" />
-          <span className="text-sm font-medium text-[var(--q-muted)]">{brand.name}</span>
-        </div>
+        <img src={brand.logo} alt={brand.name} className="h-8 w-auto" />
         <h1 className="mt-3 text-2xl leading-tight font-semibold tracking-tight sm:text-3xl lg:text-4xl">
           {texts.headline}
         </h1>
@@ -60,7 +62,9 @@ export function QuoteLayout({ config, preview, panel, price }: QuoteLayoutProps)
       </header>
 
       <main className="flex flex-1 flex-col lg:min-h-0 lg:flex-row">
-        <div className="shrink-0 p-4 sm:p-6 lg:w-[58%] lg:p-8">{preview}</div>
+        <div className="shrink-0 p-4 sm:p-6 lg:flex lg:min-h-0 lg:w-[58%] lg:flex-col lg:justify-center lg:p-8">
+          {preview}
+        </div>
 
         <div className="flex flex-1 flex-col lg:min-h-0 lg:border-l lg:border-white/5">
           <div className="px-4 pb-[calc(var(--q-price-h,13rem)+2rem+env(safe-area-inset-bottom))] sm:px-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:px-8 lg:pb-8">

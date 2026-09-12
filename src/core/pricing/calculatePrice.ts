@@ -79,12 +79,14 @@ export function calculatePrice(rules: PriceRules, selection: SignSelection): Pri
       labelKey: 'lineMaterial',
       detail: `${num(area)} x ${material.pricePerArea}`,
       amount: roundTo(materialCost, decimals),
+      detailValues: { id: 'material', area, unitPrice: material.pricePerArea },
     },
     {
       id: 'lighting',
       labelKey: 'lineLighting',
       detail: `${num(area)} x ${lighting.pricePerArea}`,
       amount: roundTo(lightingCost, decimals),
+      detailValues: { id: 'lighting', area, unitPrice: lighting.pricePerArea },
     },
   ]
 
@@ -94,6 +96,7 @@ export function calculatePrice(rules: PriceRules, selection: SignSelection): Pri
       labelKey: 'lineType',
       detail: `${signType.priceFixed}`,
       amount: roundTo(typeCost, decimals),
+      detailValues: { id: 'type', fixed: signType.priceFixed },
     })
   }
 
@@ -103,6 +106,12 @@ export function calculatePrice(rules: PriceRules, selection: SignSelection): Pri
       labelKey: 'lineInstallation',
       detail: `${rules.installation.fixed} + ${num(area)} x ${rules.installation.perArea}`,
       amount: roundTo(installationCost, decimals),
+      detailValues: {
+        id: 'installation',
+        fixed: rules.installation.fixed,
+        perArea: rules.installation.perArea,
+        area,
+      },
     })
   }
 
@@ -112,6 +121,7 @@ export function calculatePrice(rules: PriceRules, selection: SignSelection): Pri
       labelKey: 'lineDiscount',
       detail: `${discountPct}%`,
       amount: -roundTo((unitTotal * discountPct) / 100, decimals),
+      detailValues: { id: 'discount', pct: discountPct },
     })
   }
 

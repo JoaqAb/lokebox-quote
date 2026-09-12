@@ -20,10 +20,8 @@ type LeadSectionProps = {
   quoteHref?: string
 }
 
-const PRIMARY =
-  'flex min-h-11 items-center justify-center rounded-xl border border-[var(--q-accent)] bg-[var(--q-accent)] px-4 text-sm font-semibold text-[var(--q-bg)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--q-accent)]'
-const SECONDARY =
-  'flex min-h-11 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 text-sm font-medium text-[var(--q-text)] transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--q-accent)]'
+const PRIMARY = 'q-control q-on'
+const SECONDARY = 'q-control q-off'
 
 export function LeadSection({
   cta,

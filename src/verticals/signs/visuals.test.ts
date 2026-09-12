@@ -3,7 +3,7 @@ import { getClient, listClientSlugs } from '../../clients'
 import { defaultSelection } from '../../core/clientConfig'
 import type { SignSelection } from '../../core/types'
 import northline from '../../clients/northline.json'
-import { lengthToMeters, resolveSignVisual } from './visuals'
+import { areaUnitSymbol, lengthToMeters, resolveSignVisual } from './visuals'
 
 function clientOrFail(slug: string) {
   const client = getClient(slug)
@@ -62,5 +62,18 @@ describe('lengthToMeters', () => {
     expect(lengthToMeters('m')).toBe(1)
     expect(() => lengthToMeters('in')).toThrow(/in/)
     expect(() => lengthToMeters('')).toThrow()
+  })
+})
+
+describe('areaUnitSymbol', () => {
+  // 9.7
+  it('mapea las unidades de area de los dos clientes', () => {
+    expect(areaUnitSymbol('m2')).toBe('m²')
+    expect(areaUnitSymbol('sqft')).toBe('sq ft')
+  })
+
+  // 9.7
+  it('lanza con una unidad desconocida, con la unidad en el mensaje', () => {
+    expect(() => areaUnitSymbol('acres')).toThrow(/acres/)
   })
 })

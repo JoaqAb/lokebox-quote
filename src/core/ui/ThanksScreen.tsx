@@ -17,7 +17,7 @@ export function ThanksScreen({ texts, quoteHref }: ThanksScreenProps) {
           href={quoteHref}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-4 flex min-h-11 w-full items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 text-sm font-medium text-[var(--q-text)] transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--q-accent)]"
+          className="q-control q-off mt-4 w-full"
         >
           {texts.viewQuote}
         </a>

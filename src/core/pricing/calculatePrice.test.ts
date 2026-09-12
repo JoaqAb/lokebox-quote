@@ -182,11 +182,41 @@ describe('calculatePrice, lineas del desglose', () => {
     const result = calculatePrice(northline, selection({ type: 'totem', quantity: 2 }))
     expect(result.area).toBe(24)
     expect(result.lines).toEqual([
-      { id: 'material', labelKey: 'lineMaterial', detail: '24 x 15', amount: 360 },
-      { id: 'lighting', labelKey: 'lineLighting', detail: '24 x 60', amount: 1440 },
-      { id: 'type', labelKey: 'lineType', detail: '400', amount: 400 },
-      { id: 'installation', labelKey: 'lineInstallation', detail: '350 + 24 x 10', amount: 590 },
-      { id: 'discount', labelKey: 'lineDiscount', detail: '5%', amount: -140 },
+      {
+        id: 'material',
+        labelKey: 'lineMaterial',
+        detail: '24 x 15',
+        amount: 360,
+        detailValues: { id: 'material', area: 24, unitPrice: 15 },
+      },
+      {
+        id: 'lighting',
+        labelKey: 'lineLighting',
+        detail: '24 x 60',
+        amount: 1440,
+        detailValues: { id: 'lighting', area: 24, unitPrice: 60 },
+      },
+      {
+        id: 'type',
+        labelKey: 'lineType',
+        detail: '400',
+        amount: 400,
+        detailValues: { id: 'type', fixed: 400 },
+      },
+      {
+        id: 'installation',
+        labelKey: 'lineInstallation',
+        detail: '350 + 24 x 10',
+        amount: 590,
+        detailValues: { id: 'installation', fixed: 350, perArea: 10, area: 24 },
+      },
+      {
+        id: 'discount',
+        labelKey: 'lineDiscount',
+        detail: '5%',
+        amount: -140,
+        detailValues: { id: 'discount', pct: 5 },
+      },
     ])
   })
 
@@ -233,5 +263,67 @@ describe('calculatePrice, pureza', () => {
     calculatePrice(northline, input)
     expect(input).toEqual(inputBefore)
     expect(northline).toEqual(rulesBefore)
+  })
+})
+
+// detailValues: los numeros crudos que la UI formatea (SPEC 6, version 1.5).
+describe('detailValues', () => {
+  const completa = selection({
+    type: 'totem',
+    lightingId: 'back',
+    installation: true,
+    quantity: 5,
+  })
+
+  // 9.1
+  it('cada linea trae detailValues con su id y sus numeros crudos', () => {
+    const result = calculatePrice(northline, completa)
+    const porId = new Map(result.lines.map((line) => [line.id, line.detailValues]))
+    expect(porId.get('material')).toEqual({ id: 'material', area: 24, unitPrice: 15 })
+    expect(porId.get('lighting')).toEqual({ id: 'lighting', area: 24, unitPrice: 80 })
+    expect(porId.get('type')).toEqual({ id: 'type', fixed: 400 })
+    expect(porId.get('installation')).toEqual({
+      id: 'installation',
+      fixed: 350,
+      perArea: 10,
+      area: 24,
+    })
+    expect(porId.get('discount')).toEqual({ id: 'discount', pct: 10 })
+  })
+
+  // 9.1
+  it('ninguna linea emitida se queda sin detailValues, en los dos clientes', () => {
+    for (const [slug, rules] of [
+      ['northline', northline],
+      ['norte', norte],
+    ] as const) {
+      const result = calculatePrice(rules, completa)
+      expect(result.lines).toHaveLength(5)
+      for (const line of result.lines) {
+        expect(line.detailValues, `${slug}: linea ${line.id}`).toBeDefined()
+        expect(line.detailValues?.id).toBe(line.id)
+      }
+    }
+  })
+
+  // 9.2
+  it('el area de detailValues es la misma que result.area, sin redondear', () => {
+    const result = calculatePrice(norte, selection({ width: 1.75, height: 0.9 }))
+    const material = result.lines.find((line) => line.id === 'material')?.detailValues
+    expect(material).toEqual({ id: 'material', area: result.area, unitPrice: 109000 })
+    // 1.575 tiene tres decimales: el area viaja cruda, no redondeada a dos como antes.
+    expect(result.area).toBe(1.575)
+    expect(result.area).not.toBe(Math.round(result.area * 100) / 100)
+  })
+
+  // 9.3
+  it('los numeros de detailValues no dependen del locale ni de la moneda', () => {
+    const otraMoneda: PriceRules = {
+      ...northline,
+      currency: { code: 'EUR', symbol: '€', decimals: 2 },
+    }
+    const conUsd = calculatePrice(northline, selection())
+    const conEur = calculatePrice(otraMoneda, selection())
+    expect(conEur.lines[0].detailValues).toEqual(conUsd.lines[0].detailValues)
   })
 })

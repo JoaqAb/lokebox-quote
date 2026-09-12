@@ -1,4 +1,4 @@
-import { formatCurrency } from '../pricing/format'
+import { formatCurrency, formatLineDetail } from '../pricing/format'
 import { resolveLineLabel } from '../pricing/lineLabels'
 import type { BrandConfig, ClientTexts, CurrencyConfig, PriceResult } from '../types'
 
@@ -18,10 +18,8 @@ type QuoteSheetProps = {
   date: string
   poweredBy: boolean
   backHref: string
+  areaUnit: string
 }
-
-const CONTROL =
-  'flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--q-accent)]'
 
 export function QuoteSheet({
   brand,
@@ -33,6 +31,7 @@ export function QuoteSheet({
   date,
   poweredBy,
   backHref,
+  areaUnit,
 }: QuoteSheetProps) {
   return (
     <main className="q-sheet mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 print:max-w-none print:px-0 print:py-0">
@@ -86,7 +85,9 @@ export function QuoteSheet({
             >
               <span className="min-w-0 text-sm">{resolveLineLabel(line.labelKey, texts)}</span>
               <span className="ml-auto shrink-0 text-xs text-[var(--q-muted)] tabular-nums print:text-black">
-                {line.detail}
+                {line.detailValues === undefined
+                  ? null
+                  : formatLineDetail(line.detailValues, currency, locale, areaUnit)}
               </span>
               <span className="w-32 shrink-0 text-right text-sm font-medium tabular-nums">
                 {formatCurrency(line.amount, currency, locale)}
@@ -121,13 +122,13 @@ export function QuoteSheet({
           onClick={() => {
             window.print()
           }}
-          className={`${CONTROL} border border-[var(--q-accent)] bg-[var(--q-accent)] text-[var(--q-bg)]`}
+          className="q-control q-on"
         >
           {texts.quotePrint}
         </button>
         <a
           href={backHref}
-          className={`${CONTROL} border border-white/10 bg-white/5 font-medium text-[var(--q-text)] hover:bg-white/10`}
+          className="q-control q-off"
         >
           {texts.quoteBack}
         </a>

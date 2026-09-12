@@ -181,11 +181,21 @@ export type PriceRules = {
 
 export type PriceLineId = 'material' | 'lighting' | 'type' | 'installation' | 'discount'
 
+// Los numeros crudos de cada linea del desglose (SPEC 6, version 1.5). El motor no
+// formatea: emite estos valores y la UI los arma con Intl y el locale del cliente.
+export type PriceDetailValues =
+  | { id: 'material' | 'lighting'; area: number; unitPrice: number }
+  | { id: 'type'; fixed: number }
+  | { id: 'installation'; fixed: number; perArea: number; area: number }
+  | { id: 'discount'; pct: number }
+
 export type PriceLine = {
   id: PriceLineId
   labelKey: string
+  // String tecnico y determinista, sin locale y sin moneda. No se muestra en pantalla.
   detail: string
   amount: number
+  detailValues?: PriceDetailValues
 }
 
 export type PriceResult = {

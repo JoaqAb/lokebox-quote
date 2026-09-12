@@ -9,6 +9,7 @@ import { QuoteSheet } from '../core/ui/QuoteSheet'
 import { useHtmlLang } from '../core/ui/useHtmlLang'
 import type { ClientConfig, PriceResult, SignSelection } from '../core/types'
 import { signQuoteRows } from '../verticals/signs/quoteRows'
+import { areaUnitSymbol } from '../verticals/signs/visuals'
 import { ErrorScreen } from './ErrorScreen'
 import { resolveClient } from './resolveClient'
 
@@ -63,6 +64,7 @@ function QuoteSheetScreen({ config, params }: QuoteSheetScreenProps) {
         date={formatQuoteDate(today, config.locale)}
         poweredBy={config.poweredBy}
         backHref={`/d/${config.slug}`}
+        areaUnit={areaUnitSymbol(config.units.area)}
       />
     </div>
   )
