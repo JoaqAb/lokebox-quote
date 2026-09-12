@@ -3,7 +3,7 @@
 Fuente de verdad del alcance. Si algo no está acá, no se construye.
 Este documento se edita, no se contradice. Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 
-Versión: 1.8 · 12/09/2026
+Versión: 1.9 · 12/09/2026
 
 ## 1. Objetivo
 
@@ -21,7 +21,7 @@ Fecha de DONE: viernes 18/09/2026.
 ## 2. Principios
 
 - El proyecto existe para conseguir clientes. No es un SaaS y no es portfolio por sí mismo.
-- Personalizar para un cliente nuevo es editar un JSON y reemplazar un logo. Nunca tocar código. Si una tarea rompe esta regla, se rehace.
+- Personalizar para un cliente nuevo es editar un JSON y reemplazar sus assets: el logo y las fotos de fondo del preview. Nunca tocar código. Si una tarea rompe esta regla, se rehace. Las fotos entraron en 1.9 con el pivote del preview: siguen siendo archivos que se reemplazan, no código que se edita.
 - Arquitectura mínima. Sin auth, sin multi-tenant, sin backoffice, sin permisos.
 - Ningún código compartido con Lokebox por ahora. El motor de precios se escribe de forma que pueda copiarse a Lokey sin cambios.
 - Nada relacionado con muros de contención, bloques de hormigón, takeoff ni flujos de construcción para contractors (restricción comercial por la oportunidad activa con Joe).
@@ -37,6 +37,7 @@ Fecha de DONE: viernes 18/09/2026.
 - Vitest para los tests del motor de precios.
 - Deploy estático en Vercel. Dominio quote.lokebox.com.
 - Versiones fijadas en package.json. React ~19.2.8 y three ~0.185.1 por compatibilidad con R3F y con @types/three.
+- Assets estáticos del preview, desde 1.9: las fotos de fondo del cliente (2 o 3, 16:9, WebP, unos 1600 x 900) y un único HDRI de estudio para todo el producto, CC0, entre 100 y 200 kB. No entran al bundle de JavaScript: son archivos servidos desde `public/`. El HDRI es opcional en runtime: si falta, el preview funciona sin reflejo.
 - Presupuesto de bundle: el código de la app y el vendor 3D van en chunks separados. La app por debajo de 500 kB y el vendor 3D por debajo de 1000 kB sin comprimir. El build avisa si alguno se pasa. No hay lazy loading del preview: el preview es el producto y no puede aparecer después que el resto de la página.
 
 ## 4. Arquitectura en tres capas
@@ -323,6 +324,15 @@ La forma de `leads` sigue la que usaría Lokebox para un pedido en gestación. S
     "whatsapp": "15550102233",
     "email": "hello@northlinesigns.test"
   },
+  "photos": [
+    {
+      "id": "front",
+      "label": "Storefront",
+      "src": "/clients/northline/photos/front.webp",
+      "anchor": { "x": 0.5, "y": 0.38, "metersToWidth": 0.085, "yawDeg": 0, "pitchDeg": 0 },
+      "light": { "ambient": 0.9, "keyIntensity": 1.4, "keyAzimuthDeg": -25, "keyElevationDeg": 35 }
+    }
+  ],
   "cta": "both",
   "poweredBy": true,
   "prices_placeholder": false,
@@ -349,6 +359,8 @@ La forma de `leads` sigue la que usaría Lokebox para un pedido en gestación. S
 }
 ```
 
+`photos` (desde 1.9): una entrada por ángulo fotografiado, 2 o 3 por cliente, la primera es la que se muestra al cargar. `id` único dentro del cliente. `label` es la etiqueta visible del ángulo y vive acá y no en `texts` porque la cantidad de fotos varía por cliente y una clave fija por ángulo no existiría: es el mismo criterio de `options.types[].label` y `options.materials[].label`. `anchor` dice dónde y de qué tamaño se dibuja el cartel sobre esa foto: `x` e `y` son el centro en fracción del ancho y del alto, con origen arriba a la izquierda; `metersToWidth` es qué fracción del ancho de la foto ocupa un metro de cartel, expresado así y no como factor abstracto para poder calcularlo contra una medida conocida de la foto en vez de a ojo; `yawDeg` y `pitchDeg` giran el cartel para acompañar el ángulo de la foto. `light` es la luz de la escena del cartel en esa foto, para que su volumen case con ella.
+
 Las 44 claves de `texts` requeridas, iguales en los dos idiomas:
 
 `headline`, `subheadline`, `configureTitle`, `typeLabel`, `widthLabel`, `heightLabel`, `materialLabel`, `lightingLabel`, `installationLabel`, `installationYes`, `installationNo`, `quantityLabel`, `priceLabel`, `priceRangeNote`, `disclaimer`, `ctaWhatsapp`, `ctaForm`, `formTitle`, `formName`, `formContact`, `formNote`, `formSubmit`, `formSending`, `thanksTitle`, `thanksBody`, `viewQuote`, `quoteTitle`, `quoteValidity`, `quoteDateLabel`, `quoteSelectionTitle`, `quoteBreakdownTitle`, `quotePrint`, `quoteBack`, `lineMaterial`, `lineLighting`, `lineType`, `lineInstallation`, `lineDiscount`, `poweredBy`, `whatsappMessage`, `signTextLabel`, `letterHeightLabel`, `depthLabel`, `whatsappMessageLetters`.
@@ -368,34 +380,36 @@ Validación: al cargar un cliente se valida la forma en runtime. Si falta una cl
 
 Sin marcas reales, sin fotos reales, sin logos de terceros.
 
-## 12. Preview 3D
+## 12. Preview: foto fija con cartel 3D compuesto
 
-Escena de producto: fondo claro y neutro, local en tono claro con material visible, cartel encuadrado como objeto principal. Sin física, sin partículas, sin shaders custom. Motivo de la escena clara: es lo que hace el nicho, y se reusa en otros rubros, mientras una vidriera nocturna solo sirve para cartelería iluminada.
+Desde 1.9 el preview no es una escena 3D completa. Es una foto real del rubro con el cartel renderizado encima, en un canvas transparente. Motivo: la escena de cajas costó tres bloques y seguía siendo un local genérico, mientras una foto comunica el rubro en un segundo. Lo que se cotiza, el cartel, sigue siendo 3D real con su material, su volumen y sus tres modos de luz.
 
-Prohibido en toda la vertical 3D: cualquier asset que se descargue en runtime (modelos importados, archivos de textura, archivos de fuente, `Text` y `Text3D` de drei, `Environment`), postprocessing y sombras de mapa. Las sombras son las de contacto de drei y el quad de apoyo de esta sección.
+Tres capas apiladas en el mismo cuadro 16:9, dentro del marco del preview:
+
+1. Foto de fondo del cliente, elegida por ángulo.
+2. Canvas R3F transparente (`alpha: true`, sin color de limpieza) con el cartel y nada más.
+3. Controles fuera del canvas: selector de ángulo y zoom.
+
+El zoom es una transformación CSS sobre el contenedor de las dos primeras capas, nunca un movimiento de cámara: así foto y cartel escalan juntos y no existe el desalineado. Cambiar de ángulo cambia de foto y de anclaje. No hay órbita: los ángulos son los que el cliente tenga fotografiados.
+
+Assets permitidos, y solo estos dos: las fotos de fondo del cliente y un único HDRI de estudio para todo el producto, ambos servidos desde `public/`. Sigue prohibido todo modelo importado, archivo de fuente, `Text` y `Text3D` de drei, postprocessing y sombras de mapa. La prohibición en bloque de "ningún asset que se descargue" dejó de ser cierta en 1.9 y se reescribe acá en vez de quedar contradicha.
 
 Permitido y acotado: texturas generadas en runtime con `CanvasTexture`, que no descargan nada y no pesan en el bundle. Se usan para dos cosas y nada más: los glifos del texto del cartel y el degradado de la sombra de apoyo. Una textura por glifo, memoizada por caracter, 128 px, `SRGBColorSpace`, `dispose` al desmontar. Por caracter y no por palabra: el visitante escribe letra a letra, y por palabra se regeneraría en cada tecla. La fuente es el stack del sistema (`Arial, Helvetica, sans-serif`), sin webfonts: en Linux mapea a Liberation Sans, que es métricamente compatible, así que el cuadro no se desarma entre sistemas.
 
-- Fachada: caja con profundidad para el frente del local, plano para la vereda, y puerta y vidriera legibles como referencia de escala. Se autorizan cajas simples extra (marco de puerta, división de vidriera, zócalo): sin referencia de escala los sliders de medida no comunican nada. La fachada se extiende más allá del cuadro a los dos lados y tiene fondo detrás, así no se ve el canto de la pared ni el vacío en ningún punto del clamp de órbita. Las medidas salen de medir en captura, no de estimar: fachada de 160 x 34, vereda de 200 x 26 y fondo de 400 x 80. Con 9 de ancho y 6 de alto el canto entraba en cuadro apenas la órbita se movía.
 - Cartel en modo area: caja cuyas dimensiones siguen ancho y alto en tiempo real con transición suave. Espesor fijo. En la cara va el texto del cartel con la textura de glifos, centrado y escalado al ancho disponible.
-- Cartel en modo letters: una caja por letra, ancho de cada una medido con `measureText`, profundidad igual a la opción elegida, glifo en la cara frontal y cantos con el color del material. Máximo 18 cajas. El conjunto se centra en el frente del local y el alto de letra sale de la selección.
-- Sombra de apoyo: quad con degradado radial generado en canvas, detrás del cartel y apenas desplazado. No es una segunda pasada de sombras y no se apaga con la degradación, así que el cartel no flota en ningún nivel.
-- Material: cambia color, metalness y roughness según el `visual` del material.
-- Iluminación: tres modos. `none` sin emisión y sin luz agregada. `front` con emisión baja en el cartel más una luz puntual por delante y por arriba, apuntando a la cara. `back` con emisión alta en el cartel más un plano emisivo apenas más grande detrás y una luz puntual entre el cartel y su apoyo, que lava la superficie de atrás. Nunca más de una luz dinámica en escena. El color emisivo y el del halo salen del `visual` del material.
-- Hora de la escena: un solo escalar `dusk` con damp, 0 en `none` y 1 en `front` y `back`. Mueve intensidad de ambiente, intensidad y color de la direccional, color de fondo y color de la vereda. Sin geometría nueva y sin luces nuevas. Motivo: en día pleno la luz del cartel no se lee, y una escena nocturna fija no deja entender que el objeto es un cartel.
-- Los tres modos se distinguen con luminancia medida, cada modo en su estado final real y no con el ambiente fijado: el contraste local del cartel (luminancia de la cara sobre luminancia del anillo de fachada que lo rodea) crece de `none` a `front`, y la luminancia del anillo crece `none` menor que `front` menor que `back`. Medir los tres con `dusk` fijo sería medir un estado que el visitante nunca ve, y forzarlo desde el test rompería la interfaz de tres props.
-- En los tres modos el contraste local del cartel es mayor que el de la vidriera. El producto tiene que ser el elemento de mayor contraste del cuadro: si dos rectángulos compiten, no se entiende qué se está cotizando.
-- Sin bloom. El postprocessing está prohibido en esta misma sección, así que el bloom queda fuera del MVP y no es parte de la degradación por rendimiento.
-- Tótem: la misma caja sobre un poste, de pie sobre la vereda delante del local, centrada en x. El poste va del piso al borde inferior del cartel, con un solapamiento mínimo para que no se vea la junta, y su ancho escala con el ancho del cartel dentro de un mínimo y un máximo. El cambio de tipo es una transición continua, no un salto.
-- Ambiente: fondo claro y neutro derivado del tema, luz ambiente alta en día, una direccional suave, sombras de contacto de drei en el piso para el tótem.
-- Cámara: composición rehecha en TAREA_009, que la desbloqueó. `fov` 34, posición `[0, 2.8, 9.5]`, objetivo `[0, 2.4, 0]`. El objetivo bajó de 3.2 a 2.4 porque la banda que importa es la de puerta, vidriera y cartel (y de 0 a 4.5) y antes media pantalla era pared vacía; la distancia bajó de 12 a 9.5 para que el cartel llene el cuadro como objeto principal. Criterio, verificado en captura: la fachada entra completa con margen a los dos lados, puerta y vidriera dentro de cuadro, el cartel encuadrado como objeto principal, y nunca el canto de la pared ni el borde de la vereda en ningún punto del clamp.
-- Órbita limitada alrededor de la composición. Límites remedidos en TAREA_009 contra la fachada extendida y verificados en captura en los cinco extremos: azimut ±1.0 rad, polar de 0.90 a 1.57 rad (siempre por debajo de π/2) y zoom de 6.5 a 13 m. Casi duplican a los de TAREA_008 (±0.55, de 1.15 a 1.57, de 7 a 12) porque con la fachada extendida y el fondo detrás ya no queda vacío que tapar. El tope de alejamiento no es por vacío sino por composición: más lejos el cartel deja de ser el objeto principal. El de acercamiento es donde el cartel todavía entra entero. Cuando no hay interacción, barrido lento de ida y vuelta dentro del clamp de azimut, nunca hasta el tope. Arrastrar lo detiene y al soltar se reanuda con retardo y sin salto. No corre con `prefers-reduced-motion`.
-- La órbita es entrada del usuario, no costo de dibujo: nunca se apaga por rendimiento, en ningún nivel. Apagarla no se distingue de una página rota, y su costo por cuadro es despreciable frente a las sombras de contacto y al dpr.
-- Interfaz del componente: recibe `selection`, `visual` y `theme`. Nada más. `visual` es lo que devuelve `resolveSignVisual(config, selection)` de la vertical: el `visual` del material elegido, el `visual` de la iluminación elegida, el factor de conversión de la unidad de longitud del cliente a metros, el modo de precio del tipo elegido y la profundidad de letra en metros. El preview no recibe la config del cliente y no busca nada por id.
-- Escala: la escena trabaja siempre en metros. Las medidas de la selección se multiplican por el factor de `visual` (1 en metros, 0.3048 en pies).
-- Colores de la escena: se derivan del `theme` del cliente con mezclas entre los colores del tema, no con multiplicaciones fijas, que en un tema claro dan gris sucio. Ningún hexadecimal escrito en un componente de escena. El color del cartel sale del `visual` del material.
-- Si el navegador no tiene WebGL, el preview cae a un bloque plano equivalente al provisorio de TAREA_002. Esa caída es por ausencia de WebGL, no la degradación por rendimiento de la última línea de esta sección.
-- Rendimiento: fluido en un teléfono medio. Se mide en ventanas de 3 segundos, descartando los primeros 2 segundos, y el umbral es 24 fps. El umbral queda por debajo de todo techo de vsync habitual (30, 60, 90 y 120 Hz): una pantalla a 30 Hz sana no es un dispositivo que no da abasto, y tratarla como tal apagaba la escena a los 5 segundos de cargar. La degradación tiene tres niveles y baja de uno en uno, en este orden: nivel 0 todo; nivel 1 sin sombras de contacto y con techo de dpr más bajo; nivel 2 además sin barrido de cámara y dpr 1. El descenso es monótono: el nivel nunca vuelve a subir, para que la escena no parpadee entre configuraciones. No se vuelve a 2D: el bloque plano es solo la caída por ausencia de WebGL.
+- Cartel en modo letters: una caja por letra, ancho de cada una medido con `measureText`, profundidad igual a la opción elegida, glifo en la cara frontal y cantos con el color del material. Máximo 18 cajas. El alto de letra sale de la selección.
+- El tipo `totem` sigue siendo un tipo cotizable, pero ya no dibuja poste ni se para sobre una vereda: sin set 3D no hay piso donde apoyarlo. Se dibuja como el cartel de fachada, con su recargo de precio intacto.
+- Sombra de apoyo: quad con degradado radial generado en canvas, detrás del cartel y apenas desplazado, para que no flote sobre la foto.
+- Material: cambia color, metalness y roughness según el `visual` del material. El HDRI de estudio es lo que hace que `metalness` alto se distinga: con sola una direccional y ambiente, el aluminio se ve igual que el PVC.
+- Iluminación: tres modos. `none` sin emisión y sin luz agregada. `front` con emisión baja en el cartel más una luz puntual por delante y por arriba, apuntando a la cara. `back` con emisión alta en el cartel más un plano emisivo apenas más grande detrás y una luz puntual entre el cartel y su apoyo. Nunca más de una luz dinámica. El color emisivo y el del halo salen del `visual` del material.
+- Los tres modos se distinguen con luminancia medida, sobre la región del cartel y su halo, con la misma foto en los tres: el contraste local del cartel contra su entorno inmediato crece de `none` a `front`, y la luminancia del halo crece `none` menor que `front` menor que `back`. La referencia cambió en 1.9 porque ya no hay fachada ni vidriera contra qué medir.
+- No hay escalar `dusk`. Con una foto fija de fondo, cambiar la hora de la luz del cartel sin que cambie la foto lo deja en una escena que no le corresponde. Si el cliente provee una foto de atardecer entre sus ángulos, el efecto vuelve sin código.
+- No hay degradación por rendimiento. Sin set 3D no quedan escalones que apagar: el canvas dibuja un cartel y su halo.
+- Luz de la escena del cartel: sale del `light` de la foto elegida, no de constantes del código. Sin eso, un cartel iluminado desde la izquierda sobre una foto con sol a la derecha se lee como pegado.
+- Interfaz del componente: recibe `selection`, `visual`, `theme` y la foto elegida. El preview no recibe la config del cliente y no busca nada por id.
+- Escala: la escena trabaja siempre en metros. Las medidas de la selección se multiplican por el factor de `visual` (1 en metros, 0.3048 en pies), y el `metersToWidth` del anclaje las lleva a la foto.
+- Colores: el color del cartel sale del `visual` del material. Ningún hexadecimal escrito en un componente de escena.
+- Si el navegador no tiene WebGL, se muestra la foto sola con el bloque plano del cartel encima, equivalente al provisorio de TAREA_002.
 
 ## 13. Landing (quote.lokebox.com)
 

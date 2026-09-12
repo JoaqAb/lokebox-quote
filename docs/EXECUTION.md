@@ -75,7 +75,18 @@ Bloque 3 cerrado: TAREA_006 aceptada con 17 criterios verificados y 2 con desví
   - Límites de órbita remedidos en captura y SPEC 12 reescrito con los valores finales, sean los de TAREA_008 o más amplios.
   - Presupuesto de bundle intacto y cero assets nuevos en la red: ningún request de fuente ni de archivo de textura en la pestaña Network.
   - El criterio 2 de DONE lo valida Joaquín en captura antes de cerrar.
-- TAREA_010 · letras corpóreas como tercer tipo de cartel. Alcance: tipo `letters` con `pricing` en el JSON, reglas nuevas del motor, panel por modo con `buildPanelFields(config, selection)`, JSON de los dos clientes con los valores de SPEC 5.4 y 5.5, preview con una caja por letra, hoja imprimible y plantilla de WhatsApp del modo letters.
+- TAREA_010 · pivote del preview: de escena 3D completa a foto fija con el cartel 3D compuesto encima. Decisión de producto de Joaquín, aprobada. Detalle en docs/tareas/TAREA_010_preview_foto_cartel.md.
+  - Aceptación: G1 a G6.
+  - Sale entero, con su código y sus pruebas: fachada, puerta, vidriera, vereda, fondo, poste del tótem, órbita, barrido de cámara, degradación por rendimiento, escalar `dusk` y el criterio de luminancia contra la vidriera. El tipo `totem` sigue siendo cotizable: sale su geometría, no su precio.
+  - Queda intacto y verificado por sus pruebas previas: el motor de precios, `SignBoard`, los glifos, el panel genérico, la capa de datos, el CTA de WhatsApp, el formulario y la hoja imprimible.
+  - Las tres capas se componen sin desalineado en 390 px, 768 px y 1440 px, y el zoom por CSS mueve foto y cartel juntos en los tres anchos.
+  - `photos` validado en runtime: lista no vacía, ids únicos, `x` e `y` entre 0 y 1, `metersToWidth` mayor que 0 y ángulos finitos. Un JSON al que le falte `photos` o que traiga un anclaje fuera de rango falla con el mensaje que dice qué falta y en qué cliente.
+  - Cambiar de ángulo cambia foto y anclaje sin remontar el canvas ni reiniciar la selección.
+  - Los tres modos de luz se distinguen con luminancia medida sobre la región del cartel y su halo, con la misma foto en los tres.
+  - Assets: exactamente dos permitidos, las fotos del cliente y el HDRI único. Ningún otro pedido de red en la pestaña Network al cargar el preview.
+  - Si las fotos de Canal C no están, se avanza con placeholders de color sólido del mismo aspect ratio, en la misma ruta, y el punto de reemplazo queda anotado en STATE.
+  - Agregar un cliente sigue siendo un JSON más sus assets, sin tocar código.
+- TAREA_011 · letras corpóreas como tercer tipo de cartel. Alcance: tipo `letters` con `pricing` en el JSON, reglas nuevas del motor, panel por modo con `buildPanelFields(config, selection)`, JSON de los dos clientes con los valores de SPEC 5.4 y 5.5, preview con una caja por letra, hoja imprimible y plantilla de WhatsApp del modo letters.
   - Aceptación: G1 a G6.
   - Los tests previos quedan intactos y los nuevos del modo letters dan números exactos, incluidos los casos que lanzan: tipo sin `pricing`, material sin `pricePerLetterHeight`, `depthId` inexistente, texto vacío y texto de más de 18 caracteres.
   - Cambiar de tipo en cualquier orden no deja estado inválido ni un precio NaN en ninguna combinación.
@@ -83,7 +94,7 @@ Bloque 3 cerrado: TAREA_006 aceptada con 17 criterios verificados y 2 con desví
   - La hoja con `lh` y `d` recalcula el mismo total que el cotizador, y una clave del otro modo da la pantalla de error.
   - El mensaje de WhatsApp del modo letters sale sin huecos en los dos idiomas.
   - Recorte autorizado si el viernes 18 se pone en riesgo: sale el glifo del volumen y quedan las cajas por letra. El motor, el panel, el JSON y la hoja no se recortan.
-- TAREA_011 · landing en `/`: qué es, para quién, dos botones a las demos, los dos tiers con precio, contacto, footer. Reemplaza el índice temporal, que hoy muestra los slugs crudos. Va última del bloque a propósito: hacerla con la estética vieja es trabajo que se tira.
+- TAREA_012 · landing en `/`: qué es, para quién, dos botones a las demos, los dos tiers con precio, contacto, footer. Reemplaza el índice temporal, que hoy muestra los slugs crudos. Va última del bloque a propósito: hacerla con la estética vieja es trabajo que se tira.
   - Aceptación: G1 a G6. La landing carga en menos de 2 segundos y los botones llevan a las demos.
 - Canal C al cierre del bloque: grabar el video de 30 segundos y sacar las capturas (desktop y mobile, demo EN).
 
