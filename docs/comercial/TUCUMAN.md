@@ -5,7 +5,7 @@ Fecha de apertura: 2026-09-11
 
 ## Rol de Tucumán en la estrategia
 
-Tucumán no se plantea como el mercado final de Lokebox Quote, sino como el laboratorio comercial inicial.
+Tucumán es el frente comercial prioritario de Lokebox Quote en esta etapa.
 
 Objetivos:
 - conseguir 1–2 primeros clientes pagos;
@@ -13,15 +13,15 @@ Objetivos:
 - validar qué variables, materiales, objeciones y pasos importan;
 - poder visitar talleres/locales si hace falta;
 - obtener feedback, material y eventualmente un caso comercial;
-- ganar confianza comercial antes de escalar outreach fuera de Argentina.
+- validar el proceso completo de venta, onboarding, implementación y cobro antes de escalar a otros mercados.
 
-No se debe esperar a validar Tucumán para vender afuera. La estrategia es de dos velocidades:
-1. Tucumán = aprendizaje profundo y cierre asistido;
-2. mercado global = volumen de outreach y tickets mayores.
+Decisión vigente: por ahora se congela el outreach internacional. Primero se busca validar comercialmente Quote en Tucumán y, si hace falta, ampliar dentro de Argentina. La expansión a EE.UU., Canadá, Europa o Australia se retoma después de conseguir evidencia local suficiente.
+
+La prioridad no es maximizar cantidad de leads sino reducir el tiempo hasta el primer cliente pago y aprender del proceso real.
 
 ## CRM operativo
 
-Fuente operativa del pipeline local y futuro global:
+Fuente operativa del pipeline local:
 https://docs.google.com/spreadsheets/d/1z7BtPI8cN8sE7pkxGYGbZrUNgeppIzyI87DO45Nhjvo/edit
 
 El CRM debe mantenerse deliberadamente simple. Campos clave: empresa, prioridad, fit, estado, canal, contacto, oferta sugerida, próxima acción, fechas y resultado/notas.
@@ -167,10 +167,13 @@ Reglas:
 1. Terminar demo en estado comercial presentable.
 2. Si existe margen real después de cerrar el MVP completo, priorizar corpóreas/channel letters como mejora WOW reusable.
 3. Preparar assets específicos para corpóreas/fachadas.
-4. Contactar primero Lumilet, Multigráfica y GB con mensajes distintos.
-5. Registrar cada contacto y follow-up en el CRM.
-6. Medir respuesta antes de escalar.
-7. En paralelo levantar leads internacionales; Tucumán no bloquea el mercado global.
+4. Dejar Lumilet, Multigráfica y GB en estado READY TO CONTACT con mensaje, demo y oferta específicos.
+5. Contactar primero esos tres leads y registrar cada interacción en el CRM.
+6. Hacer follow-up y buscar una reunión/demo breve cuando haya interés.
+7. Medir respuestas, objeciones, sensibilidad a precio y proceso real de cotización.
+8. Ampliar a Alpha, DAP y una segunda tanda local sólo después de aprender de los primeros contactos.
+9. Conseguir 1–2 clientes pagos y documentar implementación, onboarding y resultados.
+10. Recién después reabrir el frente internacional con mejor evidencia, pricing y material comercial.
 
 ## Fuentes públicas usadas en la auditoría
 
