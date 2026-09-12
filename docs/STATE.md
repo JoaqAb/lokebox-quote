@@ -4,7 +4,7 @@
 
 ## Bloque actual
 
-Bloque 4. TAREA_008 cerrada: la orbita dejaba de responder porque el umbral de 45 fps era inalcanzable con vsync a 30 Hz y la escena caia al nivel 2 a los 5 segundos de cargar. Umbral a 24 fps, la orbita deja de apagarse por rendimiento y los limites se amplian. 13 criterios verificados, 130 pruebas en verde.
+Bloque 4, TAREA_009: escena clara y legibilidad del cartel. Resuelve los seis defectos que hicieron rechazar el criterio 2 de DONE. Detalle y causa de cada defecto en `docs/tareas/TAREA_009_escena_clara.md`.
 
 ## Ultimo cerrado
 
