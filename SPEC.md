@@ -3,7 +3,7 @@
 Fuente de verdad del alcance. Si algo no está acá, no se construye.
 Este documento se edita, no se contradice. Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 
-Versión: 1.3 · 11/09/2026
+Versión: 1.4 · 11/09/2026
 
 ## 1. Objetivo
 
@@ -207,11 +207,16 @@ El formateo de moneda vive aparte, en `src/core/pricing/format.ts`, con `Intl.Nu
 
 ## 8. Hoja de cotización imprimible
 
-- Ruta propia con el estado de la selección, sin dependencia del servidor.
+- Ruta propia, `/d/<slug>/quote`, con el estado de la selección en la query y sin dependencia del servidor. Siete claves en orden fijo: `t` (tipo), `w` (ancho), `h` (alto), `m` (material), `l` (iluminación), `i` (instalación, 0 o 1) y `q` (cantidad). Los números van con punto decimal, iguales en todos los idiomas: la URL es canónica y el idioma vive en el JSON.
+- En la URL no viaja ningún dato personal. La hoja muestra el contacto del negocio, no el del visitante.
+- El precio se recalcula en el cliente con `calculatePrice` a partir del JSON y de la query. No hay una segunda fuente de verdad de precios.
+- Parámetros faltantes o inválidos (clave ausente, id que no existe, medida fuera de rango, cantidad no entera) muestran la pantalla de error. No se completan con los defaults del cliente: una hoja con un precio que el visitante nunca configuró es peor que un error. El paso del slider no se valida: un valor intermedio se cotiza tal cual.
+- La hoja no escribe nada: ni lead ni visita.
 - Marca del cliente: logo, nombre, contacto.
 - Selección completa con nombres legibles y desglose por concepto, total y rango.
 - Fecha, validez (texto del JSON) y disclaimer.
-- Una página A4 o carta, estilos `@media print`, sin librerías de PDF. La exportación la hace el navegador con imprimir a PDF.
+- Una página A4 o carta, estilos `@media print`, sin librerías de PDF. La exportación la hace el navegador con imprimir a PDF. Los controles de la hoja (imprimir, volver) no se imprimen.
+- Se llega desde la pantalla de confirmación del flujo del lead, con un enlace en pestaña nueva.
 
 ## 9. Datos (Supabase)
 
@@ -258,9 +263,11 @@ La forma de `leads` sigue la que usaría Lokebox para un pedido en gestación. S
 }
 ```
 
-Las 35 claves de `texts` requeridas, iguales en los dos idiomas:
+Las 40 claves de `texts` requeridas, iguales en los dos idiomas:
 
-`headline`, `subheadline`, `configureTitle`, `typeLabel`, `widthLabel`, `heightLabel`, `materialLabel`, `lightingLabel`, `installationLabel`, `installationYes`, `installationNo`, `quantityLabel`, `priceLabel`, `priceRangeNote`, `disclaimer`, `ctaWhatsapp`, `ctaForm`, `formTitle`, `formName`, `formContact`, `formNote`, `formSubmit`, `formSending`, `thanksTitle`, `thanksBody`, `viewQuote`, `quoteTitle`, `quoteValidity`, `lineMaterial`, `lineLighting`, `lineType`, `lineInstallation`, `lineDiscount`, `poweredBy`, `whatsappMessage`.
+`headline`, `subheadline`, `configureTitle`, `typeLabel`, `widthLabel`, `heightLabel`, `materialLabel`, `lightingLabel`, `installationLabel`, `installationYes`, `installationNo`, `quantityLabel`, `priceLabel`, `priceRangeNote`, `disclaimer`, `ctaWhatsapp`, `ctaForm`, `formTitle`, `formName`, `formContact`, `formNote`, `formSubmit`, `formSending`, `thanksTitle`, `thanksBody`, `viewQuote`, `quoteTitle`, `quoteValidity`, `quoteDateLabel`, `quoteSelectionTitle`, `quoteBreakdownTitle`, `quotePrint`, `quoteBack`, `lineMaterial`, `lineLighting`, `lineType`, `lineInstallation`, `lineDiscount`, `poweredBy`, `whatsappMessage`.
+
+Las medidas visibles (ancho y alto) se formatean con `Intl` y el locale del cliente: `8.5` en `en`, `2,5` en `es-AR`. Eso vale en el panel, en el mensaje de WhatsApp y en la hoja de cotización.
 
 `whatsappMessage` es una plantilla con placeholders: `{type}`, `{width}`, `{height}`, `{unit}`, `{material}`, `{lighting}`, `{installation}`, `{quantity}`, `{min}`, `{max}`.
 
