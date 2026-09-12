@@ -3,7 +3,7 @@
 Fuente de verdad del alcance. Si algo no está acá, no se construye.
 Este documento se edita, no se contradice. Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 
-Versión: 1.4 · 11/09/2026
+Versión: 1.5 · 12/09/2026
 
 ## 1. Objetivo
 
@@ -161,11 +161,18 @@ type PriceRules = {
   rangePct: number;
 };
 
+type PriceDetailValues =
+  | { id: "material" | "lighting"; area: number; unitPrice: number }
+  | { id: "type"; fixed: number }
+  | { id: "installation"; fixed: number; perArea: number; area: number }
+  | { id: "discount"; pct: number };
+
 type PriceLine = {
   id: "material" | "lighting" | "type" | "installation" | "discount";
   labelKey: string;   // clave de texto, no texto literal
-  detail: string;     // ej "24 sqft x 15"
+  detail: string;     // string técnico, no se muestra en pantalla
   amount: number;     // negativo en discount
+  detailValues?: PriceDetailValues;  // números crudos, los formatea la UI
 };
 
 type PriceResult = {
@@ -192,6 +199,8 @@ Reglas de cálculo:
 - `min` = total por (1 - rangePct/100), `max` = total por (1 + rangePct/100), redondeados.
 - Si un id de material, iluminación o tipo no existe en las reglas, la función lanza un error con el id inválido en el mensaje. No devuelve un precio silencioso.
 - Cantidad, ancho y alto se asumen ya validados por el panel. Si llegan menores o iguales a cero, la función lanza.
+
+`detail` es un string técnico y determinista, sin locale y sin moneda. No se muestra en pantalla: el desglose visible se arma en la UI con `detailValues` y el locale del cliente. Se conserva porque es la forma legible del cálculo en los tests y en un volcado de datos.
 
 El formateo de moneda vive aparte, en `src/core/pricing/format.ts`, con `Intl.NumberFormat` y el locale del cliente.
 
@@ -267,7 +276,7 @@ Las 40 claves de `texts` requeridas, iguales en los dos idiomas:
 
 `headline`, `subheadline`, `configureTitle`, `typeLabel`, `widthLabel`, `heightLabel`, `materialLabel`, `lightingLabel`, `installationLabel`, `installationYes`, `installationNo`, `quantityLabel`, `priceLabel`, `priceRangeNote`, `disclaimer`, `ctaWhatsapp`, `ctaForm`, `formTitle`, `formName`, `formContact`, `formNote`, `formSubmit`, `formSending`, `thanksTitle`, `thanksBody`, `viewQuote`, `quoteTitle`, `quoteValidity`, `quoteDateLabel`, `quoteSelectionTitle`, `quoteBreakdownTitle`, `quotePrint`, `quoteBack`, `lineMaterial`, `lineLighting`, `lineType`, `lineInstallation`, `lineDiscount`, `poweredBy`, `whatsappMessage`.
 
-Las medidas visibles (ancho y alto) se formatean con `Intl` y el locale del cliente: `8.5` en `en`, `2,5` en `es-AR`. Eso vale en el panel, en el mensaje de WhatsApp y en la hoja de cotización.
+Los números visibles se formatean con `Intl` y el locale del cliente: `8.5` en `en`, `2,5` en `es-AR`. Eso vale para las medidas (ancho y alto) en el panel, en el mensaje de WhatsApp y en la hoja de cotización, y también para el desglose y la línea de área, que además llevan la unidad y la moneda del cliente.
 
 `whatsappMessage` es una plantilla con placeholders: `{type}`, `{width}`, `{height}`, `{unit}`, `{material}`, `{lighting}`, `{installation}`, `{quantity}`, `{min}`, `{max}`.
 

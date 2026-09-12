@@ -1,25 +1,25 @@
 # STATE
 
-11/09/2026
+12/09/2026
 
 ## Bloque actual
 
-Bloque 3, cerrado del lado del codigo con TAREA_006: hoja de cotizacion imprimible en `/d/<slug>/quote`, demo ES completa y limpieza de guiones largos en `docs/comercial/`. 19 criterios verificados, 112 pruebas en verde.
+Bloque 4, TAREA_007: pulido visual y mobile. Cierra los dos hallazgos del barrido ES (desglose y linea de area con punto decimal), los tres pendientes visuales y los textos finales de las dos demos. Detalle en `docs/tareas/TAREA_007_pulido_visual_mobile.md`.
 
 ## Ultimo cerrado
 
-TAREA_006, commits d883cc6 (apertura), 8c61ee2 (codigo). Bloques 0, 1 y 2 cerrados, Canal C incluido. Produccion: https://lokebox-quote.vercel.app
+TAREA_006, commits 61d649d (apertura), 77d1670 (codigo), 7da1d67 (cierre). 17 criterios verificados y 2 aceptados con desvio. Bloque 3 cerrado completo, Canal C incluido. Produccion: https://quote.lokebox.com
 
 ## Proximo
 
-Bloque 4: TAREA_007 (pulido visual y mobile) y TAREA_008 (landing). TAREA_007 arranca con dos hallazgos del barrido ES anotados en DECISIONES: el detail del desglose y la linea de area muestran punto decimal en `/d/norte`.
+TAREA_008: landing en `/`, que reemplaza el indice temporal.
 
 ## Bloqueos
 
-Ninguno. Pendientes de Joaquin que no bloquean, en EXECUTION bloque 3, Canal C: el CNAME de `quote.lokebox.com`, ver las dos demos en un telefono real y limpiar las filas de prueba de `leads` y `visits`.
+Ninguno. Pendientes de Joaquin que no bloquean: ver las dos demos en un telefono real (todos los fps estan medidos sobre SwiftShader por software) y limpiar las filas de prueba de `leads` y `visits`.
 
 ## Comando para retomar
 
 ```
-cd ~/proyectos/lokebox-quote && cat docs/STATE.md docs/EXECUTION.md
+cd ~/proyectos/lokebox-quote && cat docs/STATE.md docs/tareas/TAREA_007_pulido_visual_mobile.md
 ```

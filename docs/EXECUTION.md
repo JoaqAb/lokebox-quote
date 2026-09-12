@@ -44,7 +44,7 @@ Bloque 1 cerrado.
 
 Al cierre de TAREA_004 se cierra el bloque 2 y el preview no se vuelve a tocar hasta TAREA_007.
 
-## Bloque 3 · miércoles 16 · lead, datos, quote, dominio
+## Bloque 3 · miércoles 16 · lead, datos, quote, dominio (cerrado)
 
 Prerrequisito Canal C, antes de TAREA_005: crear el proyecto de Supabase, las dos tablas, el RLS y las policies de insert, y cargar `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` en `.env.local` y en Vercel. Sin esto la tarea no arranca.
 
@@ -52,12 +52,12 @@ Prerrequisito Canal C, antes de TAREA_005: crear el proyecto de Supabase, las do
   - Aceptación: G1 a G6, y los 18 criterios de la tarea, uno por uno. Un lead por formulario aparece en la tabla con selection, total, min, max y contacto. El CTA de WhatsApp abre `wa.me` con el mensaje completo y legible. Si Supabase está caído, el flujo sigue y el usuario no ve un error. Una carga de `/d/northline` inserta una visita y un refresco en la misma sesión no duplica.
 - TAREA_006 · hoja de cotización imprimible en `/d/<slug>/quote` con la selección en la query, y demo ES completa. Detalle en docs/tareas/TAREA_006_quote_imprimible_demo_es.md. Incluye las cinco claves de texto nuevas de SPEC 1.4, el formateo de medidas con Intl por locale y la limpieza de los nueve guiones largos de docs/comercial/.
   - Aceptación: G1 a G6, y los 19 criterios de la tarea, uno por uno. Imprimir a PDF desde el navegador da una sola página con logo, desglose, total, rango, fecha, validez y disclaimer, sin los controles de la hoja. Un link con parámetros faltantes o inválidos muestra la pantalla de error, no un precio inventado. La hoja no escribe nada: 0 POST a leads y a visits. `/d/norte` está en español, en metros con coma decimal y en pesos, con `prices_placeholder` visible solo en el código, no en pantalla.
-- Canal C al cierre del bloque: apuntar `quote.lokebox.com` a Vercel (registro CNAME) y verificar el certificado.
-  - Aceptación: `https://quote.lokebox.com/d/northline` abre con candado.
+- Canal C al cierre del bloque: apuntar `quote.lokebox.com` a Vercel (registro CNAME) y verificar el certificado. Hecho: certificado emitido, las dos demos abren con candado.
+  - Aceptación: `https://quote.lokebox.com/d/northline` abre con candado. Verificada.
 - Canal C, sin bloquear TAREA_006: ver las dos demos en un teléfono real y confirmar fps y nivel de rendimiento con GPU de verdad. Todas las mediciones de fps de los bloques 2 y 3 están hechas sobre SwiftShader por software.
 - Canal C, sin bloquear TAREA_006: en el Table Editor, borrar las dos filas con `client_slug` `__smoke` que dejó el gate, y decidir qué hacer con las filas reales de prueba (7 en `leads` y 6 en `visits`, slugs northline, norte y prueba, contacto ana.*@test.example). Conviene que la tabla esté limpia antes de grabar el video.
 
-Al cierre de TAREA_006 cierra el bloque 3 del lado del código y queda solo el CNAME de Canal C.
+Bloque 3 cerrado: TAREA_006 aceptada con 17 criterios verificados y 2 con desvío resuelto, y el CNAME de Canal C hecho. Producción: https://quote.lokebox.com
 
 ## Bloque 4 · jueves 17 · pulido, landing y material de venta
 
