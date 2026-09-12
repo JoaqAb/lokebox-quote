@@ -4,11 +4,11 @@
 
 ## Bloque actual
 
-Bloque 4, TAREA_010: pivote del preview. Se descarta la escena 3D completa (fachada, vidriera, vereda, poste, orbita, barrido, degradacion, dusk) y el cartel pasa a componerse sobre una foto fija del cliente, en canvas transparente, con zoom por CSS. Motivo: la escena costo tres bloques y seguia siendo un local generico de cajas. Detalle en `docs/tareas/TAREA_010_preview_foto_cartel.md`.
+Bloque 4, TAREA_010 cerrada: el preview pasa de escena 3D completa a foto fija del cliente con el cartel 3D compuesto encima, en canvas transparente y zoom por CSS. Salieron fachada, vidriera, vereda, poste, orbita, barrido, degradacion y dusk; el motor, el panel, el cartel y la hoja quedaron intactos. 120 pruebas en verde, SPEC 1.9.
 
 ## Ultimo cerrado
 
-TAREA_009, commits 0d0a7cb (apertura), 33dd207 (codigo), 02e11c1 (cierre). SPEC 1.9 con el pivote escrito. Produccion: https://quote.lokebox.com
+TAREA_010, commits 5f84ef0 (apertura), eadde33 (codigo). Produccion: https://quote.lokebox.com
 
 ## Proximo
 
@@ -16,7 +16,7 @@ TAREA_011 (letras corporeas, el alcance de la vieja 010 sin cambios) y TAREA_012
 
 ## Bloqueos
 
-Las fotos de fondo las provee Joaquin por Canal C: 2 o 3 por cliente, 16:9, ~1600x900, WebP, en `public/clients/<slug>/photos/`. Mientras no esten se usa un placeholder de color solido en la misma ruta: reemplazarlas es pisar el archivo, sin tocar codigo. El HDRI unico va en `public/hdri/` y su carga es opcional.
+Las fotos de fondo son placeholders de color solido en `public/clients/<slug>/photos/front.png` y `angle.png`, 1600x900. Joaquin las reemplaza por las reales (Canal C) pisando el archivo, sin tocar codigo ni el JSON si conserva el nombre; si cambia de nombre o de extension, se actualiza `photos[].src`. Al reemplazarlas hay que reajustar `anchor` de cada foto contra la pared real. El HDRI va en `public/hdri/studio.hdr` y su carga es opcional: sin el, el preview anda sin reflejo.
 
 ## Comando para retomar
 
