@@ -8,11 +8,11 @@ Bloque 4. TAREA_008 cerrada: la orbita dejaba de responder porque el umbral de 4
 
 ## Ultimo cerrado
 
-TAREA_008, commits e750499 (apertura), cb03856 (codigo). TAREA_007 queda cerrada con esto. Bloque 3 cerrado completo. Produccion: https://quote.lokebox.com
+TAREA_008, commits e750499 (apertura), cb03856 (codigo), f0e997e (cierre). TAREA_007 queda cerrada con esto. Bloque 3 cerrado completo. Produccion: https://quote.lokebox.com
 
 ## Proximo
 
-TAREA_009 (tema claro) y TAREA_010 (landing en `/`). Despues, Canal C del bloque 4: video de 30 segundos y capturas.
+TAREA_009 (escena clara y legibilidad del cartel: resuelve los seis defectos del preview y el tema claro), TAREA_010 (letras corporeas como tercer tipo) y TAREA_011 (landing en `/`). Despues, Canal C del bloque 4: video de 30 segundos y capturas. SPEC 1.7 y EXECUTION ya tienen el alcance y los criterios de las tres.
 
 ## Bloqueos
 

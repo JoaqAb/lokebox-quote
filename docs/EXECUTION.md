@@ -65,8 +65,25 @@ Bloque 3 cerrado: TAREA_006 aceptada con 17 criterios verificados y 2 con desví
   - Aceptación: G1 a G6. Revisión en 390 px, 768 px y 1440 px sin defectos visibles. Los tres criterios subjetivos de DONE (10 segundos, apariencia de producto, sin errores visibles) se validan con Joaquín antes de cerrar.
 - TAREA_008 · órbita y degradación de rendimiento. Reabre TAREA_007: el criterio 3 de DONE falla en producción. Detalle en docs/tareas/TAREA_008_orbita_degradacion.md.
   - Aceptación: G1 a G6, y los 13 criterios de la tarea. Causa raíz medida, no supuesta. Arrastrar 60 segundos seguidos sigue respondiendo. Los tres modos de luz siguen distinguiéndose con luminancia medida.
-- TAREA_009 · tema claro.
-- TAREA_010 · landing en `/`: qué es, para quién, dos botones a las demos, los dos tiers con precio, contacto, footer. Reemplaza el índice temporal, que hoy muestra los slugs crudos.
+  - Cerrada: commits e750499 (apertura), cb03856 (código), f0e997e (cierre). 13 de 13.
+- TAREA_009 · escena clara y legibilidad del cartel. Resuelve los seis defectos del preview que hicieron rechazar el criterio 2 de DONE. Alcance: tema claro en la interfaz y en la escena con `--q-surface` y `--q-border` derivadas, marco del preview con superficie propia, composición de cámara nueva (SPEC 12 desbloqueado), fachada extendida con fondo y con puerta y vidriera legibles como referencia de escala, sombra de apoyo, glifos en la cara del cartel con `CanvasTexture`, campo de texto en el panel, `dusk` por modo de luz, y remedición de los tres límites de órbita contra la fachada nueva.
+  - Aceptación: G1 a G6.
+  - Los seis defectos, uno por uno, verificados en captura en `/d/northline` y `/d/norte`: el cartel tiene letras en la cara, la fachada tiene material y no es un plano negro, puerta y vidriera se leen como escala, el cartel apoya con sombra y no flota, el cartel es el elemento de mayor contraste del cuadro, y la fachada entra completa sin canto ni vacío en ningún punto del clamp.
+  - Las tres mediciones de luminancia de SPEC 12: contraste local del cartel creciente de `none` a `front`, luminancia del anillo creciente en los tres modos, y contraste del cartel mayor que el de la vidriera en los tres.
+  - Tema claro sin regresiones: las cuatro URLs de producción legibles, `.q-control`, `.q-on` y `.q-off` sin duplicar por tema, cero variantes `dark:`, cero hexadecimales nuevos en componentes de escena.
+  - Campo de texto: 1 a 18 caracteres, se refleja en la cara del cartel sin salto perceptible, viaja como clave `x` en la URL de la hoja y la hoja lo valida.
+  - Límites de órbita remedidos en captura y SPEC 12 reescrito con los valores finales, sean los de TAREA_008 o más amplios.
+  - Presupuesto de bundle intacto y cero assets nuevos en la red: ningún request de fuente ni de archivo de textura en la pestaña Network.
+  - El criterio 2 de DONE lo valida Joaquín en captura antes de cerrar.
+- TAREA_010 · letras corpóreas como tercer tipo de cartel. Alcance: tipo `letters` con `pricing` en el JSON, reglas nuevas del motor, panel por modo con `buildPanelFields(config, selection)`, JSON de los dos clientes con los valores de SPEC 5.4 y 5.5, preview con una caja por letra, hoja imprimible y plantilla de WhatsApp del modo letters.
+  - Aceptación: G1 a G6.
+  - Los tests previos quedan intactos y los nuevos del modo letters dan números exactos, incluidos los casos que lanzan: tipo sin `pricing`, material sin `pricePerLetterHeight`, `depthId` inexistente, texto vacío y texto de más de 18 caracteres.
+  - Cambiar de tipo en cualquier orden no deja estado inválido ni un precio NaN en ninguna combinación.
+  - El preview muestra una caja por letra con el texto tipeado, hasta 18, sin assets descargados y sin `Text3D`.
+  - La hoja con `lh` y `d` recalcula el mismo total que el cotizador, y una clave del otro modo da la pantalla de error.
+  - El mensaje de WhatsApp del modo letters sale sin huecos en los dos idiomas.
+  - Recorte autorizado si el viernes 18 se pone en riesgo: sale el glifo del volumen y quedan las cajas por letra. El motor, el panel, el JSON y la hoja no se recortan.
+- TAREA_011 · landing en `/`: qué es, para quién, dos botones a las demos, los dos tiers con precio, contacto, footer. Reemplaza el índice temporal, que hoy muestra los slugs crudos. Va última del bloque a propósito: hacerla con la estética vieja es trabajo que se tira.
   - Aceptación: G1 a G6. La landing carga en menos de 2 segundos y los botones llevan a las demos.
 - Canal C al cierre del bloque: grabar el video de 30 segundos y sacar las capturas (desktop y mobile, demo EN).
 

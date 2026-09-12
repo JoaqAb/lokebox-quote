@@ -3,7 +3,7 @@
 Fuente de verdad del alcance. Si algo no está acá, no se construye.
 Este documento se edita, no se contradice. Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 
-Versión: 1.6 · 12/09/2026
+Versión: 1.7 · 12/09/2026
 
 ## 1. Objetivo
 
@@ -46,7 +46,8 @@ Fecha de DONE: viernes 18/09/2026.
 Se escribe una vez y no conoce ninguna vertical ni ningún cliente concreto.
 
 - Layout responsive. Desktop: preview a la izquierda, panel de opciones a la derecha, precio siempre visible. Mobile: preview arriba, opciones abajo, barra de precio fija al pie.
-- Panel de opciones genérico, renderizado desde el esquema de la vertical.
+- Panel de opciones genérico, renderizado desde el esquema de la vertical. Cinco `kinds` de control: choice, range, boolean, stepper y text.
+- Tema del cliente: los cinco colores del JSON como variables CSS, más `--q-surface` y `--q-border` derivadas con `color-mix` en el contenedor raíz. El tema sale siempre del JSON del cliente: no hay tema global del core ni variantes `dark:`, que serían una segunda fuente de verdad del look.
 - Motor de precios. Función pura, contrato en la sección 6.
 - Contador de precio animado y rango.
 - Captura de lead y CTA configurable: WhatsApp con mensaje armado, formulario con guardado en Supabase, o los dos.
@@ -56,7 +57,7 @@ Se escribe una vez y no conoce ninguna vertical ni ningún cliente concreto.
 
 ### 4.2 Vertical: cartelería
 
-- Esquema de opciones y validaciones.
+- Esquema de opciones y validaciones. Los descriptores del panel se arman con `buildPanelFields(config, selection)`: dependen del tipo elegido, porque los controles del modo area y del modo letters no son los mismos.
 - Componente de preview 3D específico, con la interfaz de la sección 12: recibe `selection`, `visual` y `theme`, y no hace nada más.
 - Nombres de materiales, tipos de cartel y modos de iluminación.
 
@@ -70,24 +71,34 @@ El registro descubre los JSON de la carpeta por nombre de archivo. Agregar un cl
 
 ### 5.1 Tipos de cartel
 
-Solo dos en el MVP.
+Tres en el MVP. Cada tipo declara su modo de precio en el JSON, `pricing: "area"` o `pricing: "letters"`, y el motor ramifica por ahí.
 
-- `facade`: panel montado sobre el frente del local.
-- `totem`: letrero de pie frente al local. Lleva recargo fijo por estructura y poste.
+- `facade`: panel montado sobre el frente del local. Modo area.
+- `totem`: letrero de pie frente al local. Lleva recargo fijo por estructura y poste. Modo area.
+- `letters`: letras corpóreas montadas sobre el frente del local, una por letra del texto, con volumen. Modo letters. Entra al MVP porque es lo que ofrecen los primeros prospectos de la salida en frío.
 
 ### 5.2 Variables de configuración
 
-| Variable | Control | Rango |
-|---|---|---|
-| Tipo | dos botones | facade, totem |
-| Ancho | slider | del JSON. EN en pies, ES en metros |
-| Alto | slider | del JSON |
-| Material | tres opciones | EN: PVC, Aluminum, Acrylic. ES: PVC espumado, Chapa, Acrílico |
-| Iluminación | tres opciones | EN: None, Front-lit, Back-lit. ES: Sin luz, Frontal, Retroiluminado |
-| Instalación | sí / no | booleano |
-| Cantidad | stepper | 1 a 10 |
+| Variable | Control | Rango | Modo |
+|---|---|---|---|
+| Tipo | tres botones | facade, totem, letters | los dos |
+| Texto del cartel | campo de texto | 1 a 18 caracteres, default en el JSON | los dos |
+| Ancho | slider | del JSON. EN en pies, ES en metros | area |
+| Alto | slider | del JSON | area |
+| Alto de letra | slider | del JSON. EN en pies, ES en metros | letters |
+| Profundidad | tres opciones | del JSON, cada una con su factor | letters |
+| Material | tres opciones | EN: PVC, Aluminum, Acrylic. ES: PVC espumado, Chapa, Acrílico | los dos |
+| Iluminación | tres opciones | EN: None, Front-lit, Back-lit. ES: Sin luz, Frontal, Retroiluminado | los dos |
+| Instalación | sí / no | booleano | los dos |
+| Cantidad | stepper | 1 a 10 | los dos |
+
+El panel muestra solo los controles del modo del tipo elegido. La selección conserva siempre todos los valores, con default del JSON, así cambiar de tipo no deja estado inválido y el motor ignora lo que no aplica.
+
+El texto del cartel se usa en los dos modos: en la cara del panel en modo area, y como fuente de las letras en modo letters, donde la cantidad de letras sale de contar sus caracteres sin espacios. El default viene del JSON, el visitante lo edita, y eso es lo que hace que el preview se lea como su propio cartel.
 
 ### 5.3 Estructura de precio
+
+Modo area (facade, totem):
 
 1. Área = ancho por alto, en la unidad de área del cliente.
 2. Material: precio por unidad de área.
@@ -97,6 +108,18 @@ Solo dos en el MVP.
 6. Subtotal = precio unitario por cantidad.
 7. Descuento por cantidad: porcentaje desde 2 unidades y desde 5 unidades. Se aplica el tramo más alto que corresponda, nunca dos.
 8. Rango mostrado: total más y menos `rangePct` (default 8).
+
+Modo letters:
+
+1. Cantidad de letras = caracteres del texto sin contar espacios, entre 1 y 18.
+2. Precio por letra = precio del material por unidad de alto de letra, por el alto de letra, por el factor de la profundidad elegida.
+3. Material = precio por letra por cantidad de letras.
+4. Iluminación: adicional por letra, por cantidad de letras. No por área.
+5. Tipo: recargo fijo por unidad.
+6. Instalación: monto fijo más monto por letra, por unidad.
+7. Subtotal, descuento por cantidad y rango: idénticos al modo area.
+
+La profundidad no abre una línea propia del desglose: viaja como factor dentro de la línea de material y se ve en la sección de selección de la hoja. Una sexta línea arrastraría una clave de texto nueva, una fila nueva en la hoja y un id más en `PriceLine`, sin agregar información.
 
 ### 5.4 Valores de la demo EN (USD por pie cuadrado)
 
@@ -113,6 +136,19 @@ Solo dos en el MVP.
 | Instalación | 350 fijo + 10 por sqft |
 | Descuento | 5% desde 2 unidades, 10% desde 5 |
 | rangePct | 8 |
+
+Modo letters, demo EN (USD):
+
+| Concepto | Valor |
+|---|---|
+| PVC, por letra y por pie de alto de letra | 40 |
+| Aluminum | 70 |
+| Acrylic | 95 |
+| Profundidad 2 in / 4 in / 6 in | factor 1.0 / 1.2 / 1.4 |
+| None / Front-lit / Back-lit, por letra | 0 / 70 / 120 |
+| Recargo letters | 0 |
+| Instalación | 350 fijo + 45 por letra |
+| Alto de letra | 0.5 a 3 ft, paso 0.25, default 1 |
 
 ### 5.5 Valores de la demo ES (ARS por m²)
 
@@ -132,6 +168,19 @@ Derivados de los de EN con dólar de referencia 1500 y factor de mercado local 0
 | Descuento | 5% desde 2 unidades, 10% desde 5 |
 | rangePct | 8 |
 
+Modo letters, demo ES (ARS). Misma derivación, con el paso extra de pie a metro (por 3,2808) en los precios que van por alto de letra:
+
+| Concepto | Valor |
+|---|---|
+| PVC espumado, por letra y por metro de alto de letra | 89000 |
+| Chapa | 155000 |
+| Acrílico | 210000 |
+| Profundidad 5 / 10 / 15 cm | factor 1.0 / 1.2 / 1.4 |
+| Sin luz / Frontal / Retroiluminado, por letra | 0 / 47000 / 81000 |
+| Recargo letters | 0 |
+| Instalación | 236000 fijo + 30000 por letra |
+| Alto de letra | 0,15 a 0,90 m, paso 0,05, default 0,30 |
+
 ### 5.6 Disclaimer
 
 Todo precio se muestra como estimación, siempre acompañado del texto del JSON: el presupuesto final lo confirma el negocio.
@@ -142,9 +191,12 @@ Archivo: `src/core/pricing/calculatePrice.ts`. Función pura. Sin React, sin Sup
 
 ```ts
 type SignSelection = {
-  type: string;          // id de tipo, "facade" | "totem"
-  width: number;
-  height: number;
+  type: string;          // id de tipo, "facade" | "totem" | "letters"
+  width: number;         // modo area
+  height: number;        // modo area
+  text: string;          // los dos modos, 1 a 18 caracteres
+  letterHeight: number;  // modo letters
+  depthId: string;       // modo letters
   materialId: string;
   lightingId: string;
   installation: boolean;
@@ -153,18 +205,22 @@ type SignSelection = {
 
 type PriceRules = {
   currency: { code: string; symbol: string; decimals: number };
-  types: { id: string; label: string; priceFixed: number }[];
-  materials: { id: string; label: string; pricePerArea: number }[];
-  lighting: { id: string; label: string; pricePerArea: number }[];
-  installation: { fixed: number; perArea: number };
+  types: { id: string; label: string; priceFixed: number; pricing: "area" | "letters" }[];
+  materials: { id: string; label: string; pricePerArea: number; pricePerLetterHeight?: number }[];
+  lighting: { id: string; label: string; pricePerArea: number; pricePerLetter?: number }[];
+  depths: { id: string; label: string; factor: number }[];
+  installation: { fixed: number; perArea: number; perLetter: number };
   discounts: { minQty: number; pct: number }[];
   rangePct: number;
 };
 
 type PriceDetailValues =
-  | { id: "material" | "lighting"; area: number; unitPrice: number }
+  | { id: "material" | "lighting"; mode: "area"; area: number; unitPrice: number }
+  | { id: "material"; mode: "letters"; letters: number; letterHeight: number; unitPrice: number; depthFactor: number }
+  | { id: "lighting"; mode: "letters"; letters: number; unitPrice: number }
   | { id: "type"; fixed: number }
-  | { id: "installation"; fixed: number; perArea: number; area: number }
+  | { id: "installation"; mode: "area"; fixed: number; perArea: number; area: number }
+  | { id: "installation"; mode: "letters"; fixed: number; perLetter: number; letters: number }
   | { id: "discount"; pct: number };
 
 type PriceLine = {
@@ -176,7 +232,9 @@ type PriceLine = {
 };
 
 type PriceResult = {
-  area: number;
+  area: number;          // 0 en modo letters
+  letters?: number;      // solo en modo letters
+  letterHeight?: number; // solo en modo letters
   unitTotal: number;
   subtotal: number;
   discountPct: number;
@@ -200,6 +258,18 @@ Reglas de cálculo:
 - Si un id de material, iluminación o tipo no existe en las reglas, la función lanza un error con el id inválido en el mensaje. No devuelve un precio silencioso.
 - Cantidad, ancho y alto se asumen ya validados por el panel. Si llegan menores o iguales a cero, la función lanza.
 
+Reglas del modo letters, aditivas y sin tocar nada del modo area:
+
+- El modo lo decide el `pricing` del tipo elegido. Un tipo sin `pricing` es config inválida y la función lanza.
+- La cantidad de letras sale de contar los caracteres de `text` sin espacios. Menos de 1 o más de 18 lanza.
+- Si el material elegido no tiene `pricePerLetterHeight`, o el `depthId` no existe en `depths`, la función lanza con el id inválido en el mensaje. El JSON decide así qué materiales se ofrecen en letras corpóreas: sin ese precio, el material no entra.
+- `lighting.pricePerLetter` ausente se trata como config inválida, no como cero silencioso.
+- `unitTotal` = letras por alto de letra por precio del material por factor de profundidad, más letras por precio de iluminación, más recargo del tipo, más instalación si corresponde. Sin redondear.
+- `area` vale 0 y no se usa. La UI no muestra la línea de área en este modo.
+- Los ids de `lines` no cambian: siguen siendo los mismos cinco.
+
+Formato fijo de `detail` en modo letters: material `letras x altura x precio x factor`, iluminación `letras x precio`, instalación `fijo + letras x porLetra`. Tipo y descuento no cambian.
+
 `detail` es un string técnico y determinista, sin locale y sin moneda. No se muestra en pantalla: el desglose visible se arma en la UI con `detailValues` y el locale del cliente. Se conserva porque es la forma legible del cálculo en los tests y en un volcado de datos.
 
 El formateo de moneda vive aparte, en `src/core/pricing/format.ts`, con `Intl.NumberFormat` y el locale del cliente.
@@ -216,7 +286,8 @@ El formateo de moneda vive aparte, en `src/core/pricing/format.ts`, con `Intl.Nu
 
 ## 8. Hoja de cotización imprimible
 
-- Ruta propia, `/d/<slug>/quote`, con el estado de la selección en la query y sin dependencia del servidor. Siete claves en orden fijo: `t` (tipo), `w` (ancho), `h` (alto), `m` (material), `l` (iluminación), `i` (instalación, 0 o 1) y `q` (cantidad). Los números van con punto decimal, iguales en todos los idiomas: la URL es canónica y el idioma vive en el JSON.
+- Ruta propia, `/d/<slug>/quote`, con el estado de la selección en la query y sin dependencia del servidor. Orden fijo de claves: `t` (tipo), `x` (texto del cartel, URL-encoded), `w` (ancho), `h` (alto), `lh` (alto de letra), `d` (profundidad), `m` (material), `l` (iluminación), `i` (instalación, 0 o 1), `q` (cantidad). Se escriben solo las del modo del tipo: `w` y `h` en modo area, `lh` y `d` en modo letters, el resto siempre. Los números van con punto decimal, iguales en todos los idiomas: la URL es canónica y el idioma vive en el JSON.
+- Una clave del otro modo presente en la URL es un error, igual que una faltante. Un link ambiguo no se cotiza.
 - En la URL no viaja ningún dato personal. La hoja muestra el contacto del negocio, no el del visitante.
 - El precio se recalcula en el cliente con `calculatePrice` a partir del JSON y de la query. No hay una segunda fuente de verdad de precios.
 - Parámetros faltantes o inválidos (clave ausente, id que no existe, medida fuera de rango, cantidad no entera) muestran la pantalla de error. No se completan con los defaults del cliente: una hoja con un precio que el visitante nunca configuró es peor que un error. El paso del slider no se valida: un valor intermedio se cotiza tal cual.
@@ -256,14 +327,20 @@ La forma de `leads` sigue la que usaría Lokebox para un pedido en gestación. S
   "poweredBy": true,
   "prices_placeholder": false,
   "options": {
-    "types": [{ "id": "facade", "label": "Facade sign", "priceFixed": 0 }],
+    "types": [
+      { "id": "facade", "label": "Facade sign", "priceFixed": 0, "pricing": "area" },
+      { "id": "letters", "label": "Channel letters", "priceFixed": 0, "pricing": "letters" }
+    ],
+    "signText": { "default": "NORTHLINE", "maxLength": 18 },
     "width": { "min": 2, "max": 20, "step": 0.5, "default": 8 },
     "height": { "min": 1, "max": 8, "step": 0.5, "default": 3 },
+    "letterHeight": { "min": 0.5, "max": 3, "step": 0.25, "default": 1 },
+    "depths": [{ "id": "d2", "label": "2 in", "factor": 1 }],
     "materials": [
-      { "id": "pvc", "label": "PVC", "pricePerArea": 15, "visual": { "color": "#E8E8E4", "metalness": 0, "roughness": 0.8 } }
+      { "id": "pvc", "label": "PVC", "pricePerArea": 15, "pricePerLetterHeight": 40, "visual": { "color": "#E8E8E4", "metalness": 0, "roughness": 0.8 } }
     ],
-    "lighting": [{ "id": "none", "label": "None", "pricePerArea": 0, "visual": { "mode": "none" } }],
-    "installation": { "fixed": 350, "perArea": 10 },
+    "lighting": [{ "id": "none", "label": "None", "pricePerArea": 0, "pricePerLetter": 0, "visual": { "mode": "none" } }],
+    "installation": { "fixed": 350, "perArea": 10, "perLetter": 45 },
     "quantity": { "min": 1, "max": 10, "default": 1 },
     "discounts": [{ "minQty": 2, "pct": 5 }, { "minQty": 5, "pct": 10 }],
     "rangePct": 8
@@ -272,13 +349,15 @@ La forma de `leads` sigue la que usaría Lokebox para un pedido en gestación. S
 }
 ```
 
-Las 40 claves de `texts` requeridas, iguales en los dos idiomas:
+Las 44 claves de `texts` requeridas, iguales en los dos idiomas:
 
-`headline`, `subheadline`, `configureTitle`, `typeLabel`, `widthLabel`, `heightLabel`, `materialLabel`, `lightingLabel`, `installationLabel`, `installationYes`, `installationNo`, `quantityLabel`, `priceLabel`, `priceRangeNote`, `disclaimer`, `ctaWhatsapp`, `ctaForm`, `formTitle`, `formName`, `formContact`, `formNote`, `formSubmit`, `formSending`, `thanksTitle`, `thanksBody`, `viewQuote`, `quoteTitle`, `quoteValidity`, `quoteDateLabel`, `quoteSelectionTitle`, `quoteBreakdownTitle`, `quotePrint`, `quoteBack`, `lineMaterial`, `lineLighting`, `lineType`, `lineInstallation`, `lineDiscount`, `poweredBy`, `whatsappMessage`.
+`headline`, `subheadline`, `configureTitle`, `typeLabel`, `widthLabel`, `heightLabel`, `materialLabel`, `lightingLabel`, `installationLabel`, `installationYes`, `installationNo`, `quantityLabel`, `priceLabel`, `priceRangeNote`, `disclaimer`, `ctaWhatsapp`, `ctaForm`, `formTitle`, `formName`, `formContact`, `formNote`, `formSubmit`, `formSending`, `thanksTitle`, `thanksBody`, `viewQuote`, `quoteTitle`, `quoteValidity`, `quoteDateLabel`, `quoteSelectionTitle`, `quoteBreakdownTitle`, `quotePrint`, `quoteBack`, `lineMaterial`, `lineLighting`, `lineType`, `lineInstallation`, `lineDiscount`, `poweredBy`, `whatsappMessage`, `signTextLabel`, `letterHeightLabel`, `depthLabel`, `whatsappMessageLetters`.
 
 Los números visibles se formatean con `Intl` y el locale del cliente: `8.5` en `en`, `2,5` en `es-AR`. Eso vale para las medidas (ancho y alto) en el panel, en el mensaje de WhatsApp y en la hoja de cotización, y también para el desglose y la línea de área, que además llevan la unidad y la moneda del cliente.
 
-`whatsappMessage` es una plantilla con placeholders: `{type}`, `{width}`, `{height}`, `{unit}`, `{material}`, `{lighting}`, `{installation}`, `{quantity}`, `{min}`, `{max}`.
+`whatsappMessage` es la plantilla del modo area, con placeholders: `{type}`, `{text}`, `{width}`, `{height}`, `{unit}`, `{material}`, `{lighting}`, `{installation}`, `{quantity}`, `{min}`, `{max}`.
+
+`whatsappMessageLetters` es la plantilla del modo letters: `{type}`, `{text}`, `{letters}`, `{letterHeight}`, `{unit}`, `{material}`, `{depth}`, `{lighting}`, `{installation}`, `{quantity}`, `{min}`, `{max}`. Son dos plantillas y no una con placeholders vacíos, porque un mensaje con huecos es lo primero que lee el prospecto.
 
 Validación: al cargar un cliente se valida la forma en runtime. Si falta una clave o un id referenciado no existe, la app muestra un error claro en pantalla y no renderiza el cotizador a medias.
 
@@ -291,22 +370,30 @@ Sin marcas reales, sin fotos reales, sin logos de terceros.
 
 ## 12. Preview 3D
 
-Escena mínima. Sin modelos externos, sin texturas pesadas, sin física, sin partículas, sin shaders custom.
+Escena de producto: fondo claro y neutro, local en tono claro con material visible, cartel encuadrado como objeto principal. Sin física, sin partículas, sin shaders custom. Motivo de la escena clara: es lo que hace el nicho, y se reusa en otros rubros, mientras una vidriera nocturna solo sirve para cartelería iluminada.
 
-Prohibido en toda la vertical 3D: modelos importados, texturas, fuentes tipográficas (`Text` de drei), `Environment` o cualquier asset que se descargue en runtime, postprocessing y sombras de mapa. Las sombras son las de contacto de drei.
+Prohibido en toda la vertical 3D: cualquier asset que se descargue en runtime (modelos importados, archivos de textura, archivos de fuente, `Text` y `Text3D` de drei, `Environment`), postprocessing y sombras de mapa. Las sombras son las de contacto de drei y el quad de apoyo de esta sección.
 
-- Fachada: caja para el frente del local, plano para la vereda, dos cajas para puerta y vidriera. Colores neutros oscuros.
-- Cartel: caja cuyas dimensiones siguen ancho y alto en tiempo real con transición suave. Espesor fijo.
+Permitido y acotado: texturas generadas en runtime con `CanvasTexture`, que no descargan nada y no pesan en el bundle. Se usan para dos cosas y nada más: los glifos del texto del cartel y el degradado de la sombra de apoyo. Una textura por glifo, memoizada por caracter, 128 px, `SRGBColorSpace`, `dispose` al desmontar. La fuente es el stack del sistema (`Arial, Helvetica, sans-serif`), sin webfonts: en Linux mapea a Liberation Sans, que es métricamente compatible, así que el cuadro no se desarma entre sistemas.
+
+- Fachada: caja con profundidad para el frente del local, plano para la vereda, y puerta y vidriera legibles como referencia de escala. Se autorizan cajas simples extra (marco de puerta, división de vidriera, zócalo): sin referencia de escala los sliders de medida no comunican nada. La fachada se extiende más allá del cuadro a los dos lados y tiene fondo detrás, así no se ve el canto de la pared ni el vacío en ningún punto del clamp de órbita.
+- Cartel en modo area: caja cuyas dimensiones siguen ancho y alto en tiempo real con transición suave. Espesor fijo. En la cara va el texto del cartel con la textura de glifos, centrado y escalado al ancho disponible.
+- Cartel en modo letters: una caja por letra, ancho de cada una medido con `measureText`, profundidad igual a la opción elegida, glifo en la cara frontal y cantos con el color del material. Máximo 18 cajas. El conjunto se centra en el frente del local y el alto de letra sale de la selección.
+- Sombra de apoyo: quad con degradado radial generado en canvas, detrás del cartel y apenas desplazado. No es una segunda pasada de sombras y no se apaga con la degradación, así que el cartel no flota en ningún nivel.
 - Material: cambia color, metalness y roughness según el `visual` del material.
 - Iluminación: tres modos. `none` sin emisión y sin luz agregada. `front` con emisión baja en el cartel más una luz puntual por delante y por arriba, apuntando a la cara. `back` con emisión alta en el cartel más un plano emisivo apenas más grande detrás y una luz puntual entre el cartel y su apoyo, que lava la superficie de atrás. Nunca más de una luz dinámica en escena. El color emisivo y el del halo salen del `visual` del material.
+- Hora de la escena: un solo escalar `dusk` con damp, 0 en `none` y 1 en `front` y `back`. Mueve intensidad de ambiente, intensidad y color de la direccional, color de fondo y color de la vereda. Sin geometría nueva y sin luces nuevas. Motivo: en día pleno la luz del cartel no se lee, y una escena nocturna fija no deja entender que el objeto es un cartel.
+- Los tres modos se distinguen con luminancia medida, cada modo en su estado final real y no con el ambiente fijado: el contraste local del cartel (luminancia de la cara sobre luminancia del anillo de fachada que lo rodea) crece de `none` a `front`, y la luminancia del anillo crece `none` menor que `front` menor que `back`. Medir los tres con `dusk` fijo sería medir un estado que el visitante nunca ve, y forzarlo desde el test rompería la interfaz de tres props.
+- En los tres modos el contraste local del cartel es mayor que el de la vidriera. El producto tiene que ser el elemento de mayor contraste del cuadro: si dos rectángulos compiten, no se entiende qué se está cotizando.
 - Sin bloom. El postprocessing está prohibido en esta misma sección, así que el bloom queda fuera del MVP y no es parte de la degradación por rendimiento.
 - Tótem: la misma caja sobre un poste, de pie sobre la vereda delante del local, centrada en x. El poste va del piso al borde inferior del cartel, con un solapamiento mínimo para que no se vea la junta, y su ancho escala con el ancho del cartel dentro de un mínimo y un máximo. El cambio de tipo es una transición continua, no un salto.
-- Ambiente: escena nocturna, luz ambiente baja, una direccional suave, sombras de contacto de drei.
-- Cámara: composición inicial fija, con órbita limitada alrededor de ella. Los límites dejan explorar el modelo sin que entren en cuadro el vacío detrás de la fachada ni el borde de la vereda: azimut ±0.75 rad, polar de 1.00 a 1.57 rad (siempre por debajo de π/2) y zoom acotado entre 7 y 15 m de distancia. Cuando no hay interacción, barrido lento de ida y vuelta dentro del clamp de azimut, nunca hasta el tope. Arrastrar lo detiene y al soltar se reanuda con retardo y sin salto. No corre con `prefers-reduced-motion`.
+- Ambiente: fondo claro y neutro derivado del tema, luz ambiente alta en día, una direccional suave, sombras de contacto de drei en el piso para el tótem.
+- Cámara: la composición inicial se rehace en TAREA_009 y queda explícitamente desbloqueada. Estaba congelada desde el bloque 2 y por eso frenaron TAREA_007. Criterio: la fachada entra completa con margen a los dos lados, puerta y vidriera dentro de cuadro, el cartel encuadrado como objeto principal, y nunca el canto de la pared ni el borde de la vereda en ningún punto del clamp.
+- Órbita limitada alrededor de la composición. Los límites medidos en TAREA_008 contra la fachada vieja fueron azimut ±0.55 rad, polar de 1.15 a 1.57 rad (siempre por debajo de π/2) y zoom de 7 a 12 m, donde el tope de alejamiento es el que deja el cartel flotando. Con la fachada extendida y con fondo, el vacío desaparece: los tres límites se vuelven a medir en TAREA_009 y se reescriben acá con los valores que salgan. Cuando no hay interacción, barrido lento de ida y vuelta dentro del clamp de azimut, nunca hasta el tope. Arrastrar lo detiene y al soltar se reanuda con retardo y sin salto. No corre con `prefers-reduced-motion`.
 - La órbita es entrada del usuario, no costo de dibujo: nunca se apaga por rendimiento, en ningún nivel. Apagarla no se distingue de una página rota, y su costo por cuadro es despreciable frente a las sombras de contacto y al dpr.
-- Interfaz del componente: recibe `selection`, `visual` y `theme`. Nada más. `visual` es lo que devuelve `resolveSignVisual(config, selection)` de la vertical: el `visual` del material elegido, el `visual` de la iluminación elegida y el factor de conversión de la unidad de longitud del cliente a metros. El preview no recibe la config del cliente y no busca nada por id.
+- Interfaz del componente: recibe `selection`, `visual` y `theme`. Nada más. `visual` es lo que devuelve `resolveSignVisual(config, selection)` de la vertical: el `visual` del material elegido, el `visual` de la iluminación elegida, el factor de conversión de la unidad de longitud del cliente a metros, el modo de precio del tipo elegido y la profundidad de letra en metros. El preview no recibe la config del cliente y no busca nada por id.
 - Escala: la escena trabaja siempre en metros. Las medidas de la selección se multiplican por el factor de `visual` (1 en metros, 0.3048 en pies).
-- Colores de la escena: se derivan del `theme` del cliente con operaciones de color. Ningún hexadecimal escrito en un componente de escena. El color del cartel sale del `visual` del material.
+- Colores de la escena: se derivan del `theme` del cliente con mezclas entre los colores del tema, no con multiplicaciones fijas, que en un tema claro dan gris sucio. Ningún hexadecimal escrito en un componente de escena. El color del cartel sale del `visual` del material.
 - Si el navegador no tiene WebGL, el preview cae a un bloque plano equivalente al provisorio de TAREA_002. Esa caída es por ausencia de WebGL, no la degradación por rendimiento de la última línea de esta sección.
 - Rendimiento: fluido en un teléfono medio. Se mide en ventanas de 3 segundos, descartando los primeros 2 segundos, y el umbral es 24 fps. El umbral queda por debajo de todo techo de vsync habitual (30, 60, 90 y 120 Hz): una pantalla a 30 Hz sana no es un dispositivo que no da abasto, y tratarla como tal apagaba la escena a los 5 segundos de cargar. La degradación tiene tres niveles y baja de uno en uno, en este orden: nivel 0 todo; nivel 1 sin sombras de contacto y con techo de dpr más bajo; nivel 2 además sin barrido de cámara y dpr 1. El descenso es monótono: el nivel nunca vuelve a subir, para que la escena no parpadee entre configuraciones. No se vuelve a 2D: el bloque plano es solo la caída por ausencia de WebGL.
 
@@ -329,7 +416,7 @@ El cliente entrega antes de empezar: logo, colores, WhatsApp o mail, y sus regla
 
 ## 16. Fuera de alcance
 
-CRM, auth, usuarios, multi-tenant, panel de administración, permisos, integraciones, email transaccional, generación de PDF en servidor, modelos 3D importados, editor visual del JSON, más de dos tipos de cartel, más de una vertical.
+CRM, auth, usuarios, multi-tenant, panel de administración, permisos, integraciones, email transaccional, generación de PDF en servidor, modelos 3D importados, archivos de fuente en el 3D, editor visual del JSON, un cuarto tipo de cartel, más de una vertical.
 
 ## 17. Criterio de DONE
 
