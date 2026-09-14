@@ -3,7 +3,7 @@
 Fuente de verdad del alcance. Si algo no está acá, no se construye.
 Este documento se edita, no se contradice. Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 
-Versión: 1.12 · 14/09/2026
+Versión: 1.13 · 14/09/2026
 
 ## 1. Objetivo
 
@@ -361,7 +361,7 @@ La forma de `leads` sigue la que usaría Lokebox para un pedido en gestación. S
 
 `options.depths[]` suma `visual.depthMeters` (desde 1.11): la medida real de la profundidad, la que dibuja el preview. `factor` sigue siendo el multiplicador de precio de la sección 6 y no una medida; derivar la profundidad del `label` sería parsear texto. Mismo patrón que `materials[].visual`.
 
-`photos` (desde 1.9, conteo ampliado en 1.10): una entrada por ángulo fotografiado, 2 a 4 por cliente, la primera es la que se muestra al cargar. `id` único dentro del cliente. `label` es la etiqueta visible del ángulo y vive acá y no en `texts` porque la cantidad de fotos varía por cliente y una clave fija por ángulo no existiría: es el mismo criterio de `options.types[].label` y `options.materials[].label`. `anchor` dice dónde y de qué tamaño se dibuja el cartel sobre esa foto: `x` e `y` son el centro en fracción del ancho y del alto, con origen arriba a la izquierda; `metersToWidth` es qué fracción del ancho de la foto ocupa un metro de cartel, expresado así y no como factor abstracto para poder calcularlo contra una medida conocida de la foto en vez de a ojo; `cameraYawDeg`, `cameraPitchDeg` y `fovDeg` (desde 1.12, reemplazan a `yawDeg` y `pitchDeg`) describen la cámara que tomó la foto: la cámara en perspectiva del viewer orbita alrededor del cartel con ese azimut y esa elevación, con ese campo de visión vertical, y el cartel no se rota. `cameraYawDeg` positivo pone la cámara a la derecha del frente del cartel; `cameraPitchDeg` negativo la pone por debajo del centro del cartel, que es lo normal en una foto de fachada. `fovDeg` es mayor que 0 y menor que 180. `light` es la luz de la escena del cartel en esa foto, para que su volumen case con ella.
+`photos` (desde 1.9, conteo ampliado en 1.10): una entrada por ángulo fotografiado, 2 a 4 por cliente, la primera es la que se muestra al cargar. `id` único dentro del cliente. `label` es la etiqueta visible del ángulo y vive acá y no en `texts` porque la cantidad de fotos varía por cliente y una clave fija por ángulo no existiría: es el mismo criterio de `options.types[].label` y `options.materials[].label`. `anchor` dice dónde y de qué tamaño se dibuja el cartel sobre esa foto: `x` e `y` son el centro en fracción del ancho y del alto, con origen arriba a la izquierda; `metersToWidth` es qué fracción del ancho de la foto ocupa un metro de cartel, expresado así y no como factor abstracto para poder calcularlo contra una medida conocida de la foto en vez de a ojo; `cameraYawDeg`, `cameraPitchDeg` y `fovDeg` (desde 1.12, reemplazan a `yawDeg` y `pitchDeg`) describen la cámara que tomó la foto: la cámara en perspectiva del viewer orbita alrededor del cartel con ese azimut y esa elevación, con ese campo de visión vertical, y el cartel no se rota. `cameraYawDeg` positivo pone la cámara a la derecha del frente del cartel; `cameraPitchDeg` negativo la pone por debajo del centro del cartel, que es lo normal en una foto de fachada. `fovDeg` es mayor que 0 y menor que 180. `light` es la luz de la escena del cartel en esa foto, para que su volumen case con ella. Solo se usa en modo vista: el modo cartel tiene su luz de estudio (sección 12).
 
 Las 46 claves de `texts` requeridas, iguales en los dos idiomas:
 
@@ -395,12 +395,12 @@ El selector de vistas es una fila de botones: el primero es el modo cartel, con 
 
 Cámara en perspectiva en los dos modos. Motivo: la ortográfica de 1.9 dibujaba el cartel de frente sobre fotos tomadas en tres cuartos, y girar el cartel no reproduce la fuga de una foto. Se orbita la cámara alrededor del cartel; el cartel no se rota nunca.
 
-- Modo cartel: `fov` 30. Target en el centro del cartel. Distancia base: la que encuadra el ancho y el alto del cartel con 15 por ciento de margen por lado. `OrbitControls` con azimut libre de 360 grados, ángulo polar entre 0,6 y 1,5 rad (nunca desde abajo), sin paneo, sin zoom de rueda y sin autorotación. La luz de la escena sale del `light` de la primera foto de `photos`.
+- Modo cartel: `fov` 30. Target en el centro del cartel. Distancia (desde 1.13): se deriva en cada frame de la huella proyectada de la caja del cartel (ancho, alto y espesor) con la orientación actual de la cámara, con damp, y 12 por ciento de margen por lado. En modo letters la caja es la del conjunto de letras, no la de una. No se usa la esfera contenedora ni un margen fijo: la esfera dimensiona para el peor caso y achica el cartel en la vista frontal, que es la que se ve al cargar. `OrbitControls` con azimut libre de 360 grados, ángulo polar entre 0,6 y 1,5 rad (nunca desde abajo), sin paneo, sin zoom de rueda y sin autorotación. Luz de estudio propia del modo (desde 1.13): el HDRI más una key, con constantes nombradas en el código de la escena. No va al JSON del cliente: es del producto, no de un cliente.
 - Modo vista: la cámara sale del anchor de la foto. Se ubica en `cameraYawDeg` y `cameraPitchDeg` alrededor del cartel, con `fovDeg` como campo vertical, a la distancia en la que un metro de cartel ocupa `metersToWidth` del ancho de la foto. El centro del cartel cae en (`x`, `y`) de la foto con un corrimiento de la vista de la cámara (lens shift), no moviendo el cartel. El canvas cubre el cuadro entero.
 
 Zoom por modo, con el mismo control:
 
-- Modo cartel: acerca la cámara entre 1,0 y 0,55 de la distancia base. Solo acercar.
+- Modo cartel: multiplica la distancia derivada de la huella entre 1,0 y 0,55. Solo acercar.
 - Modo vista: transformación CSS sobre el contenedor de foto y canvas juntos, nunca un movimiento de cámara, así foto y cartel escalan juntos y no existe el desalineado.
 
 Assets permitidos, y solo estos dos: las fotos de fondo del cliente y un único HDRI de estudio para todo el producto, ambos servidos desde `public/`. Sigue prohibido todo modelo importado, archivo de fuente, `Text` y `Text3D` de drei, postprocessing y sombras de mapa.
@@ -415,10 +415,10 @@ Permitido y acotado: texturas generadas en runtime con `CanvasTexture`, que no d
 - Iluminación: tres modos, nunca más de una luz dinámica, colores del `visual` del material.
   - `none`: sin emisión y sin luz agregada.
   - `front`: emisión baja en la cara más una luz puntual por delante y por arriba.
-  - `back`: los cantos y la cara trasera emiten; la cara emite poco, lo justo para que el texto del cartel siga legible. En modo cartel no hay halo. En modo vista hay halo: el degradado radial detrás del cartel, con un margen de 0,12 del alto del cartel por lado, opacidad máxima 0,55, color del emisivo del material y sin borde duro.
-- En modo vista los tres modos se distinguen con luminancia medida sobre la región del cartel, con la misma foto: la cara crece de `none` a `front` y el anillo inmediato crece de `front` a `back`. En modo cartel `back` se distingue de `front` con luminancia medida, sin halo.
+  - `back`: los cantos y la cara trasera emiten. En modo cartel (desde 1.13) la cara no emite: queda en el color del material apenas oscurecido, y no hay halo. Sale la emisión en la cara para back, porque un back-lit real tiene la cara apagada y el resplandor detrás, y con la cara emisiva back y front no se distinguen de frente. En modo vista la cara emite poco, lo justo para que el texto siga legible, y hay halo: el degradado radial detrás del cartel, con un margen de 0,12 del alto del cartel por lado, opacidad máxima 0,55, color del emisivo del material y sin borde duro.
+- Los tres modos se distinguen con luminancia medida sobre la región del cartel, con tres comparaciones (desde 1.13): la cara crece de `none` a `front`, la cara baja de `front` a `back`, y el anillo inmediato crece de `front` a `back` en modo vista. Las tres se miden en modo vista con la misma foto; las dos de la cara se miden también en modo cartel, de frente y sin girar.
 - No hay escalar `dusk` ni degradación por rendimiento.
-- Luz de la escena del cartel: sale del `light` de la foto elegida en modo vista, y del de la primera foto en modo cartel. Nunca de constantes del código.
+- Luz de la escena del cartel: en modo vista sale del `light` de la foto elegida, nunca de constantes del código. En modo cartel es la luz de estudio del producto, con constantes nombradas, y nunca del JSON.
 - Interfaz del componente: recibe `selection`, `visual`, `theme`, las fotos y las etiquetas. El preview no recibe la config del cliente y no busca nada por id.
 - Escala: la escena trabaja siempre en metros. Las medidas de la selección se multiplican por el factor de `visual` (1 en metros, 0.3048 en pies).
 - Colores: el color del cartel sale del `visual` del material. Ningún hexadecimal escrito en un componente de escena.
