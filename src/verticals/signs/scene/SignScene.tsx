@@ -21,7 +21,7 @@ export const VIEW_HALF_HEIGHT = 3
 
 // Misma ruta que sondea PhotoStage: una sola fuente de verdad. Es la ruta del paquete de
 // assets de TAREA_011 (Poly Haven, Studio Small 08, CC0).
-export const HDRI_SRC = '/assets/quote/hdri/studio-small-08-1k.hdr'
+export const HDRI_SRC = '/assets/quote/hdri/studio-small-08-256.hdr'
 
 type SignSceneProps = {
   placement: SignPlacement
