@@ -92,6 +92,55 @@ describe('validateClientConfig', () => {
   })
 })
 
+describe('validateClientConfig: photos', () => {
+  it('los dos clientes traen las cuatro fotos reales con ids unicos', () => {
+    for (const slug of ['northline', 'norte']) {
+      const photos = clientOrFail(slug).photos
+      expect(photos.map((item) => item.id)).toEqual(['front-day', 'angle-left-day', 'angle-right-day', 'front-night'])
+      for (const photo of photos) {
+        expect(photo.src).toBe(`/assets/quote/backgrounds/${slug}-${photo.id}.webp`)
+      }
+    }
+  })
+
+  it('falla si falta photos, y dice en que cliente', () => {
+    const broken: Record<string, unknown> = structuredClone(northline)
+    delete broken.photos
+    expect(() => validateClientConfig(broken)).toThrow(/northline/)
+    expect(() => validateClientConfig(broken)).toThrow(/photos/)
+  })
+
+  it('falla si photos esta vacio', () => {
+    const broken = structuredClone(northline)
+    broken.photos = []
+    expect(() => validateClientConfig(broken)).toThrow(/photos/)
+  })
+
+  it('falla si falta una clave del anchor, y dice cual', () => {
+    const broken = structuredClone(northline)
+    delete (broken.photos[1].anchor as Partial<(typeof broken.photos)[number]['anchor']>).metersToWidth
+    expect(() => validateClientConfig(broken)).toThrow(/photos\[1\]\.anchor\.metersToWidth/)
+  })
+
+  it('falla si x o y del anchor caen fuera de 0 a 1', () => {
+    const broken = structuredClone(northline)
+    broken.photos[0].anchor.y = 1.2
+    expect(() => validateClientConfig(broken)).toThrow(/photos\[0\]\.anchor\.x e y/)
+  })
+
+  it('falla si metersToWidth no es mayor a 0', () => {
+    const broken = structuredClone(northline)
+    broken.photos[2].anchor.metersToWidth = 0
+    expect(() => validateClientConfig(broken)).toThrow(/metersToWidth debe ser mayor a 0/)
+  })
+
+  it('falla si hay ids de foto repetidos', () => {
+    const broken = structuredClone(northline)
+    broken.photos[3].id = 'front-day'
+    expect(() => validateClientConfig(broken)).toThrow(/repetido/)
+  })
+})
+
 describe('priceRulesFromClient y defaultSelection', () => {
   it('las reglas salen del JSON del cliente', () => {
     const rules = priceRulesFromClient(clientOrFail('northline'))

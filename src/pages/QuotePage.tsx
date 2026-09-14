@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { defaultSelection, priceRulesFromClient } from '../core/clientConfig'
 import { insertRow } from '../core/data/insertRow'
 import { useVisitOnce } from '../core/data/useVisitOnce'
@@ -17,6 +17,7 @@ import { useHtmlLang } from '../core/ui/useHtmlLang'
 import type { SelectionValue } from '../core/ui/panelTypes'
 import type { ClientConfig } from '../core/types'
 import { SignPreview } from '../verticals/signs/SignPreview'
+import { CalibrationPreview } from '../verticals/signs/calibration/CalibrationPreview'
 import { selectionFromValues, signFields, valuesFromSelection } from '../verticals/signs/fields'
 import { signLeadSelection, signLeadTokens } from '../verticals/signs/leadTokens'
 import { areaUnitSymbol, resolveSignVisual } from '../verticals/signs/visuals'
@@ -39,6 +40,7 @@ function QuoteScreen({ config }: QuoteScreenProps) {
   const rules = useMemo(() => priceRulesFromClient(config), [config])
   const theme = useMemo(() => themeFromClient(config), [config])
   const areaUnit = useMemo(() => areaUnitSymbol(config.units.area), [config])
+  const [searchParams] = useSearchParams()
 
   const brandName = config.brand.name
   useEffect(() => {
@@ -99,13 +101,19 @@ function QuoteScreen({ config }: QuoteScreenProps) {
     <QuoteLayout
       config={config}
       preview={
-        <SignPreview
-          selection={selection}
-          visual={visual}
-          theme={theme}
-          photos={config.photos}
-          zoomLabel={config.texts.previewZoomLabel}
-        />
+        // El modo de calibracion es de desarrollo: import.meta.env.DEV vale false en el
+        // build de produccion, asi que esta rama y su modulo quedan fuera del bundle.
+        import.meta.env.DEV && searchParams.get('calibrate') === '1' ? (
+          <CalibrationPreview selection={selection} visual={visual} theme={theme} photos={config.photos} />
+        ) : (
+          <SignPreview
+            selection={selection}
+            visual={visual}
+            theme={theme}
+            photos={config.photos}
+            zoomLabel={config.texts.previewZoomLabel}
+          />
+        )
       }
       panel={
         <>

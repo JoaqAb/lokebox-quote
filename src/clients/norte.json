@@ -14,18 +14,32 @@
   },
   "photos": [
     {
-      "id": "front",
-      "label": "De frente",
-      "src": "/clients/norte/photos/front.png",
-      "anchor": { "x": 0.5, "y": 0.4, "metersToWidth": 0.085, "yawDeg": 0, "pitchDeg": 0 },
+      "id": "front-day",
+      "label": "Frente",
+      "src": "/assets/quote/backgrounds/norte-front-day.webp",
+      "anchor": { "x": 0.501, "y": 0.311, "metersToWidth": 0.07, "yawDeg": 0, "pitchDeg": 0 },
       "light": { "ambient": 0.9, "keyIntensity": 1.4, "keyAzimuthDeg": -25, "keyElevationDeg": 35 }
     },
     {
-      "id": "angle",
-      "label": "Desde la vereda",
-      "src": "/clients/norte/photos/angle.png",
-      "anchor": { "x": 0.44, "y": 0.42, "metersToWidth": 0.072, "yawDeg": 22, "pitchDeg": 0 },
-      "light": { "ambient": 0.85, "keyIntensity": 1.6, "keyAzimuthDeg": 40, "keyElevationDeg": 30 }
+      "id": "angle-left-day",
+      "label": "Izquierda",
+      "src": "/assets/quote/backgrounds/norte-angle-left-day.webp",
+      "anchor": { "x": 0.6, "y": 0.332, "metersToWidth": 0.062, "yawDeg": 46, "pitchDeg": -11 },
+      "light": { "ambient": 0.9, "keyIntensity": 1.4, "keyAzimuthDeg": -25, "keyElevationDeg": 35 }
+    },
+    {
+      "id": "angle-right-day",
+      "label": "Derecha",
+      "src": "/assets/quote/backgrounds/norte-angle-right-day.webp",
+      "anchor": { "x": 0.438, "y": 0.304, "metersToWidth": 0.06, "yawDeg": -25, "pitchDeg": -17.5 },
+      "light": { "ambient": 0.9, "keyIntensity": 1.4, "keyAzimuthDeg": -25, "keyElevationDeg": 35 }
+    },
+    {
+      "id": "front-night",
+      "label": "Noche",
+      "src": "/assets/quote/backgrounds/norte-front-night.webp",
+      "anchor": { "x": 0.501, "y": 0.304, "metersToWidth": 0.07, "yawDeg": 0, "pitchDeg": 0 },
+      "light": { "ambient": 0.35, "keyIntensity": 0.4, "keyAzimuthDeg": 0, "keyElevationDeg": 20 }
     }
   ],
   "cta": "both",
