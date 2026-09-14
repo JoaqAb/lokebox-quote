@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { getClient, listClientSlugs } from '../../clients'
-import { defaultSelection } from '../../core/clientConfig'
+import northlineJson from '../../clients/northline.json'
+import { defaultSelection, priceRulesFromClient, validateClientConfig } from '../../core/clientConfig'
+import { calculatePrice } from '../../core/pricing/calculatePrice'
 import type { SelectionValue } from '../../core/ui/panelTypes'
-import { selectionFromValues, signFields, valuesFromSelection } from './fields'
+import { applyFieldChange, buildPanelFields, selectionFromValues, valuesFromSelection } from './fields'
 
 function clientOrFail(slug: string) {
   const client = getClient(slug)
@@ -13,7 +15,7 @@ function clientOrFail(slug: string) {
 }
 
 function controlOf(slug: string, fieldId: string) {
-  const field = signFields(clientOrFail(slug)).find((item) => item.id === fieldId)
+  const field = buildPanelFields(clientOrFail(slug), defaultSelection(clientOrFail(slug))).find((item) => item.id === fieldId)
   if (field === undefined) {
     throw new Error(`campo no encontrado en el test: ${fieldId}`)
   }
@@ -28,10 +30,10 @@ function choiceLabels(slug: string, fieldId: string): string[] {
   return control.choices.map((choice) => choice.label)
 }
 
-describe('signFields', () => {
+describe('buildPanelFields en modo area', () => {
   // 12.1
   it('devuelve los ocho campos en el orden de SPEC 5.2, con sus id y labelKey', () => {
-    const fields = signFields(clientOrFail('northline'))
+    const fields = buildPanelFields(clientOrFail('northline'), defaultSelection(clientOrFail('northline')))
     expect(fields).toHaveLength(8)
     expect(fields.map((field) => field.id)).toEqual([
       'type',
@@ -57,7 +59,7 @@ describe('signFields', () => {
 
   // 12.2
   it('los kind son choice, text, range, range, choice, choice, boolean, stepper', () => {
-    const fields = signFields(clientOrFail('northline'))
+    const fields = buildPanelFields(clientOrFail('northline'), defaultSelection(clientOrFail('northline')))
     expect(fields.map((field) => field.control.kind)).toEqual([
       'choice',
       'text',
@@ -71,8 +73,8 @@ describe('signFields', () => {
   })
 
   // 12.3
-  it('tipo tiene dos opciones, material tres e iluminacion tres', () => {
-    expect(choiceLabels('northline', 'type')).toHaveLength(2)
+  it('tipo tiene tres opciones, material tres e iluminacion tres', () => {
+    expect(choiceLabels('northline', 'type')).toHaveLength(3)
     expect(choiceLabels('northline', 'materialId')).toHaveLength(3)
     expect(choiceLabels('northline', 'lightingId')).toHaveLength(3)
   })
@@ -121,5 +123,71 @@ describe('valuesFromSelection y selectionFromValues', () => {
 
     const anchoTexto: Record<string, SelectionValue> = { ...values, width: '8' }
     expect(() => selectionFromValues(anchoTexto)).toThrow(/width/)
+  })
+})
+
+describe('buildPanelFields por modo y applyFieldChange', () => {
+  const config = clientOrFail('northline')
+
+  it('en modo letters muestra alto de letra y profundidad, y no ancho ni alto', () => {
+    const selection = { ...defaultSelection(config), type: 'letters' }
+    const fields = buildPanelFields(config, selection)
+    expect(fields.map((field) => field.id)).toEqual([
+      'type',
+      'text',
+      'letterHeight',
+      'depthId',
+      'materialId',
+      'lightingId',
+      'installation',
+      'quantity',
+    ])
+    expect(fields.find((field) => field.id === 'letterHeight')?.control).toEqual({
+      kind: 'range',
+      min: 0.5,
+      max: 3,
+      step: 0.25,
+      unit: 'ft',
+    })
+    expect(fields.find((field) => field.id === 'depthId')?.labelKey).toBe('depthLabel')
+  })
+
+  it('en modo letters ofrece solo los materiales con pricePerLetterHeight', () => {
+    const raw = structuredClone(northlineJson)
+    delete (raw.options.materials[1] as Partial<(typeof raw.options.materials)[number]>).pricePerLetterHeight
+    const partial = validateClientConfig(raw)
+    const letters = buildPanelFields(partial, { ...defaultSelection(partial), type: 'letters' })
+    const material = letters.find((field) => field.id === 'materialId')?.control
+    expect(material?.kind === 'choice' ? material.choices.map((item) => item.id) : null).toEqual(['pvc', 'acrylic'])
+
+    // Al pasar a letters con un material que no se ofrece, cae al primero que si.
+    const values = { ...valuesFromSelection(defaultSelection(partial)), materialId: 'aluminum' }
+    expect(applyFieldChange(partial, values, 'type', 'letters').materialId).toBe('pvc')
+  })
+
+  it('un texto sin letras no entra y el panel conserva el ultimo valido', () => {
+    const values = valuesFromSelection(defaultSelection(config))
+    expect(applyFieldChange(config, values, 'text', '')).toBe(values)
+    expect(applyFieldChange(config, values, 'text', '   ')).toBe(values)
+    expect(applyFieldChange(config, values, 'text', 'MI CAFE').text).toBe('MI CAFE')
+  })
+
+  it('cambiar de tipo en cualquier orden nunca deja un precio NaN ni una seleccion invalida', () => {
+    for (const slug of ['northline', 'norte']) {
+      const client = clientOrFail(slug)
+      const rules = priceRulesFromClient(client)
+      const ids = client.options.types.map((item) => item.id)
+      const orders = ids.flatMap((a) => ids.flatMap((b) => ids.map((c) => [a, b, c])))
+      for (const order of orders) {
+        let values = valuesFromSelection(defaultSelection(client))
+        for (const [index, typeId] of order.entries()) {
+          values = applyFieldChange(client, values, 'type', typeId)
+          values = applyFieldChange(client, values, 'materialId', client.options.materials[index % 3].id)
+          const result = calculatePrice(rules, selectionFromValues(values))
+          expect(Number.isFinite(result.total), `${slug} ${order.join('>')}`).toBe(true)
+          expect(Number.isFinite(result.min) && Number.isFinite(result.max)).toBe(true)
+        }
+      }
+    }
   })
 })

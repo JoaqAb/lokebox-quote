@@ -48,22 +48,29 @@
   "options": {
     "signText": { "default": "NORTE", "maxLength": 18 },
     "types": [
-      { "id": "facade", "label": "Cartel de fachada", "priceFixed": 0 },
-      { "id": "totem", "label": "Tótem", "priceFixed": 270000 }
+      { "id": "facade", "label": "Cartel de fachada", "priceFixed": 0, "pricing": "area" },
+      { "id": "totem", "label": "Tótem", "priceFixed": 270000, "pricing": "area" },
+      { "id": "letters", "label": "Letras corpóreas", "priceFixed": 0, "pricing": "letters" }
     ],
     "width": { "min": 0.6, "max": 6, "step": 0.1, "default": 2.5 },
     "height": { "min": 0.3, "max": 2.5, "step": 0.1, "default": 1 },
+    "letterHeight": { "min": 0.15, "max": 0.9, "step": 0.05, "default": 0.3 },
+    "depths": [
+      { "id": "d5", "label": "5 cm", "factor": 1, "visual": { "depthMeters": 0.05 } },
+      { "id": "d10", "label": "10 cm", "factor": 1.2, "visual": { "depthMeters": 0.1 } },
+      { "id": "d15", "label": "15 cm", "factor": 1.4, "visual": { "depthMeters": 0.15 } }
+    ],
     "materials": [
-      { "id": "pvc", "label": "PVC espumado", "pricePerArea": 109000, "visual": { "color": "#E8E8E4", "metalness": 0, "roughness": 0.8 } },
-      { "id": "aluminum", "label": "Chapa", "pricePerArea": 182000, "visual": { "color": "#B8BDC4", "metalness": 0.9, "roughness": 0.35 } },
-      { "id": "acrylic", "label": "Acrílico", "pricePerArea": 254000, "visual": { "color": "#F2F5F7", "metalness": 0.1, "roughness": 0.15 } }
+      { "id": "pvc", "label": "PVC espumado", "pricePerArea": 109000, "pricePerLetterHeight": 89000, "visual": { "color": "#E8E8E4", "metalness": 0, "roughness": 0.8 } },
+      { "id": "aluminum", "label": "Chapa", "pricePerArea": 182000, "pricePerLetterHeight": 155000, "visual": { "color": "#B8BDC4", "metalness": 0.9, "roughness": 0.35 } },
+      { "id": "acrylic", "label": "Acrílico", "pricePerArea": 254000, "pricePerLetterHeight": 210000, "visual": { "color": "#F2F5F7", "metalness": 0.1, "roughness": 0.15 } }
     ],
     "lighting": [
-      { "id": "none", "label": "Sin luz", "pricePerArea": 0, "visual": { "mode": "none" } },
-      { "id": "front", "label": "Frontal", "pricePerArea": 436000, "visual": { "mode": "front" } },
-      { "id": "back", "label": "Retroiluminado", "pricePerArea": 581000, "visual": { "mode": "back" } }
+      { "id": "none", "label": "Sin luz", "pricePerArea": 0, "pricePerLetter": 0, "visual": { "mode": "none" } },
+      { "id": "front", "label": "Frontal", "pricePerArea": 436000, "pricePerLetter": 47000, "visual": { "mode": "front" } },
+      { "id": "back", "label": "Retroiluminado", "pricePerArea": 581000, "pricePerLetter": 81000, "visual": { "mode": "back" } }
     ],
-    "installation": { "fixed": 236000, "perArea": 73000 },
+    "installation": { "fixed": 236000, "perArea": 73000, "perLetter": 30000 },
     "quantity": { "min": 1, "max": 10, "default": 1 },
     "discounts": [{ "minQty": 2, "pct": 5 }, { "minQty": 5, "pct": 10 }],
     "rangePct": 8
@@ -82,6 +89,8 @@
     "installationNo": "No, lo instalo yo",
     "quantityLabel": "Cantidad",
     "signTextLabel": "Texto del cartel",
+    "letterHeightLabel": "Alto de letra",
+    "depthLabel": "Profundidad",
     "previewZoomLabel": "Acercar",
     "priceLabel": "Precio estimado",
     "priceRangeNote": "Rango estimado",
@@ -110,6 +119,7 @@
     "lineInstallation": "Instalación",
     "lineDiscount": "Descuento por cantidad",
     "poweredBy": "Powered by Lokebox",
-    "whatsappMessage": "Hola, quiero un presupuesto de un {type}, {width} x {height} {unit}, {material}, iluminación: {lighting}, instalación: {installation}, cantidad {quantity}. Rango estimado {min} a {max}."
+    "whatsappMessage": "Hola, quiero un presupuesto de un {type}, {width} x {height} {unit}, {material}, iluminación: {lighting}, instalación: {installation}, cantidad {quantity}. Rango estimado {min} a {max}.",
+    "whatsappMessageLetters": "Hola, quiero un presupuesto de {type} con el texto \"{text}\": {letters} letras de {letterHeight} {unit} de alto, {material}, profundidad {depth}, iluminación: {lighting}, instalación: {installation}, cantidad {quantity}. Rango estimado {min} a {max}."
   }
 }

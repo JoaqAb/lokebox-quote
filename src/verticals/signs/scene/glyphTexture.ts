@@ -10,7 +10,7 @@ const SIZE = 128
 const FONT_STACK = 'Arial, Helvetica, sans-serif'
 // El glifo ocupa esta fraccion del alto del tile. Deja aire arriba y abajo para tildes
 // y descendentes sin que el trazo toque el borde de la textura.
-const FONT_RATIO = 0.72
+export const FONT_RATIO = 0.72
 
 const cache = new Map<string, CanvasTexture>()
 

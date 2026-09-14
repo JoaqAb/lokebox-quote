@@ -60,10 +60,14 @@ export type ClientPhoto = {
   light: PhotoLight
 }
 
+// Modo de precio de un tipo de cartel (SPEC 5.1): el motor ramifica por aca.
+export type PricingMode = 'area' | 'letters'
+
 export type SignTypeOption = {
   id: string
   label: string
   priceFixed: number
+  pricing: PricingMode
 }
 
 export type MaterialVisual = {
@@ -76,6 +80,9 @@ export type MaterialOption = {
   id: string
   label: string
   pricePerArea: number
+  // Precio por letra y por unidad de alto de letra. Sin el, el material no entra en
+  // letras corporeas: el JSON decide asi que materiales se ofrecen en ese modo.
+  pricePerLetterHeight?: number
   visual: MaterialVisual
 }
 
@@ -89,7 +96,21 @@ export type LightingOption = {
   id: string
   label: string
   pricePerArea: number
+  pricePerLetter?: number
   visual: LightingVisual
+}
+
+// Profundidad de las letras corporeas. El factor multiplica el precio del material; el
+// visual dice cuanto mide, para que el preview dibuje esa profundidad y no una inventada.
+export type DepthVisual = {
+  depthMeters: number
+}
+
+export type DepthOption = {
+  id: string
+  label: string
+  factor: number
+  visual: DepthVisual
 }
 
 export type RangeConfig = {
@@ -108,6 +129,7 @@ export type QuantityConfig = {
 export type InstallationConfig = {
   fixed: number
   perArea: number
+  perLetter: number
 }
 
 export type DiscountTier = {
@@ -127,6 +149,8 @@ export type SignOptions = {
   signText: SignTextConfig
   width: RangeConfig
   height: RangeConfig
+  letterHeight: RangeConfig
+  depths: DepthOption[]
   materials: MaterialOption[]
   lighting: LightingOption[]
   installation: InstallationConfig
@@ -151,6 +175,8 @@ export type ClientTexts = {
   installationNo: string
   quantityLabel: string
   signTextLabel: string
+  letterHeightLabel: string
+  depthLabel: string
   previewZoomLabel: string
   priceLabel: string
   priceRangeNote: string
@@ -180,6 +206,7 @@ export type ClientTexts = {
   lineDiscount: string
   poweredBy: string
   whatsappMessage: string
+  whatsappMessageLetters: string
 }
 
 export type CtaMode = 'whatsapp' | 'form' | 'both'
@@ -201,11 +228,15 @@ export type ClientConfig = {
 
 // Contrato del motor de precios, exactamente como en SPEC seccion 6.
 
+// La seleccion conserva siempre los valores de los dos modos, con default del JSON: asi
+// cambiar de tipo no deja estado invalido y el motor ignora lo que no aplica (SPEC 5.2).
 export type SignSelection = {
   type: string
   text: string
   width: number
   height: number
+  letterHeight: number
+  depthId: string
   materialId: string
   lightingId: string
   installation: boolean
@@ -214,10 +245,11 @@ export type SignSelection = {
 
 export type PriceRules = {
   currency: { code: string; symbol: string; decimals: number }
-  types: { id: string; label: string; priceFixed: number }[]
-  materials: { id: string; label: string; pricePerArea: number }[]
-  lighting: { id: string; label: string; pricePerArea: number }[]
-  installation: { fixed: number; perArea: number }
+  types: { id: string; label: string; priceFixed: number; pricing: PricingMode }[]
+  materials: { id: string; label: string; pricePerArea: number; pricePerLetterHeight?: number }[]
+  lighting: { id: string; label: string; pricePerArea: number; pricePerLetter?: number }[]
+  depths: { id: string; label: string; factor: number }[]
+  installation: { fixed: number; perArea: number; perLetter: number }
   discounts: { minQty: number; pct: number }[]
   rangePct: number
 }
@@ -226,10 +258,21 @@ export type PriceLineId = 'material' | 'lighting' | 'type' | 'installation' | 'd
 
 // Los numeros crudos de cada linea del desglose (SPEC 6, version 1.5). El motor no
 // formatea: emite estos valores y la UI los arma con Intl y el locale del cliente.
+// Material, iluminacion e instalacion discriminan por modo (SPEC 6, version 1.8).
 export type PriceDetailValues =
-  | { id: 'material' | 'lighting'; area: number; unitPrice: number }
+  | { id: 'material' | 'lighting'; mode: 'area'; area: number; unitPrice: number }
+  | {
+      id: 'material'
+      mode: 'letters'
+      letters: number
+      letterHeight: number
+      unitPrice: number
+      depthFactor: number
+    }
+  | { id: 'lighting'; mode: 'letters'; letters: number; unitPrice: number }
   | { id: 'type'; fixed: number }
-  | { id: 'installation'; fixed: number; perArea: number; area: number }
+  | { id: 'installation'; mode: 'area'; fixed: number; perArea: number; area: number }
+  | { id: 'installation'; mode: 'letters'; fixed: number; perLetter: number; letters: number }
   | { id: 'discount'; pct: number }
 
 export type PriceLine = {
@@ -242,7 +285,11 @@ export type PriceLine = {
 }
 
 export type PriceResult = {
+  // 0 en modo letters.
   area: number
+  // Solo en modo letters.
+  letters?: number
+  letterHeight?: number
   unitTotal: number
   subtotal: number
   discountPct: number

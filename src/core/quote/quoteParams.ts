@@ -1,25 +1,32 @@
-import type { SignOptions, SignSelection } from '../types'
+import type { PricingMode, SignOptions, SignSelection } from '../types'
 
-// Serializacion de la seleccion en la query de la hoja de cotizacion (TAREA_006 seccion 3).
+// Serializacion de la seleccion en la query de la hoja de cotizacion (SPEC 8).
 // Pura, sin React. La URL es canonica: numeros con String(n) y punto decimal, sin importar
 // el locale del cliente. El idioma vive en el JSON, no en el link.
 // En la URL no va ningun dato personal.
 
-// Orden fijo de claves de SPEC 8. En modo area se escriben estas ocho; `lh` y `d` son
-// del modo letters y su sola presencia invalida el link: uno ambiguo no se cotiza.
-const KEYS = ['t', 'x', 'w', 'h', 'm', 'l', 'i', 'q'] as const
+// Claves por modo, en el orden fijo de SPEC 8: t, x, w, h, lh, d, m, l, i, q. Se escriben
+// solo las del modo del tipo; una clave del otro modo presente invalida el link, porque
+// uno ambiguo no se cotiza.
+const MODE_KEYS: Record<PricingMode, readonly string[]> = {
+  area: ['w', 'h'],
+  letters: ['lh', 'd'],
+}
 
-// Claves del otro modo. Estan escritas aca y no en el modo letters porque la regla de
-// SPEC 8 se puede cumplir desde hoy, antes de que ese modo exista.
-const OTHER_MODE_KEYS = ['lh', 'd'] as const
+const COMMON_KEYS = ['t', 'x', 'm', 'l', 'i', 'q'] as const
 
-export function encodeQuoteParams(selection: SignSelection): string {
+export function encodeQuoteParams(selection: SignSelection, mode: PricingMode): string {
   const params = new URLSearchParams()
   params.set('t', selection.type)
   // URLSearchParams codifica el texto solo: espacios, acentos y signos viajan enteros.
   params.set('x', selection.text)
-  params.set('w', String(selection.width))
-  params.set('h', String(selection.height))
+  if (mode === 'area') {
+    params.set('w', String(selection.width))
+    params.set('h', String(selection.height))
+  } else {
+    params.set('lh', String(selection.letterHeight))
+    params.set('d', selection.depthId)
+  }
   params.set('m', selection.materialId)
   params.set('l', selection.lightingId)
   params.set('i', selection.installation ? '1' : '0')
@@ -53,7 +60,7 @@ export function decodeQuoteParams(
   params: URLSearchParams,
 ): SignSelection | null {
   const raw: Record<string, string> = {}
-  for (const key of KEYS) {
+  for (const key of COMMON_KEYS) {
     const value = params.get(key)
     if (value === null) {
       return null
@@ -61,14 +68,24 @@ export function decodeQuoteParams(
     raw[key] = value
   }
 
-  for (const key of OTHER_MODE_KEYS) {
+  const signType = options.types.find((item) => item.id === raw.t)
+  if (signType === undefined) {
+    return null
+  }
+  const mode = signType.pricing
+  const otherMode: PricingMode = mode === 'area' ? 'letters' : 'area'
+
+  for (const key of MODE_KEYS[mode]) {
+    const value = params.get(key)
+    if (value === null) {
+      return null
+    }
+    raw[key] = value
+  }
+  for (const key of MODE_KEYS[otherMode]) {
     if (params.get(key) !== null) {
       return null
     }
-  }
-
-  if (!knownId(options.types, raw.t)) {
-    return null
   }
 
   const text = raw.x
@@ -82,15 +99,6 @@ export function decodeQuoteParams(
     return null
   }
 
-  const width = parseNumber(raw.w)
-  if (width === null || !inRange(width, options.width)) {
-    return null
-  }
-  const height = parseNumber(raw.h)
-  if (height === null || !inRange(height, options.height)) {
-    return null
-  }
-
   const quantity = parseNumber(raw.q)
   if (quantity === null || !Number.isInteger(quantity) || !inRange(quantity, options.quantity)) {
     return null
@@ -100,14 +108,48 @@ export function decodeQuoteParams(
     return null
   }
 
-  return {
+  // Las medidas del otro modo no viajan en el link y el motor no las usa. La seleccion
+  // igual las lleva siempre (SPEC 5.2), asi que se completan con el default del JSON:
+  // no cambian el precio, que depende solo de las claves del modo.
+  const common = {
     type: raw.t,
     text,
-    width,
-    height,
     materialId: raw.m,
     lightingId: raw.l,
     installation: raw.i === '1',
     quantity,
+  }
+
+  if (mode === 'area') {
+    const width = parseNumber(raw.w)
+    if (width === null || !inRange(width, options.width)) {
+      return null
+    }
+    const height = parseNumber(raw.h)
+    if (height === null || !inRange(height, options.height)) {
+      return null
+    }
+    return {
+      ...common,
+      width,
+      height,
+      letterHeight: options.letterHeight.default,
+      depthId: options.depths[0].id,
+    }
+  }
+
+  const letterHeight = parseNumber(raw.lh)
+  if (letterHeight === null || !inRange(letterHeight, options.letterHeight)) {
+    return null
+  }
+  if (!knownId(options.depths, raw.d)) {
+    return null
+  }
+  return {
+    ...common,
+    width: options.width.default,
+    height: options.height.default,
+    letterHeight,
+    depthId: raw.d,
   }
 }

@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { DoubleSide } from 'three'
-import { SET, SIGN_TEXT, type SignPlacement } from './sceneGeometry'
-import { glyphTexture, layoutGlyphs } from './glyphTexture'
+import { LETTERS, SET, SIGN_TEXT, type LetterBox, type SignPlacement } from './sceneGeometry'
+import { FONT_RATIO, glyphTexture, layoutGlyphs } from './glyphTexture'
 
 // El texto en la cara del cartel (SPEC 12). Un plano por caracter, con la textura de
 // glifo memoizada. Sin Text ni Text3D de drei y sin ningun archivo de fuente.
@@ -41,6 +41,45 @@ export function SignFace({ placement, color, text }: SignFaceProps) {
           <planeGeometry args={[1, 1]} />
           <meshBasicMaterial
             map={glyphTexture(glyph.char)}
+            color={color}
+            transparent
+            depthWrite={false}
+            side={DoubleSide}
+            toneMapped={false}
+          />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+type LetterFacesProps = {
+  letters: LetterBox[]
+  letterHeight: number
+  letterDepth: number
+  color: string
+}
+
+// Modo letters: el glifo de cada letra sobre la cara frontal de su caja. La textura es la
+// misma del modo area; el tile mide el alto de letra dividido FONT_RATIO, asi la fuente
+// del glifo queda del alto de la caja y centrada en ella.
+export function LetterFaces({ letters, letterHeight, letterDepth, color }: LetterFacesProps) {
+  if (letters.length === 0 || letterHeight <= 0) {
+    return null
+  }
+  const tile = letterHeight / FONT_RATIO
+  const z = letterDepth / 2 + LETTERS.glyphGap
+  return (
+    <group position={[0, 0, z]}>
+      {letters.map((letter, index) => (
+        <mesh
+          key={`${letter.char}-${String(index)}`}
+          position={[letter.x, 0, 0]}
+          scale={[tile, tile, 1]}
+        >
+          <planeGeometry args={[1, 1]} />
+          <meshBasicMaterial
+            map={glyphTexture(letter.char)}
             color={color}
             transparent
             depthWrite={false}

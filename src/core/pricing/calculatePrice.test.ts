@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { getClient } from '../../clients'
 import { priceRulesFromClient } from '../clientConfig'
 import type { PriceRules, SignSelection } from '../types'
-import { calculatePrice } from './calculatePrice'
+import { calculatePrice, countLetters } from './calculatePrice'
 
 function rulesFor(slug: string): PriceRules {
   const client = getClient(slug)
@@ -21,6 +21,8 @@ function selection(overrides: Partial<SignSelection> = {}): SignSelection {
     text: 'NORTHLINE',
     width: 8,
     height: 3,
+    letterHeight: 1,
+    depthId: 'd2',
     materialId: 'pvc',
     lightingId: 'front',
     installation: true,
@@ -188,14 +190,14 @@ describe('calculatePrice, lineas del desglose', () => {
         labelKey: 'lineMaterial',
         detail: '24 x 15',
         amount: 360,
-        detailValues: { id: 'material', area: 24, unitPrice: 15 },
+        detailValues: { id: 'material', mode: 'area', area: 24, unitPrice: 15 },
       },
       {
         id: 'lighting',
         labelKey: 'lineLighting',
         detail: '24 x 60',
         amount: 1440,
-        detailValues: { id: 'lighting', area: 24, unitPrice: 60 },
+        detailValues: { id: 'lighting', mode: 'area', area: 24, unitPrice: 60 },
       },
       {
         id: 'type',
@@ -209,7 +211,7 @@ describe('calculatePrice, lineas del desglose', () => {
         labelKey: 'lineInstallation',
         detail: '350 + 24 x 10',
         amount: 590,
-        detailValues: { id: 'installation', fixed: 350, perArea: 10, area: 24 },
+        detailValues: { id: 'installation', mode: 'area', fixed: 350, perArea: 10, area: 24 },
       },
       {
         id: 'discount',
@@ -280,11 +282,12 @@ describe('detailValues', () => {
   it('cada linea trae detailValues con su id y sus numeros crudos', () => {
     const result = calculatePrice(northline, completa)
     const porId = new Map(result.lines.map((line) => [line.id, line.detailValues]))
-    expect(porId.get('material')).toEqual({ id: 'material', area: 24, unitPrice: 15 })
-    expect(porId.get('lighting')).toEqual({ id: 'lighting', area: 24, unitPrice: 80 })
+    expect(porId.get('material')).toEqual({ id: 'material', mode: 'area', area: 24, unitPrice: 15 })
+    expect(porId.get('lighting')).toEqual({ id: 'lighting', mode: 'area', area: 24, unitPrice: 80 })
     expect(porId.get('type')).toEqual({ id: 'type', fixed: 400 })
     expect(porId.get('installation')).toEqual({
       id: 'installation',
+      mode: 'area',
       fixed: 350,
       perArea: 10,
       area: 24,
@@ -311,7 +314,7 @@ describe('detailValues', () => {
   it('el area de detailValues es la misma que result.area, sin redondear', () => {
     const result = calculatePrice(norte, selection({ width: 1.75, height: 0.9 }))
     const material = result.lines.find((line) => line.id === 'material')?.detailValues
-    expect(material).toEqual({ id: 'material', area: result.area, unitPrice: 109000 })
+    expect(material).toEqual({ id: 'material', mode: 'area', area: result.area, unitPrice: 109000 })
     // 1.575 tiene tres decimales: el area viaja cruda, no redondeada a dos como antes.
     expect(result.area).toBe(1.575)
     expect(result.area).not.toBe(Math.round(result.area * 100) / 100)
@@ -326,5 +329,150 @@ describe('detailValues', () => {
     const conUsd = calculatePrice(northline, selection())
     const conEur = calculatePrice(otraMoneda, selection())
     expect(conEur.lines[0].detailValues).toEqual(conUsd.lines[0].detailValues)
+  })
+})
+
+// Modo letters (SPEC 5.3, 5.4, 5.5 y 6). Numeros exactos, calculados a mano.
+describe('calculatePrice en modo letters', () => {
+  function letters(overrides: Partial<SignSelection> = {}): SignSelection {
+    return selection({ type: 'letters', letterHeight: 1, depthId: 'd2', ...overrides })
+  }
+
+  it('northline: NORTHLINE, 9 letras de 1 ft, pvc, front, instalacion si, qty 1', () => {
+    const result = calculatePrice(northline, letters())
+    // 9 x 1 x 40 x 1 = 360; 9 x 70 = 630; 350 + 9 x 45 = 755.
+    expect(result.letters).toBe(9)
+    expect(result.letterHeight).toBe(1)
+    expect(result.area).toBe(0)
+    expect(result.unitTotal).toBe(1745)
+    expect([result.total, result.min, result.max]).toEqual([1745, 1605, 1885])
+    expect(result.lines.map((line) => [line.id, line.detail, line.amount])).toEqual([
+      ['material', '9 x 1 x 40 x 1', 360],
+      ['lighting', '9 x 70', 630],
+      ['installation', '350 + 9 x 45', 755],
+    ])
+  })
+
+  it('northline: MY SHOP cuenta 6 letras, acrylic 2.5 ft, 4 in, back, sin instalacion, qty 5 con 10%', () => {
+    const result = calculatePrice(
+      northline,
+      letters({
+        text: 'MY SHOP',
+        letterHeight: 2.5,
+        depthId: 'd4',
+        materialId: 'acrylic',
+        lightingId: 'back',
+        installation: false,
+        quantity: 5,
+      }),
+    )
+    // 6 x 2.5 x 95 x 1.2 = 1710; 6 x 120 = 720; unidad 2430; x5 = 12150; -10% = 10935.
+    expect(result.letters).toBe(6)
+    expect(result.unitTotal).toBe(2430)
+    expect(result.subtotal).toBe(12150)
+    expect([result.total, result.min, result.max]).toEqual([10935, 10060, 11810])
+    expect(result.lines.map((line) => line.id)).toEqual(['material', 'lighting', 'discount'])
+  })
+
+  it('norte: NORTE, 5 letras de 0,30 m, pvc espumado, frontal, instalacion si', () => {
+    const result = calculatePrice(norte, letters({ text: 'NORTE', letterHeight: 0.3, depthId: 'd5' }))
+    // 5 x 0,3 x 89000 = 133500; 5 x 47000 = 235000; 236000 + 5 x 30000 = 386000.
+    expect(result.unitTotal).toBe(754500)
+    expect([result.total, result.min, result.max]).toEqual([754500, 694140, 814860])
+  })
+
+  it('norte: CAFÉ 24 cuenta 6 letras con la tilde, chapa 0,45 m, 15 cm, retro, qty 2 con 5%', () => {
+    const result = calculatePrice(
+      norte,
+      letters({
+        text: 'CAFÉ 24',
+        letterHeight: 0.45,
+        depthId: 'd15',
+        materialId: 'aluminum',
+        lightingId: 'back',
+        quantity: 2,
+      }),
+    )
+    // 6 x 0,45 x 155000 x 1,4 = 585900; 6 x 81000 = 486000; 236000 + 6 x 30000 = 416000.
+    expect(result.letters).toBe(6)
+    expect(result.unitTotal).toBe(1487900)
+    expect([result.total, result.min, result.max]).toEqual([2827010, 2600849, 3053171])
+  })
+
+  it('detailValues del modo letters traen los numeros crudos por modo', () => {
+    const result = calculatePrice(northline, letters({ depthId: 'd6', lightingId: 'back' }))
+    const porId = new Map(result.lines.map((line) => [line.id, line.detailValues]))
+    expect(porId.get('material')).toEqual({
+      id: 'material',
+      mode: 'letters',
+      letters: 9,
+      letterHeight: 1,
+      unitPrice: 40,
+      depthFactor: 1.4,
+    })
+    expect(porId.get('lighting')).toEqual({ id: 'lighting', mode: 'letters', letters: 9, unitPrice: 120 })
+    expect(porId.get('installation')).toEqual({
+      id: 'installation',
+      mode: 'letters',
+      fixed: 350,
+      perLetter: 45,
+      letters: 9,
+    })
+  })
+
+  it('ignora ancho y alto: el mismo precio con cualquier width y height', () => {
+    const base = calculatePrice(northline, letters())
+    expect(calculatePrice(northline, letters({ width: 20, height: 8 })).total).toBe(base.total)
+  })
+
+  it('lanza si el tipo no tiene pricing', () => {
+    const rules = {
+      ...northline,
+      types: northline.types.map((item) => (item.id === 'letters' ? { id: 'letters', label: 'x', priceFixed: 0 } : item)),
+    } as PriceRules
+    expect(() => calculatePrice(rules, letters())).toThrow(/letters/)
+    expect(() => calculatePrice(rules, letters())).toThrow(/pricing/)
+  })
+
+  it('lanza si el material no tiene pricePerLetterHeight, con el id en el mensaje', () => {
+    const rules: PriceRules = {
+      ...northline,
+      materials: northline.materials.map((item) => ({ id: item.id, label: item.label, pricePerArea: item.pricePerArea })),
+    }
+    expect(() => calculatePrice(rules, letters({ materialId: 'aluminum' }))).toThrow(/"aluminum".*pricePerLetterHeight/)
+  })
+
+  it('lanza si la iluminacion no tiene pricePerLetter', () => {
+    const rules: PriceRules = {
+      ...northline,
+      lighting: northline.lighting.map((item) => ({ id: item.id, label: item.label, pricePerArea: item.pricePerArea })),
+    }
+    expect(() => calculatePrice(rules, letters())).toThrow(/"front".*pricePerLetter/)
+  })
+
+  it('lanza si el depthId no existe, con el id en el mensaje', () => {
+    expect(() => calculatePrice(northline, letters({ depthId: 'd99' }))).toThrow(/profundidad invalido: "d99"/)
+  })
+
+  it('lanza con texto vacio o solo espacios', () => {
+    expect(() => calculatePrice(northline, letters({ text: '' }))).toThrow(/tiene 0/)
+    expect(() => calculatePrice(northline, letters({ text: '   ' }))).toThrow(/tiene 0/)
+  })
+
+  it('lanza con mas de 18 letras y acepta 18 exactas', () => {
+    expect(() => calculatePrice(northline, letters({ text: 'ABCDEFGHIJKLMNOPQRS' }))).toThrow(/tiene 19/)
+    expect(calculatePrice(northline, letters({ text: 'ABCDEFGHIJKLMNOPQR' })).letters).toBe(18)
+  })
+
+  it('lanza si letterHeight no es mayor a 0', () => {
+    expect(() => calculatePrice(northline, letters({ letterHeight: 0 }))).toThrow(/letterHeight/)
+  })
+})
+
+describe('countLetters', () => {
+  it('no cuenta espacios y cuenta una letra con tilde como una', () => {
+    expect(countLetters('NORTE')).toBe(5)
+    expect(countLetters(' MI  CAFÉ ')).toBe(6)
+    expect(countLetters('')).toBe(0)
   })
 })

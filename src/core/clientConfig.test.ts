@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { getClient, listClientSlugs } from '../clients'
 import northline from '../clients/northline.json'
-import { defaultSelection, priceRulesFromClient, validateClientConfig } from './clientConfig'
+import {
+  defaultSelection,
+  materialsForMode,
+  priceRulesFromClient,
+  pricingModeOf,
+  validateClientConfig,
+} from './clientConfig'
 import { calculatePrice } from './pricing/calculatePrice'
 
 function clientOrFail(slug: string) {
@@ -146,7 +152,7 @@ describe('priceRulesFromClient y defaultSelection', () => {
     const rules = priceRulesFromClient(clientOrFail('northline'))
     expect(rules.materials.map((item) => item.id)).toEqual(['pvc', 'aluminum', 'acrylic'])
     expect(rules.rangePct).toBe(8)
-    expect(rules.installation).toEqual({ fixed: 350, perArea: 10 })
+    expect(rules.installation).toEqual({ fixed: 350, perArea: 10, perLetter: 45 })
   })
 
   it('la seleccion por defecto es la primera opcion de cada lista', () => {
@@ -156,6 +162,8 @@ describe('priceRulesFromClient y defaultSelection', () => {
       text: 'NORTHLINE',
       width: 8,
       height: 3,
+      letterHeight: 1,
+      depthId: 'd2',
       materialId: 'pvc',
       lightingId: 'none',
       installation: false,
@@ -183,7 +191,7 @@ const CLAVES_DE_LA_HOJA = [
 
 describe('claves de texto de los dos clientes', () => {
   // 13.16
-  it('los dos JSON tienen las mismas 42 claves, ninguna vacia', () => {
+  it('los dos JSON tienen las mismas 45 claves, ninguna vacia', () => {
     const juegos = listClientSlugs().map((slug) => {
       const texts = clientOrFail(slug).texts
       for (const [key, value] of Object.entries(texts)) {
@@ -191,7 +199,7 @@ describe('claves de texto de los dos clientes', () => {
       }
       return Object.keys(texts).sort()
     })
-    expect(juegos[0]).toHaveLength(42)
+    expect(juegos[0]).toHaveLength(45)
     for (const juego of juegos) {
       expect(juego).toEqual(juegos[0])
     }
@@ -205,5 +213,81 @@ describe('claves de texto de los dos clientes', () => {
       expect(() => validateClientConfig(broken)).toThrow(new RegExp(key))
       expect(() => validateClientConfig(broken)).toThrow(/northline/)
     }
+  })
+})
+
+describe('validateClientConfig: modo letters', () => {
+  it('los dos clientes ofrecen letters con los valores de SPEC 5.4 y 5.5', () => {
+    const en = clientOrFail('northline').options
+    expect(en.types.map((item) => [item.id, item.pricing])).toEqual([
+      ['facade', 'area'],
+      ['totem', 'area'],
+      ['letters', 'letters'],
+    ])
+    expect(en.materials.map((item) => item.pricePerLetterHeight)).toEqual([40, 70, 95])
+    expect(en.lighting.map((item) => item.pricePerLetter)).toEqual([0, 70, 120])
+    expect(en.depths.map((item) => [item.label, item.factor])).toEqual([
+      ['2 in', 1],
+      ['4 in', 1.2],
+      ['6 in', 1.4],
+    ])
+    expect(en.installation.perLetter).toBe(45)
+    expect(en.letterHeight).toEqual({ min: 0.5, max: 3, step: 0.25, default: 1 })
+
+    const es = clientOrFail('norte').options
+    expect(es.materials.map((item) => item.pricePerLetterHeight)).toEqual([89000, 155000, 210000])
+    expect(es.lighting.map((item) => item.pricePerLetter)).toEqual([0, 47000, 81000])
+    expect(es.depths.map((item) => [item.label, item.factor])).toEqual([
+      ['5 cm', 1],
+      ['10 cm', 1.2],
+      ['15 cm', 1.4],
+    ])
+    expect(es.installation.perLetter).toBe(30000)
+    expect(es.letterHeight).toEqual({ min: 0.15, max: 0.9, step: 0.05, default: 0.3 })
+  })
+
+  it('falla si un tipo no trae pricing, y dice cual', () => {
+    const broken = structuredClone(northline)
+    delete (broken.options.types[2] as Partial<(typeof broken.options.types)[number]>).pricing
+    expect(() => validateClientConfig(broken)).toThrow(/options\.types\[2\]\.pricing/)
+  })
+
+  it('falla si pricing tiene un valor desconocido', () => {
+    const broken = structuredClone(northline)
+    broken.options.types[0].pricing = 'volume'
+    expect(() => validateClientConfig(broken)).toThrow(/pricing tiene un valor invalido/)
+  })
+
+  it('falla si una iluminacion no trae pricePerLetter y el cliente ofrece letters', () => {
+    const broken = structuredClone(northline)
+    delete (broken.options.lighting[1] as Partial<(typeof broken.options.lighting)[number]>).pricePerLetter
+    expect(() => validateClientConfig(broken)).toThrow(/options\.lighting\[1\]\.pricePerLetter/)
+  })
+
+  it('falla si ningun material trae pricePerLetterHeight y el cliente ofrece letters', () => {
+    const broken = structuredClone(northline)
+    for (const material of broken.options.materials) {
+      delete (material as Partial<typeof material>).pricePerLetterHeight
+    }
+    expect(() => validateClientConfig(broken)).toThrow(/pricePerLetterHeight/)
+  })
+
+  it('falla si depths esta vacio o una profundidad no trae su medida', () => {
+    const vacio = structuredClone(northline)
+    vacio.options.depths = []
+    expect(() => validateClientConfig(vacio)).toThrow(/options\.depths/)
+    const sinMedida = structuredClone(northline)
+    delete (sinMedida.options.depths[0].visual as Partial<(typeof sinMedida.options.depths)[number]['visual']>).depthMeters
+    expect(() => validateClientConfig(sinMedida)).toThrow(/depthMeters/)
+  })
+
+  it('un material sin pricePerLetterHeight queda fuera del modo letters y la seleccion default lo evita', () => {
+    const raw = structuredClone(northline)
+    delete (raw.options.materials[0] as Partial<(typeof raw.options.materials)[number]>).pricePerLetterHeight
+    raw.options.types = [raw.options.types[2], raw.options.types[0]]
+    const config = validateClientConfig(raw)
+    expect(materialsForMode(config.options, 'letters').map((item) => item.id)).toEqual(['aluminum', 'acrylic'])
+    expect(defaultSelection(config).materialId).toBe('aluminum')
+    expect(pricingModeOf(config.options, 'facade')).toBe('area')
   })
 })

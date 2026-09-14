@@ -77,3 +77,14 @@ describe('areaUnitSymbol', () => {
     expect(() => areaUnitSymbol('acres')).toThrow(/acres/)
   })
 })
+
+describe('resolveSignVisual en modo letters', () => {
+  it('trae el modo del tipo y la profundidad en metros de la opcion elegida', () => {
+    const config = clientOrFail('northline')
+    const area = resolveSignVisual(config, defaultSelection(config))
+    expect(area.mode).toBe('area')
+    const letters = resolveSignVisual(config, { ...defaultSelection(config), type: 'letters', depthId: 'd6' })
+    expect(letters.mode).toBe('letters')
+    expect(letters.depthMeters).toBe(0.1524)
+  })
+})

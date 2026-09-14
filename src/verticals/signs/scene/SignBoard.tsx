@@ -1,10 +1,19 @@
 import { useFrame } from '@react-three/fiber'
-import { useMemo, useRef } from 'react'
-import { Color, MathUtils, type Mesh, type MeshBasicMaterial, type MeshStandardMaterial, type PointLight } from 'three'
+import { useEffect, useMemo, useRef } from 'react'
+import {
+  BoxGeometry,
+  Color,
+  MathUtils,
+  type MeshStandardMaterial,
+  type Mesh,
+  type MeshBasicMaterial,
+  type PointLight,
+} from 'three'
 import type { MaterialVisual } from '../../../core/types'
 import { supportShadowTexture } from './supportShadow'
 import {
   DAMP_LAMBDA,
+  HALO,
   SET,
   SETTLE_EPSILON,
   SUPPORT_SHADOW,
@@ -15,6 +24,7 @@ import {
   lampPosition,
   lightingParams,
   supportShadowBox,
+  type LetterBox,
   type SignPlacement,
 } from './sceneGeometry'
 
@@ -25,6 +35,10 @@ import {
 // en cada cambio de opcion y pisaria la transicion.
 // El cartel esta centrado en el origen: sobre que foto y en que parte se dibuja lo
 // resuelve la capa de composicion (SPEC 12, version 1.9).
+// En modo letters el panel se oculta y se dibuja una caja por letra. Cada letra tiene su
+// material, que en cada frame copia el del panel: asi color, metalness y emision
+// transicionan juntos en todas las letras. placement.box es entonces el contorno de la palabra, y halo, sombra
+// y lampara lo siguen igual que al panel.
 
 // Base del halo: lo que se ve es su emision, no su color iluminado.
 const HALO_BASE_COLOR = new Color(0, 0, 0)
@@ -51,6 +65,10 @@ type SignBoardProps = {
   lightingMode: string
   shadowColor: string
   reducedMotion: boolean
+  // null en modo area.
+  letters: LetterBox[] | null
+  // Profundidad de las letras, en metros.
+  letterDepth: number
 }
 
 export function SignBoard({
@@ -59,9 +77,19 @@ export function SignBoard({
   lightingMode,
   shadowColor,
   reducedMotion,
+  letters,
+  letterDepth,
 }: SignBoardProps) {
   const signRef = useRef<Mesh>(null)
   const signMaterialRef = useRef<MeshStandardMaterial>(null)
+  const letterMaterialsRef = useRef<(MeshStandardMaterial | null)[]>([])
+  const letterGeometry = useMemo(() => new BoxGeometry(...UNIT_BOX), [])
+  useEffect(
+    () => () => {
+      letterGeometry.dispose()
+    },
+    [letterGeometry],
+  )
   const haloRef = useRef<Mesh>(null)
   const haloMaterialRef = useRef<MeshStandardMaterial>(null)
   const lampRef = useRef<PointLight>(null)
@@ -89,7 +117,10 @@ export function SignBoard({
     }
 
     const lighting = lightingParams(lightingMode)
-    const haloTarget = haloBox(placement)
+    const haloTarget = haloBox(
+      placement,
+      letters === null ? HALO.padding : placement.box.height * HALO.letterPaddingRatio,
+    )
     const lampTarget = lampPosition(lightingMode, placement)
     const haloOpacity = Math.min(1, lighting.haloIntensity)
 
@@ -102,6 +133,7 @@ export function SignBoard({
     sign.scale.x = move(sign.scale.x, placement.box.width)
     sign.scale.y = move(sign.scale.y, placement.box.height)
     sign.scale.z = SET.sign.thickness
+    sign.visible = letters === null
 
     if (instant) {
       signMaterial.color.copy(targetColor)
@@ -116,6 +148,16 @@ export function SignBoard({
       signMaterial.emissiveIntensity,
       lighting.emissiveIntensity,
     )
+
+    for (const letterMaterial of letterMaterialsRef.current) {
+      if (letterMaterial !== null) {
+        letterMaterial.color.copy(signMaterial.color)
+        letterMaterial.emissive.copy(signMaterial.emissive)
+        letterMaterial.metalness = signMaterial.metalness
+        letterMaterial.roughness = signMaterial.roughness
+        letterMaterial.emissiveIntensity = signMaterial.emissiveIntensity
+      }
+    }
 
     halo.scale.x = move(halo.scale.x, haloTarget.size[0])
     halo.scale.y = move(halo.scale.y, haloTarget.size[1])
@@ -155,6 +197,23 @@ export function SignBoard({
         <boxGeometry args={UNIT_BOX} />
         <meshStandardMaterial ref={signMaterialRef} />
       </mesh>
+
+      {letters === null
+        ? null
+        : letters.map((letter, index) => (
+            <mesh
+              key={`${letter.char}-${String(index)}`}
+              geometry={letterGeometry}
+              position={[letter.x, 0, 0]}
+              scale={[letter.width, placement.box.height, letterDepth]}
+            >
+              <meshStandardMaterial
+                ref={(material) => {
+                  letterMaterialsRef.current[index] = material
+                }}
+              />
+            </mesh>
+          ))}
 
       <mesh ref={haloRef} scale={UNIT_BOX}>
         <planeGeometry args={UNIT_PLANE} />

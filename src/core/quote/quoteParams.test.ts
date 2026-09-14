@@ -16,7 +16,7 @@ const northline = clientOrFail('northline')
 
 function decodeOf(overrides: Record<string, string>, slug = 'northline'): SignSelection | null {
   const config = clientOrFail(slug)
-  const params = new URLSearchParams(encodeQuoteParams(defaultSelection(config)))
+  const params = new URLSearchParams(encodeQuoteParams(defaultSelection(config), 'area'))
   for (const [key, value] of Object.entries(overrides)) {
     params.set(key, value)
   }
@@ -27,16 +27,16 @@ describe('encodeQuoteParams', () => {
   // 13.1
   it('devuelve las ocho claves en el orden t,x,w,h,m,l,i,q, con i en 0 o 1', () => {
     const selection = defaultSelection(northline)
-    const keys = [...new URLSearchParams(encodeQuoteParams(selection)).keys()]
+    const keys = [...new URLSearchParams(encodeQuoteParams(selection, 'area')).keys()]
     expect(keys).toEqual(['t', 'x', 'w', 'h', 'm', 'l', 'i', 'q'])
-    expect(encodeQuoteParams({ ...selection, installation: false })).toContain('i=0')
-    expect(encodeQuoteParams({ ...selection, installation: true })).toContain('i=1')
+    expect(encodeQuoteParams({ ...selection, installation: false }, 'area')).toContain('i=0')
+    expect(encodeQuoteParams({ ...selection, installation: true }, 'area')).toContain('i=1')
   })
 
   // 13.1
   it('serializa los numeros con punto decimal sin importar el locale del cliente', () => {
     const norte = clientOrFail('norte')
-    expect(encodeQuoteParams(defaultSelection(norte))).toContain('w=2.5')
+    expect(encodeQuoteParams(defaultSelection(norte), 'area')).toContain('w=2.5')
   })
 })
 
@@ -46,7 +46,7 @@ describe('decodeQuoteParams', () => {
     for (const slug of listClientSlugs()) {
       const config = clientOrFail(slug)
       const selection = defaultSelection(config)
-      const params = new URLSearchParams(encodeQuoteParams(selection))
+      const params = new URLSearchParams(encodeQuoteParams(selection, 'area'))
       expect(decodeQuoteParams(config.options, params)).toEqual(selection)
     }
   })
@@ -60,14 +60,14 @@ describe('decodeQuoteParams', () => {
       installation: true,
       quantity: 4,
     }
-    const params = new URLSearchParams(encodeQuoteParams(selection))
+    const params = new URLSearchParams(encodeQuoteParams(selection, 'area'))
     expect(decodeQuoteParams(northline.options, params)).toEqual(selection)
   })
 
   // 13.3
   it('devuelve null si falta cualquiera de las ocho claves, una por una', () => {
     for (const key of ['t', 'x', 'w', 'h', 'm', 'l', 'i', 'q']) {
-      const params = new URLSearchParams(encodeQuoteParams(defaultSelection(northline)))
+      const params = new URLSearchParams(encodeQuoteParams(defaultSelection(northline), 'area'))
       params.delete(key)
       expect(decodeQuoteParams(northline.options, params)).toBeNull()
     }
@@ -111,5 +111,52 @@ describe('decodeQuoteParams', () => {
   // 13.8
   it('acepta un ancho entre dos pasos del slider y lo devuelve tal cual', () => {
     expect(decodeOf({ w: '8.3' })?.width).toBe(8.3)
+  })
+})
+
+describe('quoteParams en modo letters', () => {
+  function lettersOf(slug: string): SignSelection {
+    return { ...defaultSelection(clientOrFail(slug)), type: 'letters', letterHeight: 1.5, depthId: 'd4' }
+  }
+
+  it('escribe t,x,lh,d,m,l,i,q y ni w ni h', () => {
+    const keys = [...new URLSearchParams(encodeQuoteParams(lettersOf('northline'), 'letters')).keys()]
+    expect(keys).toEqual(['t', 'x', 'lh', 'd', 'm', 'l', 'i', 'q'])
+  })
+
+  it('ida y vuelta: decodifica lh y d, y completa ancho y alto con el default que el motor ignora', () => {
+    const selection = lettersOf('northline')
+    const params = new URLSearchParams(encodeQuoteParams(selection, 'letters'))
+    expect(decodeQuoteParams(northline.options, params)).toEqual(selection)
+  })
+
+  it('una clave del otro modo presente da null, en los dos sentidos', () => {
+    const letters = new URLSearchParams(encodeQuoteParams(lettersOf('northline'), 'letters'))
+    letters.set('w', '8')
+    expect(decodeQuoteParams(northline.options, letters)).toBeNull()
+    const area = new URLSearchParams(encodeQuoteParams(defaultSelection(northline), 'area'))
+    area.set('d', 'd2')
+    expect(decodeQuoteParams(northline.options, area)).toBeNull()
+  })
+
+  it('lh fuera de rango, lh faltante o d inexistente dan null', () => {
+    const base = (): URLSearchParams => new URLSearchParams(encodeQuoteParams(lettersOf('northline'), 'letters'))
+    const fuera = base()
+    fuera.set('lh', '3.5')
+    expect(decodeQuoteParams(northline.options, fuera)).toBeNull()
+    const falta = base()
+    falta.delete('lh')
+    expect(decodeQuoteParams(northline.options, falta)).toBeNull()
+    const sinDepth = base()
+    sinDepth.set('d', 'd99')
+    expect(decodeQuoteParams(northline.options, sinDepth)).toBeNull()
+  })
+
+  it('norte: lh viaja con punto decimal', () => {
+    const norte = clientOrFail('norte')
+    const selection = { ...defaultSelection(norte), type: 'letters', letterHeight: 0.45, depthId: 'd10' }
+    const encoded = encodeQuoteParams(selection, 'letters')
+    expect(encoded).toContain('lh=0.45')
+    expect(decodeQuoteParams(norte.options, new URLSearchParams(encoded))).toEqual(selection)
   })
 })

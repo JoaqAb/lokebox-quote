@@ -3,11 +3,13 @@ import type {
   ClientPhoto,
   ClientTexts,
   CtaMode,
+  DepthOption,
   DiscountTier,
   LightingMode,
   LightingOption,
   MaterialOption,
   PriceRules,
+  PricingMode,
   QuantityConfig,
   RangeConfig,
   SignOptions,
@@ -22,6 +24,10 @@ import type {
 
 function isCtaMode(value: string): value is CtaMode {
   return value === 'whatsapp' || value === 'form' || value === 'both'
+}
+
+function isPricingMode(value: string): value is PricingMode {
+  return value === 'area' || value === 'letters'
 }
 
 function isLightingMode(value: string): value is LightingMode {
@@ -69,6 +75,18 @@ function readNumber(parent: Raw, key: string, slug: string, path: string): numbe
   const value = parent[key]
   if (typeof value !== 'number' || !Number.isFinite(value)) {
     fail(slug, `falta ${path} o no es un numero.`)
+  }
+  return value
+}
+
+// Clave opcional: ausente devuelve undefined, presente tiene que ser un numero >= 0.
+function readOptionalPrice(parent: Raw, key: string, slug: string, path: string): number | undefined {
+  if (parent[key] === undefined) {
+    return undefined
+  }
+  const value = readNumber(parent, key, slug, path)
+  if (value < 0) {
+    fail(slug, `${path} no puede ser negativo.`)
   }
   return value
 }
@@ -174,10 +192,15 @@ function readTypes(options: Raw, slug: string): SignTypeOption[] {
   const types = rawList.map((item, index): SignTypeOption => {
     const path = `options.types[${String(index)}]`
     const raw = readEntry(item, slug, path)
+    const pricing = readString(raw, 'pricing', slug, `${path}.pricing`)
+    if (!isPricingMode(pricing)) {
+      fail(slug, `${path}.pricing tiene un valor invalido: "${pricing}".`)
+    }
     return {
       id: readString(raw, 'id', slug, `${path}.id`),
       label: readString(raw, 'label', slug, `${path}.label`),
       priceFixed: readNumber(raw, 'priceFixed', slug, `${path}.priceFixed`),
+      pricing,
     }
   })
   requireUniqueIds(
@@ -199,6 +222,7 @@ function readMaterials(options: Raw, slug: string): MaterialOption[] {
       id: readString(raw, 'id', slug, `${path}.id`),
       label: readString(raw, 'label', slug, `${path}.label`),
       pricePerArea: readNumber(raw, 'pricePerArea', slug, `${path}.pricePerArea`),
+      pricePerLetterHeight: readOptionalPrice(raw, 'pricePerLetterHeight', slug, `${path}.pricePerLetterHeight`),
       visual: {
         color: readString(visual, 'color', slug, `${path}.visual.color`),
         metalness: readNumber(visual, 'metalness', slug, `${path}.visual.metalness`),
@@ -229,6 +253,7 @@ function readLighting(options: Raw, slug: string): LightingOption[] {
       id: readString(raw, 'id', slug, `${path}.id`),
       label: readString(raw, 'label', slug, `${path}.label`),
       pricePerArea: readNumber(raw, 'pricePerArea', slug, `${path}.pricePerArea`),
+      pricePerLetter: readOptionalPrice(raw, 'pricePerLetter', slug, `${path}.pricePerLetter`),
       visual: { mode },
     }
   })
@@ -238,6 +263,53 @@ function readLighting(options: Raw, slug: string): LightingOption[] {
     'options.lighting',
   )
   return lighting
+}
+
+function readDepths(options: Raw, slug: string): DepthOption[] {
+  const rawList = readArray(options, 'depths', slug, 'options.depths')
+  requireNotEmpty(rawList, slug, 'options.depths')
+  const depths = rawList.map((item, index): DepthOption => {
+    const path = `options.depths[${String(index)}]`
+    const raw = readEntry(item, slug, path)
+    const visual = readObject(raw, 'visual', slug, `${path}.visual`)
+    const factor = readNumber(raw, 'factor', slug, `${path}.factor`)
+    const depthMeters = readNumber(visual, 'depthMeters', slug, `${path}.visual.depthMeters`)
+    if (factor <= 0) {
+      fail(slug, `${path}.factor debe ser mayor a 0.`)
+    }
+    if (depthMeters <= 0) {
+      fail(slug, `${path}.visual.depthMeters debe ser mayor a 0.`)
+    }
+    return {
+      id: readString(raw, 'id', slug, `${path}.id`),
+      label: readString(raw, 'label', slug, `${path}.label`),
+      factor,
+      visual: { depthMeters },
+    }
+  })
+  requireUniqueIds(
+    depths.map((item) => item.id),
+    slug,
+    'options.depths',
+  )
+  return depths
+}
+
+// Si el cliente ofrece un tipo letters, sus precios tienen que estar completos: todas las
+// iluminaciones con pricePerLetter y al menos un material con pricePerLetterHeight.
+// Se valida al cargar, asi un JSON a medias no llega al motor.
+function requireLettersPrices(options: SignOptions, slug: string): void {
+  if (!options.types.some((item) => item.pricing === 'letters')) {
+    return
+  }
+  options.lighting.forEach((item, index) => {
+    if (item.pricePerLetter === undefined) {
+      fail(slug, `options.lighting[${String(index)}].pricePerLetter falta y el cliente ofrece letras corporeas.`)
+    }
+  })
+  if (!options.materials.some((item) => item.pricePerLetterHeight !== undefined)) {
+    fail(slug, 'ningun material de options.materials tiene pricePerLetterHeight y el cliente ofrece letras corporeas.')
+  }
 }
 
 function readDiscounts(options: Raw, slug: string): DiscountTier[] {
@@ -263,21 +335,26 @@ function readDiscounts(options: Raw, slug: string): DiscountTier[] {
 function readOptions(raw: Raw, slug: string): SignOptions {
   const options = readObject(raw, 'options', slug, 'options')
   const installation = readObject(options, 'installation', slug, 'options.installation')
-  return {
+  const result: SignOptions = {
     types: readTypes(options, slug),
     signText: readSignText(options, slug),
     width: readRange(options, 'width', slug, 'options.width'),
     height: readRange(options, 'height', slug, 'options.height'),
+    letterHeight: readRange(options, 'letterHeight', slug, 'options.letterHeight'),
+    depths: readDepths(options, slug),
     materials: readMaterials(options, slug),
     lighting: readLighting(options, slug),
     installation: {
       fixed: readNumber(installation, 'fixed', slug, 'options.installation.fixed'),
       perArea: readNumber(installation, 'perArea', slug, 'options.installation.perArea'),
+      perLetter: readNumber(installation, 'perLetter', slug, 'options.installation.perLetter'),
     },
     quantity: readQuantity(options, 'quantity', slug, 'options.quantity'),
     discounts: readDiscounts(options, slug),
     rangePct: readNumber(options, 'rangePct', slug, 'options.rangePct'),
   }
+  requireLettersPrices(result, slug)
+  return result
 }
 
 // Fotos de fondo del preview (SPEC 10, version 1.9). La primera de la lista es la que
@@ -352,6 +429,8 @@ function readTexts(raw: Raw, slug: string): ClientTexts {
     installationNo: readText(texts, 'installationNo', slug),
     quantityLabel: readText(texts, 'quantityLabel', slug),
     signTextLabel: readText(texts, 'signTextLabel', slug),
+    letterHeightLabel: readText(texts, 'letterHeightLabel', slug),
+    depthLabel: readText(texts, 'depthLabel', slug),
     previewZoomLabel: readText(texts, 'previewZoomLabel', slug),
     priceLabel: readText(texts, 'priceLabel', slug),
     priceRangeNote: readText(texts, 'priceRangeNote', slug),
@@ -381,6 +460,7 @@ function readTexts(raw: Raw, slug: string): ClientTexts {
     lineDiscount: readText(texts, 'lineDiscount', slug),
     poweredBy: readText(texts, 'poweredBy', slug),
     whatsappMessage: readText(texts, 'whatsappMessage', slug),
+    whatsappMessageLetters: readText(texts, 'whatsappMessageLetters', slug),
   }
 }
 
@@ -456,33 +536,63 @@ export function priceRulesFromClient(config: ClientConfig): PriceRules {
       id: item.id,
       label: item.label,
       priceFixed: item.priceFixed,
+      pricing: item.pricing,
     })),
     materials: config.options.materials.map((item) => ({
       id: item.id,
       label: item.label,
       pricePerArea: item.pricePerArea,
+      pricePerLetterHeight: item.pricePerLetterHeight,
     })),
     lighting: config.options.lighting.map((item) => ({
       id: item.id,
       label: item.label,
       pricePerArea: item.pricePerArea,
+      pricePerLetter: item.pricePerLetter,
+    })),
+    depths: config.options.depths.map((item) => ({
+      id: item.id,
+      label: item.label,
+      factor: item.factor,
     })),
     installation: {
       fixed: config.options.installation.fixed,
       perArea: config.options.installation.perArea,
+      perLetter: config.options.installation.perLetter,
     },
     discounts: config.options.discounts.map((item) => ({ minQty: item.minQty, pct: item.pct })),
     rangePct: config.options.rangePct,
   }
 }
 
+// Modo de precio de un tipo del cliente. Lo usan la vertical y la hoja para saber que
+// controles y que claves corresponden; el motor lo vuelve a leer de sus reglas.
+export function pricingModeOf(options: SignOptions, typeId: string): PricingMode {
+  const found = options.types.find((item) => item.id === typeId)
+  if (found === undefined) {
+    throw new Error(`pricingModeOf: tipo de cartel invalido: "${typeId}"`)
+  }
+  return found.pricing
+}
+
+// Materiales que se ofrecen en un modo: en letters, solo los que tienen pricePerLetterHeight.
+export function materialsForMode(options: SignOptions, mode: PricingMode): MaterialOption[] {
+  return mode === 'letters'
+    ? options.materials.filter((item) => item.pricePerLetterHeight !== undefined)
+    : options.materials
+}
+
 export function defaultSelection(config: ClientConfig): SignSelection {
+  const { options } = config
+  const type = options.types[0]
   return {
-    type: config.options.types[0].id,
-    text: config.options.signText.default,
-    width: config.options.width.default,
-    height: config.options.height.default,
-    materialId: config.options.materials[0].id,
+    type: type.id,
+    text: options.signText.default,
+    width: options.width.default,
+    height: options.height.default,
+    letterHeight: options.letterHeight.default,
+    depthId: options.depths[0].id,
+    materialId: materialsForMode(options, type.pricing)[0].id,
     lightingId: config.options.lighting[0].id,
     installation: false,
     quantity: config.options.quantity.default,

@@ -2,6 +2,7 @@ import type {
   ClientConfig,
   LightingVisual,
   MaterialVisual,
+  PricingMode,
   SignSelection,
 } from '../../core/types'
 
@@ -9,8 +10,11 @@ import type {
 // El preview no recibe ClientConfig y no busca nada por id: eso se resuelve aca.
 
 export type SignVisual = {
+  mode: PricingMode
   material: MaterialVisual
   lighting: LightingVisual
+  // Profundidad de las letras en metros. Solo la usa el modo letters.
+  depthMeters: number
   lengthToMeters: number
 }
 
@@ -50,9 +54,13 @@ function findById<T extends { id: string }>(list: T[], id: string, what: string)
 export function resolveSignVisual(config: ClientConfig, selection: SignSelection): SignVisual {
   const material = findById(config.options.materials, selection.materialId, 'material')
   const lighting = findById(config.options.lighting, selection.lightingId, 'iluminacion')
+  const signType = findById(config.options.types, selection.type, 'tipo de cartel')
+  const depth = findById(config.options.depths, selection.depthId, 'profundidad')
   return {
+    mode: signType.pricing,
     material: material.visual,
     lighting: lighting.visual,
+    depthMeters: depth.visual.depthMeters,
     lengthToMeters: lengthToMeters(config.units.length),
   }
 }

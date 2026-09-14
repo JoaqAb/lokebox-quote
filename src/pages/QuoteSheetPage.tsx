@@ -65,6 +65,7 @@ function QuoteSheetScreen({ config, params }: QuoteSheetScreenProps) {
         poweredBy={config.poweredBy}
         backHref={`/d/${config.slug}`}
         areaUnit={areaUnitSymbol(config.units.area)}
+        lengthUnit={config.units.length}
       />
     </div>
   )

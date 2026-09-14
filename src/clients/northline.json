@@ -48,22 +48,29 @@
   "options": {
     "signText": { "default": "NORTHLINE", "maxLength": 18 },
     "types": [
-      { "id": "facade", "label": "Facade sign", "priceFixed": 0 },
-      { "id": "totem", "label": "Totem sign", "priceFixed": 400 }
+      { "id": "facade", "label": "Facade sign", "priceFixed": 0, "pricing": "area" },
+      { "id": "totem", "label": "Totem sign", "priceFixed": 400, "pricing": "area" },
+      { "id": "letters", "label": "Channel letters", "priceFixed": 0, "pricing": "letters" }
     ],
     "width": { "min": 2, "max": 20, "step": 0.5, "default": 8 },
     "height": { "min": 1, "max": 8, "step": 0.5, "default": 3 },
+    "letterHeight": { "min": 0.5, "max": 3, "step": 0.25, "default": 1 },
+    "depths": [
+      { "id": "d2", "label": "2 in", "factor": 1, "visual": { "depthMeters": 0.0508 } },
+      { "id": "d4", "label": "4 in", "factor": 1.2, "visual": { "depthMeters": 0.1016 } },
+      { "id": "d6", "label": "6 in", "factor": 1.4, "visual": { "depthMeters": 0.1524 } }
+    ],
     "materials": [
-      { "id": "pvc", "label": "PVC", "pricePerArea": 15, "visual": { "color": "#E8E8E4", "metalness": 0, "roughness": 0.8 } },
-      { "id": "aluminum", "label": "Aluminum", "pricePerArea": 25, "visual": { "color": "#B8BDC4", "metalness": 0.9, "roughness": 0.35 } },
-      { "id": "acrylic", "label": "Acrylic", "pricePerArea": 35, "visual": { "color": "#F2F5F7", "metalness": 0.1, "roughness": 0.15 } }
+      { "id": "pvc", "label": "PVC", "pricePerArea": 15, "pricePerLetterHeight": 40, "visual": { "color": "#E8E8E4", "metalness": 0, "roughness": 0.8 } },
+      { "id": "aluminum", "label": "Aluminum", "pricePerArea": 25, "pricePerLetterHeight": 70, "visual": { "color": "#B8BDC4", "metalness": 0.9, "roughness": 0.35 } },
+      { "id": "acrylic", "label": "Acrylic", "pricePerArea": 35, "pricePerLetterHeight": 95, "visual": { "color": "#F2F5F7", "metalness": 0.1, "roughness": 0.15 } }
     ],
     "lighting": [
-      { "id": "none", "label": "None", "pricePerArea": 0, "visual": { "mode": "none" } },
-      { "id": "front", "label": "Front-lit", "pricePerArea": 60, "visual": { "mode": "front" } },
-      { "id": "back", "label": "Back-lit", "pricePerArea": 80, "visual": { "mode": "back" } }
+      { "id": "none", "label": "None", "pricePerArea": 0, "pricePerLetter": 0, "visual": { "mode": "none" } },
+      { "id": "front", "label": "Front-lit", "pricePerArea": 60, "pricePerLetter": 70, "visual": { "mode": "front" } },
+      { "id": "back", "label": "Back-lit", "pricePerArea": 80, "pricePerLetter": 120, "visual": { "mode": "back" } }
     ],
-    "installation": { "fixed": 350, "perArea": 10 },
+    "installation": { "fixed": 350, "perArea": 10, "perLetter": 45 },
     "quantity": { "min": 1, "max": 10, "default": 1 },
     "discounts": [{ "minQty": 2, "pct": 5 }, { "minQty": 5, "pct": 10 }],
     "rangePct": 8
@@ -82,6 +89,8 @@
     "installationNo": "No, I will install it",
     "quantityLabel": "Quantity",
     "signTextLabel": "Text on the sign",
+    "letterHeightLabel": "Letter height",
+    "depthLabel": "Letter depth",
     "previewZoomLabel": "Zoom",
     "priceLabel": "Estimated price",
     "priceRangeNote": "Estimated range",
@@ -110,6 +119,7 @@
     "lineInstallation": "Installation",
     "lineDiscount": "Quantity discount",
     "poweredBy": "Powered by Lokebox",
-    "whatsappMessage": "Hi, I want a quote for a {type}, {width} x {height} {unit}, {material}, lighting: {lighting}, installation: {installation}, quantity {quantity}. Estimated range {min} to {max}."
+    "whatsappMessage": "Hi, I want a quote for a {type}, {width} x {height} {unit}, {material}, lighting: {lighting}, installation: {installation}, quantity {quantity}. Estimated range {min} to {max}.",
+    "whatsappMessageLetters": "Hi, I want a quote for {type} with the text \"{text}\": {letters} letters, {letterHeight} {unit} high, {material}, depth {depth}, lighting: {lighting}, installation: {installation}, quantity {quantity}. Estimated range {min} to {max}."
   }
 }

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
-import { defaultSelection, priceRulesFromClient } from '../core/clientConfig'
+import { defaultSelection, pricingModeOf, priceRulesFromClient } from '../core/clientConfig'
 import { insertRow } from '../core/data/insertRow'
 import { useVisitOnce } from '../core/data/useVisitOnce'
 import { buildLeadRow, type LeadContact } from '../core/lead/leadRow'
@@ -18,8 +18,13 @@ import type { SelectionValue } from '../core/ui/panelTypes'
 import type { ClientConfig } from '../core/types'
 import { SignPreview } from '../verticals/signs/SignPreview'
 import { CalibrationPreview } from '../verticals/signs/calibration/CalibrationPreview'
-import { selectionFromValues, signFields, valuesFromSelection } from '../verticals/signs/fields'
-import { signLeadSelection, signLeadTokens } from '../verticals/signs/leadTokens'
+import {
+  applyFieldChange,
+  buildPanelFields,
+  selectionFromValues,
+  valuesFromSelection,
+} from '../verticals/signs/fields'
+import { signLeadSelection, signLeadTokens, signWhatsappTemplate } from '../verticals/signs/leadTokens'
 import { areaUnitSymbol, resolveSignVisual } from '../verticals/signs/visuals'
 import { ErrorScreen } from './ErrorScreen'
 import { resolveClient } from './resolveClient'
@@ -36,7 +41,6 @@ function QuoteScreen({ config }: QuoteScreenProps) {
   const [values, setValues] = useState<Record<string, SelectionValue>>(() =>
     valuesFromSelection(defaultSelection(config)),
   )
-  const fields = useMemo(() => signFields(config), [config])
   const rules = useMemo(() => priceRulesFromClient(config), [config])
   const theme = useMemo(() => themeFromClient(config), [config])
   const areaUnit = useMemo(() => areaUnitSymbol(config.units.area), [config])
@@ -57,18 +61,20 @@ function QuoteScreen({ config }: QuoteScreenProps) {
   const selection = selectionFromValues(values)
   const result = calculatePrice(rules, selection)
   const visual = resolveSignVisual(config, selection)
+  // Los controles dependen del tipo elegido: el panel muestra solo los de su modo.
+  const fields = buildPanelFields(config, selection)
 
   // El mensaje de WhatsApp se arma aca: la vertical traduce ids a etiquetas y el core
   // solo reemplaza los placeholders de la plantilla del cliente.
   const tokens = signLeadTokens(config, selection, result)
-  const whatsappMessage = buildWhatsappMessage(config.texts.whatsappMessage, tokens)
+  const whatsappMessage = buildWhatsappMessage(signWhatsappTemplate(config, selection), tokens)
 
   // La hoja se abre con un enlace nativo, no con window.open: asi el navegador no lo
   // bloquea y la pestana del cotizador conserva el estado del visitante.
-  const quoteHref = `/d/${config.slug}/quote?${encodeQuoteParams(selection)}`
+  const quoteHref = `/d/${config.slug}/quote?${encodeQuoteParams(selection, pricingModeOf(config.options, selection.type))}`
 
   function handleChange(fieldId: string, value: SelectionValue): void {
-    setValues((current) => ({ ...current, [fieldId]: value }))
+    setValues((current) => applyFieldChange(config, current, fieldId, value))
   }
 
   // El insert se dispara y no se espera: el navegador abre wa.me con el gesto del click.

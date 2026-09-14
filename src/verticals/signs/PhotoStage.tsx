@@ -2,9 +2,9 @@ import { Canvas } from '@react-three/fiber'
 import { useEffect, useMemo, useState } from 'react'
 import type { ClientPhoto, SignSelection } from '../../core/types'
 import { HDRI_SRC, SignScene, VIEW_HALF_HEIGHT } from './scene/SignScene'
-import { scenePalette, signPlacement } from './scene/sceneGeometry'
+import { layoutLetters, scenePalette, signPlacement, type SignPlacement } from './scene/sceneGeometry'
 import { hasWebGL } from './scene/webgl'
-import { disposeGlyphTextures } from './scene/glyphTexture'
+import { disposeGlyphTextures, glyphWidth } from './scene/glyphTexture'
 import { disposeSupportShadow } from './scene/supportShadow'
 import type { SignVisual } from './visuals'
 
@@ -59,7 +59,18 @@ export function PhotoStage({ selection, visual, theme, photo, reducedMotion, zoo
     [],
   )
 
-  const placement = signPlacement(selection, visual.lengthToMeters)
+  // Modo letters: el contorno de la palabra hace de placement, asi halo, sombra y lampara
+  // siguen a las letras igual que al panel. El alto de letra pasa a metros como el resto.
+  const letterHeightMeters = selection.letterHeight * visual.lengthToMeters
+  const letterLayout = useMemo(
+    () =>
+      visual.mode === 'letters' ? layoutLetters(selection.text, letterHeightMeters, glyphWidth) : null,
+    [visual.mode, selection.text, letterHeightMeters],
+  )
+  const placement: SignPlacement =
+    letterLayout === null
+      ? signPlacement(selection, visual.lengthToMeters)
+      : { box: { width: letterLayout.totalWidth, height: letterHeightMeters } }
 
   // El canvas cubre un recuadro centrado en el anclaje. Su ancho en fraccion del cuadro
   // sale de metersToWidth: cuantos metros ve la camara por cuanto ocupa un metro.
@@ -93,6 +104,8 @@ export function PhotoStage({ selection, visual, theme, photo, reducedMotion, zoo
               photo={photo}
               hdriReady={hdriReady}
               reducedMotion={reducedMotion}
+              letters={letterLayout === null ? null : letterLayout.boxes}
+              letterDepth={visual.depthMeters}
             />
           </Canvas>
         </div>

@@ -51,12 +51,17 @@ export function signPlacement(selection: SignSelection, lengthToMeters: number):
 }
 
 // El halo del modo back: un plano apenas mas grande que el cartel, justo detras.
-export const HALO = { padding: 0.55, gap: 0.008 } as const
+// En modo letters el margen es proporcional al alto de letra: el fijo del panel, sobre
+// letras de 30 cm, deja un rectangulo blanco detras que se lee como otro cartel.
+export const HALO = { padding: 0.55, letterPaddingRatio: 0.3, gap: 0.008 } as const
 
-export function haloBox(placement: SignPlacement): { z: number; size: [number, number] } {
+export function haloBox(
+  placement: SignPlacement,
+  padding: number = HALO.padding,
+): { z: number; size: [number, number] } {
   return {
     z: -SET.sign.thickness / 2 - HALO.gap,
-    size: [placement.box.width + 2 * HALO.padding, placement.box.height + 2 * HALO.padding],
+    size: [placement.box.width + 2 * padding, placement.box.height + 2 * padding],
   }
 }
 
@@ -83,6 +88,41 @@ export function supportShadowBox(
       placement.box.height * SUPPORT_SHADOW.heightRatio,
     ],
   }
+}
+
+// Letras corporeas (SPEC 12): una caja por letra. El alto de la caja es el alto de letra
+// de la seleccion y su ancho, el avance del caracter medido con measureText a ese alto.
+// fill deja un poco de aire entre cajas vecinas para que se lean separadas.
+export const LETTERS = { fill: 0.9, glyphGap: 0.002 } as const
+
+export type LetterBox = {
+  char: string
+  // Centro de la caja en x, en metros, con 0 en el centro de la palabra.
+  x: number
+  width: number
+}
+
+// Reparte el texto en cajas. Los espacios ocupan su avance pero no llevan caja: en letras
+// corporeas un espacio es pared. measure devuelve el avance del caracter en unidades de
+// alto de letra; se inyecta para que la funcion siga siendo pura y se pueda probar.
+export function layoutLetters(
+  text: string,
+  letterHeight: number,
+  measure: (char: string) => number,
+): { boxes: LetterBox[]; totalWidth: number } {
+  const chars = [...text]
+  const advances = chars.map((char) => measure(char) * letterHeight)
+  const totalWidth = advances.reduce((acc, value) => acc + value, 0)
+  const boxes: LetterBox[] = []
+  let cursor = -totalWidth / 2
+  chars.forEach((char, index) => {
+    const advance = advances[index]
+    if (char.trim().length > 0) {
+      boxes.push({ char, x: cursor + advance / 2, width: advance * LETTERS.fill })
+    }
+    cursor += advance
+  })
+  return { boxes, totalWidth }
 }
 
 // Los glifos del texto van sobre la cara del cartel, con margen a los cuatro lados.

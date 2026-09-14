@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { getClient, listClientSlugs } from '../../clients'
 import { defaultSelection, priceRulesFromClient } from '../../core/clientConfig'
+import { buildWhatsappMessage } from '../../core/lead/whatsapp'
 import { calculatePrice } from '../../core/pricing/calculatePrice'
+import { formatCurrency } from '../../core/pricing/format'
 import type { SignSelection } from '../../core/types'
-import { signLeadSelection, signLeadTokens } from './leadTokens'
+import { signLeadSelection, signLeadTokens, signWhatsappTemplate } from './leadTokens'
+import { signQuoteRows } from './quoteRows'
 
 function clientOrFail(slug: string) {
   const client = getClient(slug)
@@ -107,5 +110,61 @@ describe('signLeadSelection', () => {
     expect(row.unit).toBe('m')
     expect(row.installation).toBe(false)
     expect(row.quantity).toBe(selection.quantity)
+  })
+})
+
+describe('WhatsApp y hoja en modo letters', () => {
+  for (const slug of ['northline', 'norte']) {
+    it(`${slug}: el mensaje de letters sale completo, sin placeholders ni huecos`, () => {
+      const config = clientOrFail(slug)
+      const selection = { ...defaultSelection(config), type: 'letters', text: 'MI CAFÉ', installation: true }
+      const result = calculatePrice(priceRulesFromClient(config), selection)
+      const template = signWhatsappTemplate(config, selection)
+      expect(template).toBe(config.texts.whatsappMessageLetters)
+      const message = buildWhatsappMessage(template, signLeadTokens(config, selection, result))
+      expect(message).not.toMatch(/[{}]/)
+      expect(message).not.toMatch(/ ,|,,|\s{2}|undefined|NaN/)
+      expect(message).toContain('MI CAFÉ')
+      expect(message).toContain(' 6 ')
+      expect(message).toContain(config.options.depths[0].label)
+      expect(message).toContain(formatCurrency(result.max, config.currency, config.locale))
+    })
+  }
+
+  it('en modo area la plantilla sigue siendo whatsappMessage', () => {
+    const config = clientOrFail('norte')
+    expect(signWhatsappTemplate(config, defaultSelection(config))).toBe(config.texts.whatsappMessage)
+  })
+
+  it('norte: el alto de letra va con coma decimal y la unidad del cliente', () => {
+    const config = clientOrFail('norte')
+    const selection = { ...defaultSelection(config), type: 'letters', letterHeight: 0.45 }
+    const tokens = signLeadTokens(config, selection, calculatePrice(priceRulesFromClient(config), selection))
+    expect(tokens.letterHeight).toBe('0,45')
+    expect(tokens.unit).toBe('m')
+    expect(tokens.letters).toBe('5')
+  })
+
+  it('la columna selection del lead lleva texto, letras, alto y profundidad en vez de ancho y alto', () => {
+    const config = clientOrFail('northline')
+    const selection = { ...defaultSelection(config), type: 'letters', depthId: 'd6' }
+    const row = signLeadSelection(config, selection)
+    expect(row).toMatchObject({ text: 'NORTHLINE', letters: 9, letterHeight: 1, depthId: 'd6', depthLabel: '6 in' })
+    expect(row).not.toHaveProperty('width')
+  })
+
+  it('las filas de la hoja en modo letters muestran texto, alto de letra y profundidad', () => {
+    const config = clientOrFail('norte')
+    const selection = { ...defaultSelection(config), type: 'letters', depthId: 'd15' }
+    expect(signQuoteRows(config, selection).map((row) => [row.label, row.value])).toEqual([
+      ['Tipo de cartel', 'Letras corpóreas'],
+      ['Texto del cartel', 'NORTE'],
+      ['Alto de letra', '0,3 m'],
+      ['Profundidad', '15 cm'],
+      ['Material', 'PVC espumado'],
+      ['Iluminación', 'Sin luz'],
+      ['Instalación', 'No, lo instalo yo'],
+      ['Cantidad', '1'],
+    ])
   })
 })

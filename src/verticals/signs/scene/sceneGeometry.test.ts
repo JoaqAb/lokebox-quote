@@ -10,7 +10,9 @@ import {
   SET,
   SIGN_TEXT,
   SUPPORT_SHADOW,
+  LETTERS,
   haloBox,
+  layoutLetters,
   lampPosition,
   lightingParams,
   scenePalette,
@@ -188,5 +190,39 @@ describe('hasWebGL', () => {
   // 12.10
   it('devuelve false en entorno node y no lanza', () => {
     expect(hasWebGL()).toBe(false)
+  })
+})
+
+describe('layoutLetters', () => {
+  // Medida fija para el test: cada caracter avanza 0,5 de alto de letra y el espacio 0,25.
+  const measure = (char: string): number => (char === ' ' ? 0.25 : 0.5)
+
+  it('una caja por letra, sin caja para el espacio, centrada en 0', () => {
+    const { boxes, totalWidth } = layoutLetters('AB C', 2, measure)
+    // Avances en metros: 1 + 1 + 0,5 + 1 = 3,5.
+    expect(totalWidth).toBeCloseTo(3.5, 10)
+    expect(boxes.map((box) => box.char)).toEqual(['A', 'B', 'C'])
+    expect(boxes.map((box) => box.x)).toEqual([-1.25, -0.25, 1.25])
+    expect(boxes[0].width).toBeCloseTo(1 * LETTERS.fill, 10)
+  })
+
+  it('el ancho escala con el alto de letra', () => {
+    const chico = layoutLetters('NORTE', 0.3, measure)
+    const grande = layoutLetters('NORTE', 0.9, measure)
+    expect(grande.totalWidth / chico.totalWidth).toBeCloseTo(3, 10)
+    expect(grande.boxes).toHaveLength(5)
+  })
+
+  it('texto sin letras no dibuja cajas', () => {
+    expect(layoutLetters('   ', 1, measure).boxes).toHaveLength(0)
+  })
+})
+
+describe('haloBox en modo letters', () => {
+  it('acepta un margen propio y en area sigue usando HALO.padding', () => {
+    const placement = { box: { width: 2, height: 0.3 } }
+    expect(haloBox(placement).size).toEqual([2 + 2 * HALO.padding, 0.3 + 2 * HALO.padding])
+    const padding = 0.3 * HALO.letterPaddingRatio
+    expect(haloBox(placement, padding).size[1]).toBeCloseTo(0.3 + 2 * padding, 10)
   })
 })

@@ -19,6 +19,7 @@ type QuoteSheetProps = {
   poweredBy: boolean
   backHref: string
   areaUnit: string
+  lengthUnit: string
 }
 
 export function QuoteSheet({
@@ -32,6 +33,7 @@ export function QuoteSheet({
   poweredBy,
   backHref,
   areaUnit,
+  lengthUnit,
 }: QuoteSheetProps) {
   return (
     <main className="q-sheet mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 print:max-w-none print:px-0 print:py-0">
@@ -87,7 +89,7 @@ export function QuoteSheet({
               <span className="ml-auto shrink-0 text-xs text-[var(--q-muted)] tabular-nums print:text-black">
                 {line.detailValues === undefined
                   ? null
-                  : formatLineDetail(line.detailValues, currency, locale, areaUnit)}
+                  : formatLineDetail(line.detailValues, currency, locale, areaUnit, lengthUnit)}
               </span>
               <span className="w-32 shrink-0 text-right text-sm font-medium tabular-nums">
                 {formatCurrency(line.amount, currency, locale)}

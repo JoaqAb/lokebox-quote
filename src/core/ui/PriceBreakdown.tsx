@@ -6,6 +6,7 @@ import type { ClientConfig, PriceResult } from '../types'
 // El descuento llega negativo desde el motor y se muestra tal cual.
 // El detalle de cada linea se formatea aca con detailValues: el string tecnico del motor
 // (line.detail) no se muestra nunca. El simbolo de la unidad lo pone la vertical.
+// En modo letters no hay area: el motor la deja en 0 y la linea de area no se muestra.
 
 type PriceBreakdownProps = {
   result: PriceResult
@@ -14,12 +15,14 @@ type PriceBreakdownProps = {
 }
 
 export function PriceBreakdown({ result, config, areaUnit }: PriceBreakdownProps) {
-  const { texts, currency, locale } = config
+  const { texts, currency, locale, units } = config
   return (
     <section className="mt-8">
-      <p className="text-xs font-semibold tracking-[0.18em] text-[var(--q-muted)] uppercase">
-        {formatArea(result.area, locale, areaUnit)}
-      </p>
+      {result.letters === undefined ? (
+        <p className="text-xs font-semibold tracking-[0.18em] text-[var(--q-muted)] uppercase">
+          {formatArea(result.area, locale, areaUnit)}
+        </p>
+      ) : null}
       <ul className="mt-2">
         {result.lines.map((line) => (
           <li
@@ -30,7 +33,7 @@ export function PriceBreakdown({ result, config, areaUnit }: PriceBreakdownProps
             <span className="ml-auto shrink-0 text-xs text-[var(--q-muted)] tabular-nums">
               {line.detailValues === undefined
                 ? null
-                : formatLineDetail(line.detailValues, currency, locale, areaUnit)}
+                : formatLineDetail(line.detailValues, currency, locale, areaUnit, units.length)}
             </span>
             <span className="w-28 shrink-0 text-right text-sm font-medium tabular-nums">
               {formatCurrency(line.amount, currency, locale)}

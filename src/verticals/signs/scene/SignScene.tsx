@@ -3,9 +3,9 @@ import { useMemo } from 'react'
 import { MathUtils } from 'three'
 import type { ClientPhoto, MaterialVisual } from '../../../core/types'
 import { SignBoard } from './SignBoard'
-import { SignFace } from './SignFace'
+import { LetterFaces, SignFace } from './SignFace'
 import { StudioEnvironment } from './StudioEnvironment'
-import { type ScenePalette, type SignPlacement } from './sceneGeometry'
+import { type LetterBox, type ScenePalette, type SignPlacement } from './sceneGeometry'
 
 // Contenido del canvas transparente: camara ortografica, la luz que declara la foto, el
 // cartel y el texto de su cara. Nada mas: el set salio en el pivote de TAREA_010.
@@ -32,6 +32,9 @@ type SignSceneProps = {
   photo: ClientPhoto
   hdriReady: boolean
   reducedMotion: boolean
+  // Cajas por letra en modo letters, null en modo area.
+  letters: LetterBox[] | null
+  letterDepth: number
 }
 
 export function SignScene({
@@ -43,6 +46,8 @@ export function SignScene({
   photo,
   hdriReady,
   reducedMotion,
+  letters,
+  letterDepth,
 }: SignSceneProps) {
   // La key viene de la foto, no de constantes del codigo: cada foto dice de donde le
   // pega el sol, para que el volumen del cartel case con ella.
@@ -72,8 +77,19 @@ export function SignScene({
           lightingMode={lightingMode}
           shadowColor={palette.shadow}
           reducedMotion={reducedMotion}
+          letters={letters}
+          letterDepth={letterDepth}
         />
-        <SignFace placement={placement} color={palette.signText} text={text} />
+        {letters === null ? (
+          <SignFace placement={placement} color={palette.signText} text={text} />
+        ) : (
+          <LetterFaces
+            letters={letters}
+            letterHeight={placement.box.height}
+            letterDepth={letterDepth}
+            color={palette.signText}
+          />
+        )}
       </group>
     </>
   )
