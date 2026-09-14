@@ -1,0 +1,8 @@
+- TAREA_012 · letras corpóreas como tercer tipo de cartel. Mismo alcance que la TAREA_011 original del 12/09, sin cambios, solo renumerada porque la integración de assets y calibración pasan a ser su propio bloque de trabajo. Alcance: tipo `letters` con `pricing` en el JSON, reglas nuevas del motor, panel por modo con `buildPanelFields(config, selection)`, JSON de los dos clientes con los valores de SPEC 5.4 y 5.5, preview con una caja por letra, hoja imprimible y plantilla de WhatsApp del modo letters.
+  - Aceptación: G1 a G6.
+  - Los tests previos quedan intactos y los nuevos del modo letters dan números exactos, incluidos los casos que lanzan: tipo sin `pricing`, material sin `pricePerLetterHeight`, `depthId` inexistente, texto vacío y texto de más de 18 caracteres.
+  - Cambiar de tipo en cualquier orden no deja estado inválido ni un precio NaN en ninguna combinación.
+  - El preview muestra una caja por letra con el texto tipeado, hasta 18, sin assets descargados y sin `Text3D`.
+  - La hoja con `lh` y `d` recalcula el mismo total que el cotizador, y una clave del otro modo da la pantalla de error.
+  - El mensaje de WhatsApp del modo letters sale sin huecos en los dos idiomas.
+  - Recorte autorizado si el viernes 18 se pone en riesgo: sale el glifo del volumen y quedan las cajas por letra. El motor, el panel, el JSON y la hoja no se recortan.
