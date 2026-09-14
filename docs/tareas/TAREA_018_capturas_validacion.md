@@ -12,7 +12,7 @@ Canal B tiene que ver el preview, no leer numeros sobre el preview. Las capturas
 
 Se toca: `scripts/capturas.mjs` (nuevo), `package.json` (script `capturas`, devDependency `playwright`, sale `@supabase/supabase-js`), `package-lock.json`, `.gitignore`, `docs/EXECUTION.md`, `docs/tareas/`.
 
-No se toca: la escena, el motor, el panel, los JSON de cliente ni ningun test. El brief permite `data-testid` en los botones de tipo, en el selector de vistas y en el marco del preview; no hacen falta. El script lee las etiquetas de los botones de `src/clients/<slug>.json` (tipos, fotos, luz y `viewSignOnly`) y ubica el marco del preview como el padre del canvas. Asi `src/` queda sin cambios y ningun test puede romper por esto.
+No se toca: la escena, el motor, el panel, los JSON de cliente ni ningun test. El brief permite `data-testid` en los botones de tipo, en el selector de vistas y en el marco del preview; no hacen falta. El script lee las etiquetas de los botones de `src/clients/<slug>.json` (tipos, fotos, luz y `viewSignOnly`) y ubica el marco del preview como el primer ancestro del canvas con borde redondeado. Asi `src/` queda sin cambios y ningun test puede romper por esto.
 
 ### Herramienta
 
@@ -81,3 +81,38 @@ Al terminar el script imprime cada archivo con su tamano en bytes y las requests
 1. Apertura: este archivo, EXECUTION y la correccion de TAREA_017.
 2. Codigo: script, package.json, package-lock.json, .gitignore.
 3. Cierre: resultados en este archivo, STATE, DECISIONES y `_ULTIMO.md` en 019.
+
+## Resultados
+
+Medido el 14/09/2026 con Playwright 1.63.0 y su chromium headless.
+
+- G1: build sin warnings. App 420,02 kB, CSS 22,05 kB, vendor 3D 963,55 kB: identico a TAREA_017, mismos nombres de archivo con hash. `@supabase/supabase-js` no estaba en el bundle porque nada lo importaba, asi que desinstalarlo no cambia el numero.
+- G2: 202 tests en verde, ninguno nuevo ni editado. `src/` sin cambios.
+- G3: lint sin hallazgos. Cero guiones largos en `scripts/capturas.mjs`, `package.json`, `.gitignore` y los docs.
+- G4: los 18 archivos con los nombres exactos. Recortes del marco de 771 x 433 px (el canvas mas su borde de 1 px), desktop de 1440 x 900 y mobile de 390 x 844. Ninguno uniforme: el de menos colores tiene 367 y el de menor varianza 15,9. Revisados uno por uno: el cartel esta dibujado en los siete del preview de los dos clientes. No cumple el piso de 20 kB en cinco archivos del modo cartel: el fondo liso del marco comprime mucho y el PNG queda chico con el cartel bien dibujado. No se infla el archivo para pasar el numero.
+
+| Archivo | Bytes |
+|---|---|
+| northline-facade-cartel-frente.png | 23928 |
+| northline-letters-cartel-frente.png | 16859 |
+| northline-totem-cartel-frente.png | 9595 |
+| northline-totem-cartel-45.png | 10617 |
+| northline-totem-vista-front.png | 365078 |
+| northline-totem-vista-night.png | 391445 |
+| northline-facade-vista-night-back.png | 416164 |
+| northline-desktop-1440.png | 90140 |
+| northline-mobile-390.png | 52308 |
+| norte-facade-cartel-frente.png | 27187 |
+| norte-letters-cartel-frente.png | 21920 |
+| norte-totem-cartel-frente.png | 10327 |
+| norte-totem-cartel-45.png | 11527 |
+| norte-totem-vista-front.png | 380731 |
+| norte-totem-vista-night.png | 423049 |
+| norte-facade-vista-night-back.png | 448268 |
+| norte-desktop-1440.png | 96797 |
+| norte-mobile-390.png | 55125 |
+
+- G5: por corrida, 6 requests a supabase.co abortadas y 0 completadas. Las filas de `visits` no se pueden contar desde afuera: con la anon key el select devuelve 200 con una lista vacia por RLS. Sin requests completadas no hay insert posible.
+- G6: tres corridas seguidas dieron el mismo set de 18 nombres, sin pasos manuales. Unos 50 segundos por corrida. El puerto 5288 queda libre al terminar.
+- G7: `validacion/` en `.gitignore`; despues de correr, `git status` solo muestra `incoming/`, que ya estaba sin trackear antes de la tarea.
+- G8: commits y push; el bundle no cambio, asi que no hace falta verificar deploy.

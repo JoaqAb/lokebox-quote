@@ -269,3 +269,7 @@
 - 14/09/2026: el brief de TAREA_017 pedia sumar 017 y 018 a EXECUTION con sus criterios, pero no define 018. Se sumo solo 017; 018 queda para cuando haya brief.
 - 14/09/2026: TAREA_018 toma el numero 018, set de capturas de validacion. Las capturas de TAREA_017 quedaron fuera del arbol y Canal B no puede validar el totem ni el criterio 2 de DONE; el set se regenera con npm run capturas en validacion/, ignorado por git.
 - 14/09/2026: el script de capturas no usa data-testid: lee las etiquetas de los botones del JSON de cada cliente y ubica el marco como el padre del canvas. Asi src/ no cambia y ningun test puede romper por la tarea.
+- 14/09/2026: Tailwind v4 escanea scripts/ en busca de clases: la palabra "hidden" en el script de capturas generaba la clase .hidden y sumaba 0,02 kB de CSS. El marco del preview se identifica por su borde redondeado y no por su overflow, y el bundle queda identico a TAREA_017.
+- 14/09/2026: cinco capturas del modo cartel pesan entre 9,6 y 16,9 kB, debajo del piso de 20 kB del brief de TAREA_018: el fondo liso comprime mucho. Tienen el cartel dibujado y no son uniformes; no se infla el archivo para pasar el numero.
+- 14/09/2026: @supabase/supabase-js sale de package.json: ningun archivo de src/ lo importa, la capa de datos usa fetch contra PostgREST desde TAREA_005. El bundle no cambia porque nunca entro.
+- 14/09/2026: las filas de visits no se pueden contar con la anon key (RLS devuelve lista vacia). La garantia de cero filas nuevas es el contador del script: 0 requests a supabase.co completadas.
