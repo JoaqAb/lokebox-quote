@@ -4,20 +4,21 @@
 
 ## Bloque actual
 
-Bloque 4. TAREA_012 cerrada y aceptada: 170 pruebas en verde, G1 a G6, criterios uno por uno. HDRI cerrado en 256x128, `studio-small-08-256.hdr`, 100.576 bytes, dentro de SPEC 3: no hace falta subir el techo. SPEC 10 editado a 1.11 con `visual.depthMeters` documentado.
+Bloque 4. TAREA_014 con codigo y verificacion hechos, pendiente de la validacion de Joaquin del criterio 2 de DONE en captura. Viewer en dos modos (cartel por defecto con orbita, vista con foto), camara en perspectiva desde el anchor, halo de back en nueve celdas. SPEC 1.12. 181 pruebas en verde.
+Medido en captura (noche de frente): cara none < front (northline 227,6 < 235,9; norte 222,4 < 230,3), anillo front < back (138,0 < 154,9; 185,8 < 195,2). Halo en cero a 8 px en northline (margen 8,5) y a 7 px en norte (margen 6,5), con caida suave. Modo cartel girado: back aclara los cantos hasta 18 niveles y oscurece la cara hasta 21 frente a front. Mismo canvas y seleccion al cambiar de vista; 390, 768 y 1440 px sin scroll horizontal. Bundle: app 416 kB, vendor 3D 962 kB.
 
 ## Ultimo cerrado
 
-TAREA_012, commit 08ca713 (codigo). Antes: c35bbb0 (SPEC 1.10) y a8bc9d9 (HDRI). Docs de SPEC 1.11 y DECISIONES sin commitear todavia. Sin push ni deploy nuevo.
+TAREA_012 (08ca713). TAREA_014: 5ffd50c (apertura), 69e872f (codigo). Sin push ni deploy nuevo.
 
 ## Proximo
 
-TAREA_013 (landing en `/`), brief entregado a Code. Despues, Canal C de video y capturas.
+Validacion de TAREA_014 por Joaquin. Despues TAREA_013 (landing, valores decididos en su archivo) y Canal C de video y capturas.
 
 ## Bloqueos
 
-Limite conocido: el canvas ve 6 m de ancho, asi que un cartel de area de 20 ft o 18 letras de 3 ft se recortan en los bordes del canvas. Canal C, sin bloquear TAREA_013: borrar de `visits` las filas con user_agent HeadlessChrome del 14/09.
+Las ocho fotos no tienen cartel impreso: el criterio "tapa el cartel impreso" se aplico como cartel sobre la franja y bordes que fugan con la fachada; ninguna foto salio del JSON. En modo cartel, girado a unos 60 grados, la punta cercana de un cartel ancho se sale del cuadro con el margen de 15 por ciento por lado. Canal C: borrar de `visits` las filas HeadlessChrome del 14/09.
 
 ## Comando para retomar
 
-`cd ~/proyectos/lokebox-quote && cat docs/STATE.md docs/EXECUTION.md`
+`cd ~/proyectos/lokebox-quote && cat docs/STATE.md docs/tareas/TAREA_014_viewer_dos_modos.md`
