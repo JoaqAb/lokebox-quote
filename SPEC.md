@@ -3,7 +3,7 @@
 Fuente de verdad del alcance. Si algo no está acá, no se construye.
 Este documento se edita, no se contradice. Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 
-Versión: 1.9 · 12/09/2026
+Versión: 1.10 · 14/09/2026
 
 ## 1. Objetivo
 
@@ -359,7 +359,7 @@ La forma de `leads` sigue la que usaría Lokebox para un pedido en gestación. S
 }
 ```
 
-`photos` (desde 1.9): una entrada por ángulo fotografiado, 2 o 3 por cliente, la primera es la que se muestra al cargar. `id` único dentro del cliente. `label` es la etiqueta visible del ángulo y vive acá y no en `texts` porque la cantidad de fotos varía por cliente y una clave fija por ángulo no existiría: es el mismo criterio de `options.types[].label` y `options.materials[].label`. `anchor` dice dónde y de qué tamaño se dibuja el cartel sobre esa foto: `x` e `y` son el centro en fracción del ancho y del alto, con origen arriba a la izquierda; `metersToWidth` es qué fracción del ancho de la foto ocupa un metro de cartel, expresado así y no como factor abstracto para poder calcularlo contra una medida conocida de la foto en vez de a ojo; `yawDeg` y `pitchDeg` giran el cartel para acompañar el ángulo de la foto. `light` es la luz de la escena del cartel en esa foto, para que su volumen case con ella.
+`photos` (desde 1.9, conteo ampliado en 1.10): una entrada por ángulo fotografiado, 2 a 4 por cliente, la primera es la que se muestra al cargar. `id` único dentro del cliente. `label` es la etiqueta visible del ángulo y vive acá y no en `texts` porque la cantidad de fotos varía por cliente y una clave fija por ángulo no existiría: es el mismo criterio de `options.types[].label` y `options.materials[].label`. `anchor` dice dónde y de qué tamaño se dibuja el cartel sobre esa foto: `x` e `y` son el centro en fracción del ancho y del alto, con origen arriba a la izquierda; `metersToWidth` es qué fracción del ancho de la foto ocupa un metro de cartel, expresado así y no como factor abstracto para poder calcularlo contra una medida conocida de la foto en vez de a ojo; `yawDeg` y `pitchDeg` giran el cartel para acompañar el ángulo de la foto. `light` es la luz de la escena del cartel en esa foto, para que su volumen case con ella.
 
 Las 44 claves de `texts` requeridas, iguales en los dos idiomas:
 
