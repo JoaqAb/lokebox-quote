@@ -12,7 +12,7 @@ TAREA_010, commits 5f84ef0 (apertura), eadde33 (codigo). Produccion: https://quo
 
 ## Proximo
 
-TAREA_011 (letras corporeas, el alcance de la vieja 010 sin cambios) y TAREA_012 (landing).
+TAREA_011 (assets reales + calibracion), TAREA_012 (letras corporeas, el alcance de la vieja 010 sin cambios) y TAREA_013 (landing).
 
 ## Bloqueos
 

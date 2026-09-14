@@ -86,7 +86,9 @@ Bloque 3 cerrado: TAREA_006 aceptada con 17 criterios verificados y 2 con desví
   - Assets: exactamente dos permitidos, las fotos del cliente y el HDRI único. Ningún otro pedido de red en la pestaña Network al cargar el preview.
   - Si las fotos de Canal C no están, se avanza con placeholders de color sólido del mismo aspect ratio, en la misma ruta, y el punto de reemplazo queda anotado en STATE.
   - Agregar un cliente sigue siendo un JSON más sus assets, sin tocar código.
-- TAREA_011 · letras corpóreas como tercer tipo de cartel. Alcance: tipo `letters` con `pricing` en el JSON, reglas nuevas del motor, panel por modo con `buildPanelFields(config, selection)`, JSON de los dos clientes con los valores de SPEC 5.4 y 5.5, preview con una caja por letra, hoja imprimible y plantilla de WhatsApp del modo letters.
+- TAREA_011 · integración de assets reales y calibración. Alcance: incorporar el paquete de ocho fotos y el HDRI recibido de Canal C, mapear cada id de asset al cliente real por tema de color (no por orden), escribir `photos[]` de cada cliente con los anchors de arranque, borrar los placeholders de TAREA_010, y construir un modo de calibración en `?calibrate=1` sobre `/d/<slug>` con crosshair y lectura de x/y/escala para ajustar esos anchors contra el SignBoard real. Herramienta de desarrollo, no entra en SPEC 16 ni en textos. Una sola pasada de calibración, después de integrar las fotos reales, no antes.
+  - Aceptación: G1 a G6. Cero placeholders de color sólido restantes. `photos[]` de los dos clientes reales validado en runtime contra el esquema de TAREA_010. La herramienta de calibración no aparece en ninguna ruta de producto ni consume ninguna clave de `texts`.
+- TAREA_012 · letras corpóreas como tercer tipo de cartel. Mismo alcance que la TAREA_011 original del 12/09, sin cambios, solo renumerada porque la integración de assets y calibración pasan a ser su propio bloque de trabajo. Alcance: tipo `letters` con `pricing` en el JSON, reglas nuevas del motor, panel por modo con `buildPanelFields(config, selection)`, JSON de los dos clientes con los valores de SPEC 5.4 y 5.5, preview con una caja por letra, hoja imprimible y plantilla de WhatsApp del modo letters.
   - Aceptación: G1 a G6.
   - Los tests previos quedan intactos y los nuevos del modo letters dan números exactos, incluidos los casos que lanzan: tipo sin `pricing`, material sin `pricePerLetterHeight`, `depthId` inexistente, texto vacío y texto de más de 18 caracteres.
   - Cambiar de tipo en cualquier orden no deja estado inválido ni un precio NaN en ninguna combinación.
@@ -94,7 +96,7 @@ Bloque 3 cerrado: TAREA_006 aceptada con 17 criterios verificados y 2 con desví
   - La hoja con `lh` y `d` recalcula el mismo total que el cotizador, y una clave del otro modo da la pantalla de error.
   - El mensaje de WhatsApp del modo letters sale sin huecos en los dos idiomas.
   - Recorte autorizado si el viernes 18 se pone en riesgo: sale el glifo del volumen y quedan las cajas por letra. El motor, el panel, el JSON y la hoja no se recortan.
-- TAREA_012 · landing en `/`: qué es, para quién, dos botones a las demos, los dos tiers con precio, contacto, footer. Reemplaza el índice temporal, que hoy muestra los slugs crudos. Va última del bloque a propósito: hacerla con la estética vieja es trabajo que se tira.
+- TAREA_013 · landing en `/`: qué es, para quién, dos botones a las demos, los dos tiers con precio, contacto, footer. Reemplaza el índice temporal, que hoy muestra los slugs crudos. Va última del bloque a propósito: hacerla con la estética vieja es trabajo que se tira.
   - Aceptación: G1 a G6. La landing carga en menos de 2 segundos y los botones llevan a las demos.
 - Canal C al cierre del bloque: grabar el video de 30 segundos y sacar las capturas (desktop y mobile, demo EN).
 
