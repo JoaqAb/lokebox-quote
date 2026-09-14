@@ -1,5 +1,5 @@
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei'
-import { useThree } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import { MathUtils, Vector3, type PerspectiveCamera as PerspectiveCameraImpl } from 'three'
 import type { ClientPhoto, MaterialVisual } from '../../../core/types'
@@ -7,7 +7,10 @@ import { SignBoard } from './SignBoard'
 import { LetterFaces, SignFace } from './SignFace'
 import { StudioEnvironment } from './StudioEnvironment'
 import {
+  SET,
+  SIGN_STUDIO_LIGHT,
   SIGN_VIEW,
+  approach,
   lensShift,
   orbitPosition,
   photoCameraDistance,
@@ -15,13 +18,15 @@ import {
   type LetterBox,
   type ScenePalette,
   type SignPlacement,
+  type SignVolume,
 } from './sceneGeometry'
 
-// Contenido del canvas: camara en perspectiva, la luz de la foto, el cartel y el texto de
-// su cara (SPEC 12, version 1.12). El cartel queda siempre en el origen y sin rotar; lo
-// que cambia entre los dos modos del viewer es la camara.
+// Contenido del canvas: camara en perspectiva, la luz, el cartel y el texto de su cara
+// (SPEC 12, version 1.13). El cartel queda siempre en el origen y sin rotar; lo que cambia
+// entre los dos modos del viewer es la camara y de donde sale la luz.
 // - Modo cartel (photo null): fov fijo, OrbitControls con azimut libre y polar acotado,
-//   distancia base que encuadra el cartel, y el zoom acerca la camara.
+//   distancia derivada en cada frame de la huella de la caja, el zoom la multiplica, y la
+//   luz es la de estudio del producto.
 // - Modo vista: la camara sale del anchor de la foto y el centro del cartel cae en su
 //   (x, y) con setViewOffset. Sin orbita; el zoom de este modo es CSS, fuera del canvas.
 // Sin Suspense y sin loaders: el unico asset es el HDRI, que entra con su propio fallback.
@@ -38,9 +43,7 @@ type SignSceneProps = {
   palette: ScenePalette
   // null en modo cartel.
   photo: ClientPhoto | null
-  // La foto de la que sale la luz: la elegida en modo vista, la primera en modo cartel.
-  lightPhoto: ClientPhoto
-  // Fraccion de la distancia base en modo cartel, entre SIGN_VIEW.nearFactor y 1.
+  // Multiplicador de la distancia del modo cartel, entre SIGN_VIEW.nearFactor y 1.
   signZoom: number
   hdriReady: boolean
   reducedMotion: boolean
@@ -50,17 +53,19 @@ type SignSceneProps = {
 }
 
 type ViewerCameraProps = {
-  placement: SignPlacement
+  volume: SignVolume
   photo: ClientPhoto | null
   signZoom: number
+  reducedMotion: boolean
 }
 
-function ViewerCamera({ placement, photo, signZoom }: ViewerCameraProps) {
+function ViewerCamera({ volume, photo, signZoom, reducedMotion }: ViewerCameraProps) {
   const cameraRef = useRef<PerspectiveCameraImpl>(null)
+  // Distancia aplicada en el frame anterior; null al entrar al modo cartel, que va de golpe.
+  const distanceRef = useRef<number | null>(null)
+  const direction = useMemo(() => new Vector3(), [])
   const size = useThree((state) => state.size)
   const aspect = size.width / size.height
-  const { width, height } = placement.box
-  const baseDistance = signFrameDistance({ width, height }, aspect)
 
   // Modo vista: posicion, fov y corrimiento salen del anchor. Se recalcula con el tamano del
   // canvas porque el corrimiento va en pixeles.
@@ -79,8 +84,8 @@ function ViewerCamera({ placement, photo, signZoom }: ViewerCameraProps) {
     camera.updateProjectionMatrix()
   }, [photo, aspect, size.width, size.height])
 
-  // Modo cartel al entrar: de frente, apenas por encima, a la distancia base. Depende solo
-  // de si hay foto: cambiar el cartel no le devuelve el azimut al frente.
+  // Modo cartel al entrar: de frente, apenas por encima. La distancia la pone el frame loop.
+  // Depende solo de si hay foto: cambiar el cartel no le devuelve el azimut al frente.
   const signMode = photo === null
   useLayoutEffect(() => {
     const camera = cameraRef.current
@@ -93,19 +98,24 @@ function ViewerCamera({ placement, photo, signZoom }: ViewerCameraProps) {
     camera.position.set(...orbitPosition(0, pitchDeg, 1))
     camera.lookAt(0, 0, 0)
     camera.updateProjectionMatrix()
+    distanceRef.current = null
   }, [signMode])
 
-  // Modo cartel: el tamano del cartel y el zoom cambian la distancia sin tocar el azimut
-  // que eligio el visitante.
-  useLayoutEffect(() => {
+  // Modo cartel: en cada frame, la distancia que encuadra la huella de la caja desde la
+  // orientacion actual, por el zoom, con damp. Solo cambia el largo del vector: el azimut
+  // y el polar son los que dejo OrbitControls, que actualiza antes en el mismo frame.
+  useFrame((_state, delta) => {
     const camera = cameraRef.current
     if (camera === null || !signMode) {
       return
     }
-    const direction = new Vector3().copy(camera.position).normalize()
-    camera.position.copy(direction.multiplyScalar(baseDistance * signZoom))
-    camera.updateProjectionMatrix()
-  }, [signMode, baseDistance, signZoom])
+    direction.copy(camera.position).normalize()
+    const target = signFrameDistance(volume, [direction.x, direction.y, direction.z], aspect) * signZoom
+    const current = distanceRef.current
+    const next = current === null || reducedMotion ? target : approach(current, target, delta)
+    camera.position.copy(direction.multiplyScalar(next))
+    distanceRef.current = next
+  })
 
   return (
     <>
@@ -136,28 +146,31 @@ export function SignScene({
   text,
   palette,
   photo,
-  lightPhoto,
   signZoom,
   hdriReady,
   reducedMotion,
   letters,
   letterDepth,
 }: SignSceneProps) {
-  // La luz viene de la foto, no de constantes del codigo: cada foto dice de donde le
-  // pega el sol, para que el volumen del cartel case con ella.
+  // En modo vista la luz viene de la foto: cada foto dice de donde le pega el sol, para que
+  // el volumen del cartel case con ella. En modo cartel es la luz de estudio del producto.
+  const light = photo === null ? SIGN_STUDIO_LIGHT : photo.light
   const keyPosition = useMemo((): [number, number, number] => {
-    const az = MathUtils.degToRad(lightPhoto.light.keyAzimuthDeg)
-    const el = MathUtils.degToRad(lightPhoto.light.keyElevationDeg)
+    const az = MathUtils.degToRad(light.keyAzimuthDeg)
+    const el = MathUtils.degToRad(light.keyElevationDeg)
     const r = 10
     return [r * Math.sin(az) * Math.cos(el), r * Math.sin(el), r * Math.cos(az) * Math.cos(el)]
-  }, [lightPhoto])
+  }, [light])
+  const { width, height } = placement.box
+  const depth = letters === null ? SET.sign.thickness : letterDepth
+  const volume = useMemo((): SignVolume => ({ width, height, depth }), [width, height, depth])
 
   return (
     <>
-      <ViewerCamera placement={placement} photo={photo} signZoom={signZoom} />
+      <ViewerCamera volume={volume} photo={photo} signZoom={signZoom} reducedMotion={reducedMotion} />
 
-      <ambientLight intensity={lightPhoto.light.ambient} />
-      <directionalLight position={keyPosition} intensity={lightPhoto.light.keyIntensity} />
+      <ambientLight intensity={light.ambient} />
+      <directionalLight position={keyPosition} intensity={light.keyIntensity} />
       {hdriReady ? <StudioEnvironment src={HDRI_SRC} /> : null}
 
       <SignBoard
@@ -168,7 +181,7 @@ export function SignScene({
         reducedMotion={reducedMotion}
         letters={letters}
         letterDepth={letterDepth}
-        haloEnabled={photo !== null}
+        signMode={photo === null}
       />
       {letters === null ? (
         <SignFace placement={placement} color={palette.signText} text={text} />

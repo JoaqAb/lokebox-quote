@@ -55,7 +55,6 @@ export function SignPreview({ selection, visual, theme, photos, zoomLabel, signO
           visual={visual}
           theme={theme}
           photo={photo}
-          lightPhoto={photos[0]}
           reducedMotion={reducedMotion}
           cssZoom={zoom}
           signZoom={signZoomFactor(zoom, ZOOM)}

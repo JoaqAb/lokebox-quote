@@ -21,12 +21,10 @@ type PhotoStageProps = {
   theme: Record<string, string>
   // null en modo cartel.
   photo: ClientPhoto | null
-  // De donde sale la luz en modo cartel: la primera foto del cliente.
-  lightPhoto: ClientPhoto
   reducedMotion: boolean
   // Modo vista: escala CSS de foto y canvas juntos.
   cssZoom: number
-  // Modo cartel: fraccion de la distancia base de la camara.
+  // Modo cartel: multiplicador de la distancia que encuadra la huella del cartel.
   signZoom: number
 }
 
@@ -59,7 +57,6 @@ export function PhotoStage({
   visual,
   theme,
   photo,
-  lightPhoto,
   reducedMotion,
   cssZoom,
   signZoom,
@@ -107,7 +104,6 @@ export function PhotoStage({
             lightingMode={visual.lighting.mode}
             palette={palette}
             photo={photo}
-            lightPhoto={lightPhoto}
             signZoom={signZoom}
             hdriReady={hdriReady}
             reducedMotion={reducedMotion}

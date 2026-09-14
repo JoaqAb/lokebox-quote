@@ -83,7 +83,6 @@ export function CalibrationPreview({ selection, visual, theme, photos }: Calibra
           visual={visual}
           theme={theme}
           photo={photo}
-          lightPhoto={photo}
           reducedMotion
           cssZoom={1}
           signZoom={1}

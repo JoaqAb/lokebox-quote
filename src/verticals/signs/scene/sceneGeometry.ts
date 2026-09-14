@@ -1,5 +1,5 @@
-import { Color } from 'three'
-import type { SignSelection } from '../../../core/types'
+import { Color, MathUtils } from 'three'
+import type { PhotoLight, SignSelection } from '../../../core/types'
 
 // Medidas y colores del cartel. Puro, sin React y sin JSX.
 // Desde el pivote de TAREA_010 no hay set: la fachada, la vereda, la vidriera y el poste
@@ -25,6 +25,12 @@ export const DAMP_LAMBDA = 12
 // El damp se acerca al objetivo sin llegar nunca. Por debajo de esta distancia se cierra
 // exacto, para que el estado final sea el del JSON y no un valor que oscila para siempre.
 export const SETTLE_EPSILON = 0.0005
+
+// Damp que cierra exacto: sin esto el valor final nunca es el objetivo.
+export function approach(current: number, target: number, delta: number): number {
+  const next = MathUtils.damp(current, target, DAMP_LAMBDA, delta)
+  return Math.abs(target - next) < SETTLE_EPSILON ? target : next
+}
 
 // Geometrias unitarias: una sola de cada una, el tamano se aplica con scale.
 export const UNIT_BOX: Vec3 = [1, 1, 1]
@@ -185,6 +191,8 @@ export type LightingParams = {
   // Cada modo tiene su caida: front es un foco sobre la cara y back un lavado hacia atras.
   lampDecay: number
   lampDistance: number
+  // Cuanto se oscurece el color de la cara frontal: 0 la deja en el color del material.
+  faceShade: number
 }
 
 export const LIGHTING: Record<'none' | 'front' | 'back', LightingParams> = {
@@ -195,6 +203,7 @@ export const LIGHTING: Record<'none' | 'front' | 'back', LightingParams> = {
     lampIntensity: 0,
     lampDecay: 2,
     lampDistance: 8,
+    faceShade: 0,
   },
   front: {
     faceEmissiveIntensity: 0.7,
@@ -203,6 +212,7 @@ export const LIGHTING: Record<'none' | 'front' | 'back', LightingParams> = {
     lampIntensity: 9,
     lampDecay: 2,
     lampDistance: 8,
+    faceShade: 0,
   },
   back: {
     faceEmissiveIntensity: 0.3,
@@ -211,6 +221,7 @@ export const LIGHTING: Record<'none' | 'front' | 'back', LightingParams> = {
     lampIntensity: 16,
     lampDecay: 1,
     lampDistance: 16,
+    faceShade: 0,
   },
 }
 
@@ -223,6 +234,17 @@ export function lightingParams(mode: string): LightingParams {
     return LIGHTING[mode]
   }
   throw new Error(`lightingParams: modo de iluminacion desconocido: "${mode}"`)
+}
+
+// Modo cartel (SPEC 12, version 1.13): nunca hay halo, y en back la cara no emite y queda
+// en el color del material apenas oscurecido. Un back-lit real tiene la cara apagada y el
+// resplandor detras; con la cara emisiva, back y front no se distinguen de frente.
+// Los cantos y la cara trasera emiten igual que en modo vista.
+export const SIGN_MODE_BACK_FACE = { faceEmissiveIntensity: 0, faceShade: 0.12 } as const
+
+export function signModeLightingParams(mode: string): LightingParams {
+  const params = { ...lightingParams(mode), haloOpacity: 0 }
+  return mode === BACK_MODE ? { ...params, ...SIGN_MODE_BACK_FACE } : params
 }
 
 export function lampPosition(mode: string, placement: SignPlacement): Vec3 | null {
@@ -281,13 +303,13 @@ export function scenePalette(theme: Record<string, string>): ScenePalette {
 // camara alrededor del cartel, que queda siempre en el origen y sin rotar.
 export const SIGN_VIEW = {
   fovDeg: 30,
-  // Margen por lado alrededor del ancho y el alto del cartel en la distancia base.
-  marginRatio: 0.15,
+  // Margen por lado alrededor de la huella proyectada de la caja del cartel.
+  marginRatio: 0.12,
   minPolar: 0.6,
   maxPolar: 1.5,
   // Polar al entrar al modo cartel: apenas por encima del frente, dentro del rango.
   startPolar: 1.45,
-  // Distancia minima del zoom, en fraccion de la base. El maximo es la base: solo acercar.
+  // Distancia minima del zoom, en fraccion de la derivada. El maximo es 1: solo acercar.
   nearFactor: 0.55,
   near: 0.05,
   far: 200,
@@ -297,14 +319,50 @@ function tanHalf(fovDeg: number): number {
   return Math.tan((fovDeg * Math.PI) / 360)
 }
 
-// Distancia base del modo cartel: la que encuadra ancho y alto con el margen por lado,
-// con fov vertical y el aspecto del canvas. Manda la mas lejana de las dos.
-export function signFrameDistance(box: SignBox, aspect: number): number {
-  const scale = 1 + 2 * SIGN_VIEW.marginRatio
-  const t = tanHalf(SIGN_VIEW.fovDeg)
-  const byHeight = (box.height * scale) / 2 / t
-  const byWidth = (box.width * scale) / 2 / (t * aspect)
-  return Math.max(byHeight, byWidth)
+// La caja que encuadra el modo cartel: el panel con su espesor, o en modo letters el
+// conjunto de letras con su profundidad. Nunca una letra sola.
+export type SignVolume = SignBox & { depth: number }
+
+// Luz de estudio del modo cartel (SPEC 12, version 1.13): el HDRI mas una key. Es del
+// producto y no de un cliente, por eso no va al JSON. Sin ambiente: el relleno lo da el
+// HDRI. Mismo formato que el light de una foto, asi la escena tiene un solo camino.
+export const SIGN_STUDIO_LIGHT: PhotoLight = {
+  ambient: 0,
+  keyIntensity: 3,
+  keyAzimuthDeg: -30,
+  keyElevationDeg: 40,
+}
+
+// Distancia del modo cartel (SPEC 12, version 1.13): la menor a la que las ocho esquinas
+// de la caja, vistas desde direction (unitario, del cartel hacia la camara), caen dentro
+// del cuadro con el margen por lado. El cuadro se centra en el target, como la camara.
+// Se recalcula en cada frame con la orientacion actual: la huella de frente es mas chica
+// que la de la esfera contenedora, y encuadrar la esfera achicaria la vista al cargar.
+// Para cada esquina p y cada eje e de la camara, |p.e| <= k (d - p.z), con k la tangente
+// del semicampo en ese eje dividida por 1 + 2 margen. Despejando d, manda la mayor.
+export function signFrameDistance(volume: SignVolume, direction: Vec3, aspect: number): number {
+  const [zx, zy, zz] = direction
+  // Ejes de la camara con el up del mundo, igual que lookAt. El polar del modo cartel
+  // nunca llega a la vertical, pero la funcion no se rompe si llega.
+  const flat = Math.hypot(zx, zz)
+  const xAxis: Vec3 = flat === 0 ? [1, 0, 0] : [zz / flat, 0, -zx / flat]
+  const yAxis: Vec3 = [zy * xAxis[2], zz * xAxis[0] - zx * xAxis[2], -zy * xAxis[0]]
+  const ky = tanHalf(SIGN_VIEW.fovDeg) / (1 + 2 * SIGN_VIEW.marginRatio)
+  const kx = ky * aspect
+  const half: Vec3 = [volume.width / 2, volume.height / 2, volume.depth / 2]
+  let distance = 0
+  for (const sx of [-1, 1]) {
+    for (const sy of [-1, 1]) {
+      for (const sz of [-1, 1]) {
+        const p: Vec3 = [sx * half[0], sy * half[1], sz * half[2]]
+        const along = p[0] * zx + p[1] * zy + p[2] * zz
+        const right = p[0] * xAxis[0] + p[2] * xAxis[2]
+        const up = p[0] * yAxis[0] + p[1] * yAxis[1] + p[2] * yAxis[2]
+        distance = Math.max(distance, Math.abs(right) / kx + along, Math.abs(up) / ky + along)
+      }
+    }
+  }
+  return distance
 }
 
 // Distancia del modo vista: aquella en la que un metro de cartel ocupa metersToWidth del
@@ -331,8 +389,8 @@ export function lensShift(x: number, y: number, width: number, height: number): 
   return [(0.5 - x) * width, (0.5 - y) * height]
 }
 
-// El control de zoom va de min a max. En modo cartel lo traduce a distancia: min es la base
-// y max es nearFactor de la base.
+// El control de zoom va de min a max. En modo cartel lo traduce a un multiplicador de la
+// distancia derivada de la huella: min es 1 y max es nearFactor.
 export function signZoomFactor(zoom: number, range: { min: number; max: number }): number {
   const t = (zoom - range.min) / (range.max - range.min)
   return 1 - Math.min(1, Math.max(0, t)) * (1 - SIGN_VIEW.nearFactor)

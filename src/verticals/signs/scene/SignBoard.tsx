@@ -3,7 +3,6 @@ import { useEffect, useMemo, useRef } from 'react'
 import {
   BoxGeometry,
   Color,
-  MathUtils,
   type Mesh,
   type MeshBasicMaterial,
   type MeshStandardMaterial,
@@ -20,10 +19,12 @@ import {
   UNIT_BOX,
   UNIT_PLANE,
   VISIBLE_EPSILON,
+  approach,
   haloBox,
   haloCells,
   lampPosition,
   lightingParams,
+  signModeLightingParams,
   supportShadowBox,
   type HaloCellKind,
   type LetterBox,
@@ -38,8 +39,8 @@ import {
 // El cartel esta centrado en el origen y no rota: la camara orbita a su alrededor
 // (SPEC 12, version 1.12).
 // Cada caja lleva seis materiales, uno por cara, en el orden de BoxGeometry: +x, -x, +y,
-// -y, frente, atras. Asi en back emiten los cantos y la cara trasera y la cara frontal
-// emite poco, para que el texto se lea. En modo letters el panel se oculta y se dibuja
+// -y, frente, atras. Asi en back emiten los cantos y la cara trasera, y la cara frontal
+// emite poco en modo vista y nada en modo cartel (SPEC 12, version 1.13). En modo letters el panel se oculta y se dibuja
 // una caja por letra; placement.box es el contorno de la palabra, y halo, sombra y
 // lampara lo siguen igual que al panel.
 
@@ -57,12 +58,6 @@ const HALO_KINDS: HaloCellKind[] = [
   'bottomLeft',
   'bottomRight',
 ]
-
-// Damp que cierra exacto: sin esto el valor final nunca es el de la tabla.
-function approach(current: number, target: number, delta: number): number {
-  const next = MathUtils.damp(current, target, DAMP_LAMBDA, delta)
-  return Math.abs(target - next) < SETTLE_EPSILON ? target : next
-}
 
 function approachColor(current: Color, target: Color, delta: number): void {
   const distance =
@@ -84,8 +79,8 @@ type SignBoardProps = {
   letters: LetterBox[] | null
   // Profundidad de las letras, en metros.
   letterDepth: number
-  // El halo de back solo existe en modo vista.
-  haloEnabled: boolean
+  // Modo cartel: sin halo y, en back, la cara apagada.
+  signMode: boolean
 }
 
 type FaceMaterial = { material: MeshStandardMaterial; front: boolean }
@@ -98,7 +93,7 @@ export function SignBoard({
   reducedMotion,
   letters,
   letterDepth,
-  haloEnabled,
+  signMode,
 }: SignBoardProps) {
   const signRef = useRef<Mesh>(null)
   const faceMaterialsRef = useRef(new Map<string, FaceMaterial>())
@@ -113,6 +108,7 @@ export function SignBoard({
     roughness: 1,
     face: 0,
     edge: 0,
+    shade: 0,
     haloOpacity: 0,
     started: false,
   })
@@ -152,7 +148,7 @@ export function SignBoard({
       return
     }
 
-    const lighting = lightingParams(lightingMode)
+    const lighting = signMode ? signModeLightingParams(lightingMode) : lightingParams(lightingMode)
     const lampTarget = lampPosition(lightingMode, placement)
     const state = look.current
 
@@ -176,10 +172,14 @@ export function SignBoard({
     state.roughness = move(state.roughness, material.roughness)
     state.face = move(state.face, lighting.faceEmissiveIntensity)
     state.edge = move(state.edge, lighting.edgeEmissiveIntensity)
-    state.haloOpacity = move(state.haloOpacity, haloEnabled ? lighting.haloOpacity : 0)
+    state.shade = move(state.shade, lighting.faceShade)
+    state.haloOpacity = move(state.haloOpacity, lighting.haloOpacity)
 
     for (const { material: face, front } of faceMaterialsRef.current.values()) {
       face.color.copy(state.color)
+      if (front) {
+        face.color.multiplyScalar(1 - state.shade)
+      }
       face.emissive.copy(state.color)
       face.metalness = state.metalness
       face.roughness = state.roughness
