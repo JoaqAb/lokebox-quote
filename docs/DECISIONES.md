@@ -267,3 +267,5 @@
 - 14/09/2026: cambian tres tests previos y solo por sacar las fotos en angulo: la lista de ids, y dos tests que tocaban photos[2] y photos[3], que ya no existen, pasan a photos[1].
 - 14/09/2026: la luminancia de letters en modo vista se mide sobre la silueta de las letras y no sobre su caja. Sobre la caja la cara daba back mayor que front, porque mezcla la foto entre letras y el halo que se ve por los huecos; sobre la silueta las tres comparaciones cumplen en los dos clientes.
 - 14/09/2026: el brief de TAREA_017 pedia sumar 017 y 018 a EXECUTION con sus criterios, pero no define 018. Se sumo solo 017; 018 queda para cuando haya brief.
+- 14/09/2026: TAREA_018 toma el numero 018, set de capturas de validacion. Las capturas de TAREA_017 quedaron fuera del arbol y Canal B no puede validar el totem ni el criterio 2 de DONE; el set se regenera con npm run capturas en validacion/, ignorado por git.
+- 14/09/2026: el script de capturas no usa data-testid: lee las etiquetas de los botones del JSON de cada cliente y ubica el marco como el padre del canvas. Asi src/ no cambia y ningun test puede romper por la tarea.

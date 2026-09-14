@@ -23,7 +23,7 @@ Hoy el totem se dibuja igual que el cartel de fachada y cobra 400 USD (270.000 A
   - `TOTEM_POST_DEPTH_FACTOR` 1,6 por el espesor del panel
   - `TOTEM_BASE_WIDTH_RATIO` 0,45 del ancho del panel, con piso de 0,50 m
   - `TOTEM_STRUCTURE_METALNESS` 0,2 y `TOTEM_STRUCTURE_ROUGHNESS` 0,6
-- Poste y base en el color `--q-muted` del tema, derivado en `scenePalette`. Ningun hexadecimal en un componente de escena.
+- Poste y base en el color `--q-muted` del tema, derivado en `totemStructureColor`, aparte de `scenePalette`. Ningun hexadecimal en un componente de escena.
 - Poste y base nunca emiten. front y back siguen afectando solo al panel, con las reglas de SPEC 12.
 - Poste y base siguen al ancho amortiguado del panel, igual que halo y sombra.
 - Sombra de apoyo del totem: el quad del degradado radial horizontal sobre el piso, centrado bajo la base, de 1,6 veces su ancho y su profundidad, en los dos modos. facade y letters quedan como estan.
@@ -46,7 +46,7 @@ Hoy el totem se dibuja igual que el cartel de fachada y cobra 400 USD (270.000 A
 - Salen de `northline.json` y `norte.json` las fotos `angle-left-day` y `angle-right-day`. Quedan Front y Night.
 - Se borran los cuatro .webp sin referencia de `public/assets/quote/backgrounds/`.
 - El selector queda en tres botones: viewSignOnly, Front, Night. El modo cartel sigue seleccionado al cargar.
-- El test de `clientConfig.test.ts` que lista las cuatro ids pasa a listar las dos: es el unico test previo que cambia, y cambia por este punto.
+- Cambian tres tests previos de `clientConfig.test.ts`, solo por este punto: el que lista las cuatro ids pasa a listar las dos, y los dos que usaban `photos[2]` y `photos[3]` pasan a `photos[1]`.
 
 ### E. Documentos
 
