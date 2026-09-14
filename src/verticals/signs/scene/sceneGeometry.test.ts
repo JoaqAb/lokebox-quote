@@ -11,7 +11,15 @@ import {
   SIGN_TEXT,
   SUPPORT_SHADOW,
   LETTERS,
+  SIGN_VIEW,
   haloBox,
+  haloCellUv,
+  haloCells,
+  lensShift,
+  orbitPosition,
+  photoCameraDistance,
+  signFrameDistance,
+  signZoomFactor,
   layoutLetters,
   lampPosition,
   lightingParams,
@@ -88,8 +96,8 @@ describe('haloBox y supportShadowBox', () => {
     const config = clientOrFail('norte')
     const placement = signPlacement(defaultSelection(config), factorOf('norte'))
     const halo = haloBox(placement)
-    expect(halo.size[0]).toBeCloseTo(placement.box.width + 2 * HALO.padding, 10)
-    expect(halo.size[1]).toBeCloseTo(placement.box.height + 2 * HALO.padding, 10)
+    expect(halo.size[0]).toBeCloseTo(placement.box.width + 2 * HALO.marginRatio * placement.box.height, 10)
+    expect(halo.size[1]).toBeCloseTo(placement.box.height * (1 + 2 * HALO.marginRatio), 10)
     expect(halo.z).toBeLessThan(-SET.sign.thickness / 2)
   })
 
@@ -110,16 +118,22 @@ describe('lightingParams y lampPosition', () => {
   // 12.4
   it('los tres modos existen y none no enciende nada', () => {
     expect(lightingParams('none')).toEqual(LIGHTING.none)
-    expect(LIGHTING.none.emissiveIntensity).toBe(0)
-    expect(LIGHTING.none.haloIntensity).toBe(0)
+    expect(LIGHTING.none.faceEmissiveIntensity).toBe(0)
+    expect(LIGHTING.none.edgeEmissiveIntensity).toBe(0)
+    expect(LIGHTING.none.haloOpacity).toBe(0)
     expect(LIGHTING.none.lampIntensity).toBe(0)
   })
 
   // 12.4
-  it('la emision y el halo crecen de none a back', () => {
-    expect(LIGHTING.none.emissiveIntensity).toBeLessThan(LIGHTING.front.emissiveIntensity)
-    expect(LIGHTING.front.emissiveIntensity).toBeLessThan(LIGHTING.back.emissiveIntensity)
-    expect(LIGHTING.front.haloIntensity).toBeLessThan(LIGHTING.back.haloIntensity)
+  it('la emision de los cantos y el halo crecen de none a back', () => {
+    expect(LIGHTING.none.edgeEmissiveIntensity).toBeLessThan(LIGHTING.front.edgeEmissiveIntensity)
+    expect(LIGHTING.front.edgeEmissiveIntensity).toBeLessThan(LIGHTING.back.edgeEmissiveIntensity)
+    expect(LIGHTING.front.haloOpacity).toBeLessThan(LIGHTING.back.haloOpacity)
+  })
+
+  it('en back la cara emite menos que en front, para que el texto se lea', () => {
+    expect(LIGHTING.back.faceEmissiveIntensity).toBeLessThan(LIGHTING.front.faceEmissiveIntensity)
+    expect(LIGHTING.back.haloOpacity).toBeLessThanOrEqual(HALO.maxOpacity)
   })
 
   // 10.3
@@ -218,11 +232,77 @@ describe('layoutLetters', () => {
   })
 })
 
-describe('haloBox en modo letters', () => {
-  it('acepta un margen propio y en area sigue usando HALO.padding', () => {
-    const placement = { box: { width: 2, height: 0.3 } }
-    expect(haloBox(placement).size).toEqual([2 + 2 * HALO.padding, 0.3 + 2 * HALO.padding])
-    const padding = 0.3 * HALO.letterPaddingRatio
-    expect(haloBox(placement, padding).size[1]).toBeCloseTo(0.3 + 2 * padding, 10)
+describe('halo de nueve celdas', () => {
+  const placement = { box: { width: 2.4, height: 0.9 } }
+
+  it('ninguna celda pasa el margen de 0,12 del alto del cartel', () => {
+    const margin = placement.box.height * HALO.marginRatio
+    for (const cell of haloCells(placement)) {
+      const right = Math.abs(cell.position[0]) + cell.size[0] / 2
+      const top = Math.abs(cell.position[1]) + cell.size[1] / 2
+      expect(right, cell.kind).toBeLessThanOrEqual(placement.box.width / 2 + margin + 1e-9)
+      expect(top, cell.kind).toBeLessThanOrEqual(placement.box.height / 2 + margin + 1e-9)
+    }
+    expect(HALO.maxOpacity).toBe(0.55)
+  })
+
+  it('el borde exterior de cada celda cae en el borde del degradado, sin corte duro', () => {
+    // Coordenadas en el orden de PlaneGeometry: arriba izq, arriba der, abajo izq, abajo der.
+    expect(haloCellUv('center')).toEqual([0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5])
+    expect(haloCellUv('left')).toEqual([0, 0.5, 0.5, 0.5, 0, 0.5, 0.5, 0.5])
+    expect(haloCellUv('topRight')).toEqual([0.5, 1, 1, 1, 0.5, 0.5, 1, 0.5])
+    expect(haloCellUv('bottom')).toEqual([0.5, 0.5, 0.5, 0.5, 0.5, 0, 0.5, 0])
+  })
+})
+
+describe('camara del viewer', () => {
+  it('la distancia base encuadra el cartel con 15 por ciento de margen por lado', () => {
+    const aspect = 16 / 9
+    const tan = Math.tan((SIGN_VIEW.fovDeg * Math.PI) / 360)
+    // Cartel ancho: manda el ancho.
+    const ancho = signFrameDistance({ width: 6, height: 1 }, aspect)
+    expect(2 * ancho * tan * aspect).toBeCloseTo(6 * 1.3, 10)
+    // Cartel alto: manda el alto.
+    const alto = signFrameDistance({ width: 1, height: 2 }, aspect)
+    expect(2 * alto * tan).toBeCloseTo(2 * 1.3, 10)
+  })
+
+  it('en modo vista un metro ocupa metersToWidth del ancho de la foto', () => {
+    const aspect = 16 / 9
+    const d = photoCameraDistance(0.1, 40, aspect)
+    const visibleWidth = 2 * d * Math.tan((40 * Math.PI) / 360) * aspect
+    expect(1 / visibleWidth).toBeCloseTo(0.1, 10)
+  })
+
+  it('orbitPosition: yaw positivo a la derecha, pitch negativo por debajo, a la distancia pedida', () => {
+    const [x, y, z] = orbitPosition(30, -10, 5)
+    expect(x).toBeGreaterThan(0)
+    expect(y).toBeLessThan(0)
+    expect(z).toBeGreaterThan(0)
+    expect(Math.hypot(x, y, z)).toBeCloseTo(5, 10)
+    expect(orbitPosition(0, 0, 3)).toEqual([0, 0, 3])
+  })
+
+  it('lensShift lleva el centro del cartel a (x, y) de la foto', () => {
+    expect(lensShift(0.5, 0.5, 800, 450)).toEqual([0, 0])
+    const [ox, oy] = lensShift(0.25, 0.2, 800, 450)
+    // El target proyecta en el centro de la vista completa: W/2 - ox tiene que dar x por W.
+    expect(400 - ox).toBeCloseTo(0.25 * 800, 10)
+    expect(225 - oy).toBeCloseTo(0.2 * 450, 10)
+  })
+
+  it('el zoom del modo cartel va de 1 a 0,55 de la base y no aleja nunca', () => {
+    const range = { min: 1, max: 2.5 }
+    expect(signZoomFactor(1, range)).toBe(1)
+    expect(signZoomFactor(2.5, range)).toBeCloseTo(0.55, 10)
+    expect(signZoomFactor(0, range)).toBe(1)
+    expect(signZoomFactor(9, range)).toBeCloseTo(0.55, 10)
+  })
+
+  it('el polar del modo cartel nunca llega a verlo desde abajo', () => {
+    expect(SIGN_VIEW.maxPolar).toBeLessThan(Math.PI / 2)
+    expect(SIGN_VIEW.minPolar).toBe(0.6)
+    expect(SIGN_VIEW.startPolar).toBeGreaterThanOrEqual(SIGN_VIEW.minPolar)
+    expect(SIGN_VIEW.startPolar).toBeLessThanOrEqual(SIGN_VIEW.maxPolar)
   })
 })

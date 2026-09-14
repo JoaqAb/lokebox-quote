@@ -191,7 +191,7 @@ const CLAVES_DE_LA_HOJA = [
 
 describe('claves de texto de los dos clientes', () => {
   // 13.16
-  it('los dos JSON tienen las mismas 45 claves, ninguna vacia', () => {
+  it('los dos JSON tienen las mismas 46 claves, ninguna vacia', () => {
     const juegos = listClientSlugs().map((slug) => {
       const texts = clientOrFail(slug).texts
       for (const [key, value] of Object.entries(texts)) {
@@ -199,7 +199,7 @@ describe('claves de texto de los dos clientes', () => {
       }
       return Object.keys(texts).sort()
     })
-    expect(juegos[0]).toHaveLength(45)
+    expect(juegos[0]).toHaveLength(46)
     for (const juego of juegos) {
       expect(juego).toEqual(juegos[0])
     }
@@ -289,5 +289,26 @@ describe('validateClientConfig: modo letters', () => {
     expect(materialsForMode(config.options, 'letters').map((item) => item.id)).toEqual(['aluminum', 'acrylic'])
     expect(defaultSelection(config).materialId).toBe('aluminum')
     expect(pricingModeOf(config.options, 'facade')).toBe('area')
+  })
+})
+
+describe('validateClientConfig: camara del anchor', () => {
+  it('falla si falta cameraYawDeg, y dice cual', () => {
+    const broken = structuredClone(northline)
+    delete (broken.photos[0].anchor as Partial<(typeof broken.photos)[number]['anchor']>).cameraYawDeg
+    expect(() => validateClientConfig(broken)).toThrow(/photos\[0\]\.anchor\.cameraYawDeg/)
+  })
+
+  it('falla si fovDeg no esta entre 0 y 180', () => {
+    const broken = structuredClone(northline)
+    broken.photos[1].anchor.fovDeg = 180
+    expect(() => validateClientConfig(broken)).toThrow(/photos\[1\]\.anchor\.fovDeg/)
+    broken.photos[1].anchor.fovDeg = 0
+    expect(() => validateClientConfig(broken)).toThrow(/fovDeg/)
+  })
+
+  it('viewSignOnly sale del JSON en los dos idiomas', () => {
+    expect(clientOrFail('northline').texts.viewSignOnly).toBe('The sign')
+    expect(clientOrFail('norte').texts.viewSignOnly).toBe('Solo el cartel')
   })
 })

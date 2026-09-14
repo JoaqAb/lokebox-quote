@@ -50,19 +50,62 @@ export function signPlacement(selection: SignSelection, lengthToMeters: number):
   return { box: signBoxMeters(selection, lengthToMeters) }
 }
 
-// El halo del modo back: un plano apenas mas grande que el cartel, justo detras.
-// En modo letters el margen es proporcional al alto de letra: el fijo del panel, sobre
-// letras de 30 cm, deja un rectangulo blanco detras que se lee como otro cartel.
-export const HALO = { padding: 0.55, letterPaddingRatio: 0.3, gap: 0.008 } as const
+// El halo del modo back, solo en modo vista (SPEC 12, version 1.12): el degradado radial
+// detras del cartel, con un margen de 0,12 del alto del cartel por lado y opacidad maxima
+// 0,55. Se arma en nueve celdas: el centro queda tapado por el cartel, los bordes llevan
+// el perfil del degradado a lo largo del eje y las esquinas el cuarto de circulo, asi no
+// hay borde duro en ningun punto.
+export const HALO = { marginRatio: 0.12, maxOpacity: 0.55, gap: 0.008 } as const
 
-export function haloBox(
-  placement: SignPlacement,
-  padding: number = HALO.padding,
-): { z: number; size: [number, number] } {
+export type HaloCell = {
+  kind: HaloCellKind
+  position: [number, number]
+  size: [number, number]
+}
+
+export type HaloCellKind = 'center' | 'left' | 'right' | 'top' | 'bottom' | 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight'
+
+export function haloMargin(placement: SignPlacement): number {
+  return placement.box.height * HALO.marginRatio
+}
+
+export function haloBox(placement: SignPlacement): { z: number; size: [number, number] } {
+  const margin = haloMargin(placement)
   return {
     z: -SET.sign.thickness / 2 - HALO.gap,
-    size: [placement.box.width + 2 * padding, placement.box.height + 2 * padding],
+    size: [placement.box.width + 2 * margin, placement.box.height + 2 * margin],
   }
+}
+
+// Las nueve celdas del halo, en metros, centradas en el origen del cartel.
+export function haloCells(placement: SignPlacement): HaloCell[] {
+  const { width, height } = placement.box
+  const m = haloMargin(placement)
+  const ex = width / 2 + m / 2
+  const ey = height / 2 + m / 2
+  return [
+    { kind: 'center', position: [0, 0], size: [width, height] },
+    { kind: 'left', position: [-ex, 0], size: [m, height] },
+    { kind: 'right', position: [ex, 0], size: [m, height] },
+    { kind: 'top', position: [0, ey], size: [width, m] },
+    { kind: 'bottom', position: [0, -ey], size: [width, m] },
+    { kind: 'topLeft', position: [-ex, ey], size: [m, m] },
+    { kind: 'topRight', position: [ex, ey], size: [m, m] },
+    { kind: 'bottomLeft', position: [-ex, -ey], size: [m, m] },
+    { kind: 'bottomRight', position: [ex, -ey], size: [m, m] },
+  ]
+}
+
+// Coordenadas de textura de cada celda sobre el degradado radial, en el orden de los
+// vertices de un PlaneGeometry de 1 x 1: arriba izquierda, arriba derecha, abajo izquierda,
+// abajo derecha. 0,5 es el centro del degradado (opacidad plena) y 0 o 1 su borde (cero).
+export function haloCellUv(kind: HaloCellKind): number[] {
+  const inner = 0.5
+  const u = { left: [0, inner], right: [inner, 1], mid: [inner, inner] }
+  const v = { top: [1, inner], bottom: [inner, 0], mid: [inner, inner] }
+  const column = kind === 'left' || kind === 'topLeft' || kind === 'bottomLeft' ? u.left : kind === 'right' || kind === 'topRight' || kind === 'bottomRight' ? u.right : u.mid
+  const row = kind === 'top' || kind === 'topLeft' || kind === 'topRight' ? v.top : kind === 'bottom' || kind === 'bottomLeft' || kind === 'bottomRight' ? v.bottom : v.mid
+  return [column[0], row[0], column[1], row[0], column[0], row[1], column[1], row[1]]
 }
 
 // Sombra de apoyo: ancha y baja, justo debajo del cartel, para que no flote sobre la foto.
@@ -132,8 +175,12 @@ export const SIGN_TEXT = { marginRatio: 0.12, maxHeightRatio: 0.62, gap: 0.002 }
 export const LAMP = { frontOffsetY: 0.5, frontOffsetZ: 1.6 } as const
 
 export type LightingParams = {
-  emissiveIntensity: number
-  haloIntensity: number
+  // Emision de la cara frontal. En back es baja: el texto del cartel tiene que leerse.
+  faceEmissiveIntensity: number
+  // Emision de los cantos y la cara trasera. En back es la que da la luz del cartel.
+  edgeEmissiveIntensity: number
+  // Opacidad del halo, que solo se dibuja en modo vista.
+  haloOpacity: number
   lampIntensity: number
   // Cada modo tiene su caida: front es un foco sobre la cara y back un lavado hacia atras.
   lampDecay: number
@@ -141,17 +188,26 @@ export type LightingParams = {
 }
 
 export const LIGHTING: Record<'none' | 'front' | 'back', LightingParams> = {
-  none: { emissiveIntensity: 0, haloIntensity: 0, lampIntensity: 0, lampDecay: 2, lampDistance: 8 },
+  none: {
+    faceEmissiveIntensity: 0,
+    edgeEmissiveIntensity: 0,
+    haloOpacity: 0,
+    lampIntensity: 0,
+    lampDecay: 2,
+    lampDistance: 8,
+  },
   front: {
-    emissiveIntensity: 0.7,
-    haloIntensity: 0,
+    faceEmissiveIntensity: 0.7,
+    edgeEmissiveIntensity: 0.7,
+    haloOpacity: 0,
     lampIntensity: 9,
     lampDecay: 2,
     lampDistance: 8,
   },
   back: {
-    emissiveIntensity: 1.15,
-    haloIntensity: 3.2,
+    faceEmissiveIntensity: 0.3,
+    edgeEmissiveIntensity: 2.4,
+    haloOpacity: HALO.maxOpacity,
     lampIntensity: 16,
     lampDecay: 1,
     lampDistance: 16,
@@ -219,4 +275,65 @@ export function scenePalette(theme: Record<string, string>): ScenePalette {
     shadow: blend(primary, text, MIX.shadow),
     signText: blend(primary, text, MIX.signText),
   }
+}
+
+// Camara del viewer (SPEC 12, version 1.12). En perspectiva en los dos modos; se orbita la
+// camara alrededor del cartel, que queda siempre en el origen y sin rotar.
+export const SIGN_VIEW = {
+  fovDeg: 30,
+  // Margen por lado alrededor del ancho y el alto del cartel en la distancia base.
+  marginRatio: 0.15,
+  minPolar: 0.6,
+  maxPolar: 1.5,
+  // Polar al entrar al modo cartel: apenas por encima del frente, dentro del rango.
+  startPolar: 1.45,
+  // Distancia minima del zoom, en fraccion de la base. El maximo es la base: solo acercar.
+  nearFactor: 0.55,
+  near: 0.05,
+  far: 200,
+} as const
+
+function tanHalf(fovDeg: number): number {
+  return Math.tan((fovDeg * Math.PI) / 360)
+}
+
+// Distancia base del modo cartel: la que encuadra ancho y alto con el margen por lado,
+// con fov vertical y el aspecto del canvas. Manda la mas lejana de las dos.
+export function signFrameDistance(box: SignBox, aspect: number): number {
+  const scale = 1 + 2 * SIGN_VIEW.marginRatio
+  const t = tanHalf(SIGN_VIEW.fovDeg)
+  const byHeight = (box.height * scale) / 2 / t
+  const byWidth = (box.width * scale) / 2 / (t * aspect)
+  return Math.max(byHeight, byWidth)
+}
+
+// Distancia del modo vista: aquella en la que un metro de cartel ocupa metersToWidth del
+// ancho de la foto, con el fov vertical del anchor y el aspecto del cuadro.
+export function photoCameraDistance(metersToWidth: number, fovDeg: number, aspect: number): number {
+  return 1 / (metersToWidth * 2 * tanHalf(fovDeg) * aspect)
+}
+
+// Posicion de la camara en una orbita alrededor del origen. yaw positivo va a la derecha
+// del frente del cartel y pitch negativo por debajo de su centro.
+export function orbitPosition(yawDeg: number, pitchDeg: number, distance: number): Vec3 {
+  const yaw = (yawDeg * Math.PI) / 180
+  const pitch = (pitchDeg * Math.PI) / 180
+  return [
+    distance * Math.cos(pitch) * Math.sin(yaw),
+    distance * Math.sin(pitch),
+    distance * Math.cos(pitch) * Math.cos(yaw),
+  ]
+}
+
+// Corrimiento de la vista (lens shift) para que el centro del cartel caiga en (x, y) de la
+// foto. Es el offset de setViewOffset, en pixeles del canvas.
+export function lensShift(x: number, y: number, width: number, height: number): [number, number] {
+  return [(0.5 - x) * width, (0.5 - y) * height]
+}
+
+// El control de zoom va de min a max. En modo cartel lo traduce a distancia: min es la base
+// y max es nearFactor de la base.
+export function signZoomFactor(zoom: number, range: { min: number; max: number }): number {
+  const t = (zoom - range.min) / (range.max - range.min)
+  return 1 - Math.min(1, Math.max(0, t)) * (1 - SIGN_VIEW.nearFactor)
 }

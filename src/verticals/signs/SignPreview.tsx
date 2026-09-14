@@ -2,17 +2,21 @@ import { useReducedMotion } from 'framer-motion'
 import { useState } from 'react'
 import type { ClientPhoto, SignSelection } from '../../core/types'
 import { PhotoStage } from './PhotoStage'
+import { signZoomFactor } from './scene/sceneGeometry'
 import type { SignVisual } from './visuals'
 
-// Composicion del preview (SPEC 12, version 1.9): tres capas en el mismo cuadro 16:9.
-// 1. la foto del cliente, elegida por angulo
-// 2. un canvas R3F transparente con el cartel y nada mas
-// 3. los controles, fuera del canvas
-// Las dos primeras viven en PhotoStage. El zoom es una transformacion CSS sobre ese
-// contenedor, no un movimiento de camara: escalando las dos juntas el desalineado no
-// puede existir. prefers-reduced-motion se lee aca, fuera del canvas, y baja como prop.
+// Viewer del cotizador (SPEC 12, version 1.12), en dos modos sobre el mismo canvas:
+// - modo cartel, el default al cargar: el cartel solo, que el visitante gira;
+// - modo vista: una foto del cliente con el cartel compuesto, fijo.
+// Debajo, el selector de vistas (primero el modo cartel, despues una por foto) y el zoom,
+// que en modo cartel acerca la camara y en modo vista escala foto y canvas por CSS.
+// prefers-reduced-motion se lee aca, fuera del canvas, y baja como prop.
 
 const ZOOM = { min: 1, max: 2.5, step: 0.25 }
+
+// La vista elegida. El modo cartel no es una foto y va en su propia rama, asi ningun id de
+// foto del JSON puede chocar con el.
+type View = { kind: 'sign' } | { kind: 'photo'; id: string }
 
 type SignPreviewProps = {
   selection: SignSelection
@@ -20,43 +24,56 @@ type SignPreviewProps = {
   theme: Record<string, string>
   photos: ClientPhoto[]
   zoomLabel: string
+  signOnlyLabel: string
 }
 
-export function SignPreview({ selection, visual, theme, photos, zoomLabel }: SignPreviewProps) {
+export function SignPreview({ selection, visual, theme, photos, zoomLabel, signOnlyLabel }: SignPreviewProps) {
   const reducedMotion = useReducedMotion() === true
-  const [photoId, setPhotoId] = useState(photos[0].id)
+  const [view, setView] = useState<View>({ kind: 'sign' })
   const [zoom, setZoom] = useState(ZOOM.min)
 
-  const photo = photos.find((item) => item.id === photoId) ?? photos[0]
+  const photo = view.kind === 'photo' ? (photos.find((item) => item.id === view.id) ?? null) : null
+
+  const options = [
+    { key: 'sign', label: signOnlyLabel, active: photo === null, pick: (): View => ({ kind: 'sign' }) },
+    ...photos.map((item) => ({
+      key: `photo-${item.id}`,
+      label: item.label,
+      active: photo?.id === item.id,
+      pick: (): View => ({ kind: 'photo', id: item.id }),
+    })),
+  ]
 
   return (
     <div className="flex flex-col gap-3">
       <div
         style={theme}
-        className="q-hairline relative aspect-video w-full overflow-hidden rounded-2xl border bg-[var(--q-surface)]"
+        className={`q-hairline relative aspect-video w-full overflow-hidden rounded-2xl border bg-[var(--q-surface)] ${photo === null ? 'cursor-grab active:cursor-grabbing' : ''}`}
       >
         <PhotoStage
           selection={selection}
           visual={visual}
           theme={theme}
           photo={photo}
+          lightPhoto={photos[0]}
           reducedMotion={reducedMotion}
-          zoom={zoom}
+          cssZoom={zoom}
+          signZoom={signZoomFactor(zoom, ZOOM)}
         />
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        {photos.map((item) => (
+        {options.map((option) => (
           <button
-            key={item.id}
+            key={option.key}
             type="button"
-            aria-pressed={item.id === photo.id}
-            className={item.id === photo.id ? 'q-control q-on flex-1' : 'q-control q-off flex-1'}
+            aria-pressed={option.active}
+            className={option.active ? 'q-control q-on flex-1' : 'q-control q-off flex-1'}
             onClick={() => {
-              setPhotoId(item.id)
+              setView(option.pick())
             }}
           >
-            {item.label}
+            {option.label}
           </button>
         ))}
       </div>

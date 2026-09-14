@@ -118,6 +118,7 @@ function QuoteScreen({ config }: QuoteScreenProps) {
             theme={theme}
             photos={config.photos}
             zoomLabel={config.texts.previewZoomLabel}
+            signOnlyLabel={config.texts.viewSignOnly}
           />
         )
       }

@@ -17,28 +17,28 @@
       "id": "front-day",
       "label": "Front",
       "src": "/assets/quote/backgrounds/northline-front-day.webp",
-      "anchor": { "x": 0.501, "y": 0.2, "metersToWidth": 0.1, "yawDeg": 0, "pitchDeg": 0 },
+      "anchor": { "x": 0.501, "y": 0.2, "metersToWidth": 0.1, "cameraYawDeg": 0, "cameraPitchDeg": 0, "fovDeg": 40 },
       "light": { "ambient": 0.9, "keyIntensity": 1.4, "keyAzimuthDeg": -25, "keyElevationDeg": 35 }
     },
     {
       "id": "angle-left-day",
       "label": "Left",
       "src": "/assets/quote/backgrounds/northline-angle-left-day.webp",
-      "anchor": { "x": 0.552, "y": 0.23, "metersToWidth": 0.097, "yawDeg": 50, "pitchDeg": -12 },
+      "anchor": { "x": 0.552, "y": 0.23, "metersToWidth": 0.097, "cameraYawDeg": -50, "cameraPitchDeg": -12, "fovDeg": 40 },
       "light": { "ambient": 0.9, "keyIntensity": 1.4, "keyAzimuthDeg": -25, "keyElevationDeg": 35 }
     },
     {
       "id": "angle-right-day",
       "label": "Right",
       "src": "/assets/quote/backgrounds/northline-angle-right-day.webp",
-      "anchor": { "x": 0.456, "y": 0.207, "metersToWidth": 0.094, "yawDeg": -44, "pitchDeg": -10 },
+      "anchor": { "x": 0.456, "y": 0.207, "metersToWidth": 0.094, "cameraYawDeg": 44, "cameraPitchDeg": -10, "fovDeg": 40 },
       "light": { "ambient": 0.9, "keyIntensity": 1.4, "keyAzimuthDeg": -25, "keyElevationDeg": 35 }
     },
     {
       "id": "front-night",
       "label": "Night",
       "src": "/assets/quote/backgrounds/northline-front-night.webp",
-      "anchor": { "x": 0.501, "y": 0.2, "metersToWidth": 0.1, "yawDeg": 0, "pitchDeg": 0 },
+      "anchor": { "x": 0.501, "y": 0.2, "metersToWidth": 0.1, "cameraYawDeg": 0, "cameraPitchDeg": 0, "fovDeg": 40 },
       "light": { "ambient": 0.35, "keyIntensity": 0.4, "keyAzimuthDeg": 0, "keyElevationDeg": 20 }
     }
   ],
@@ -91,6 +91,7 @@
     "signTextLabel": "Text on the sign",
     "letterHeightLabel": "Letter height",
     "depthLabel": "Letter depth",
+    "viewSignOnly": "The sign",
     "previewZoomLabel": "Zoom",
     "priceLabel": "Estimated price",
     "priceRangeNote": "Estimated range",

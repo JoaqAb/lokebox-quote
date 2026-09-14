@@ -377,6 +377,10 @@ function readPhotos(raw: Raw, slug: string): ClientPhoto[] {
     if (metersToWidth <= 0) {
       fail(slug, `${path}.anchor.metersToWidth debe ser mayor a 0.`)
     }
+    const fovDeg = readNumber(anchor, 'fovDeg', slug, `${path}.anchor.fovDeg`)
+    if (fovDeg <= 0 || fovDeg >= 180) {
+      fail(slug, `${path}.anchor.fovDeg tiene que ser mayor a 0 y menor a 180.`)
+    }
     return {
       id: readString(entry, 'id', slug, `${path}.id`),
       label: readString(entry, 'label', slug, `${path}.label`),
@@ -385,8 +389,9 @@ function readPhotos(raw: Raw, slug: string): ClientPhoto[] {
         x,
         y,
         metersToWidth,
-        yawDeg: readNumber(anchor, 'yawDeg', slug, `${path}.anchor.yawDeg`),
-        pitchDeg: readNumber(anchor, 'pitchDeg', slug, `${path}.anchor.pitchDeg`),
+        cameraYawDeg: readNumber(anchor, 'cameraYawDeg', slug, `${path}.anchor.cameraYawDeg`),
+        cameraPitchDeg: readNumber(anchor, 'cameraPitchDeg', slug, `${path}.anchor.cameraPitchDeg`),
+        fovDeg,
       },
       light: {
         ambient: readNumber(light, 'ambient', slug, `${path}.light.ambient`),
@@ -432,6 +437,7 @@ function readTexts(raw: Raw, slug: string): ClientTexts {
     letterHeightLabel: readText(texts, 'letterHeightLabel', slug),
     depthLabel: readText(texts, 'depthLabel', slug),
     previewZoomLabel: readText(texts, 'previewZoomLabel', slug),
+    viewSignOnly: readText(texts, 'viewSignOnly', slug),
     priceLabel: readText(texts, 'priceLabel', slug),
     priceRangeNote: readText(texts, 'priceRangeNote', slug),
     disclaimer: readText(texts, 'disclaimer', slug),

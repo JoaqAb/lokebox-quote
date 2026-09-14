@@ -29,9 +29,9 @@ export type BrandConfig = {
   email: string
 }
 
-// Una foto de fondo del preview, por angulo (SPEC 12, version 1.9).
-// El anclaje dice donde y de que tamano se dibuja el cartel sobre esa foto, y la luz
-// dice de donde viene el sol en ella, para que el volumen del cartel case.
+// Una foto de fondo del preview, por angulo (SPEC 12, version 1.12).
+// El anclaje dice donde y de que tamano cae el cartel sobre esa foto y desde donde la
+// tomo la camara; la luz dice de donde viene el sol en ella, para que el volumen case.
 export type PhotoAnchor = {
   // Centro del cartel, en fraccion del ancho y del alto, origen arriba a la izquierda.
   x: number
@@ -39,8 +39,11 @@ export type PhotoAnchor = {
   // Que fraccion del ancho de la foto ocupa un metro de cartel. Se expresa asi, y no
   // como un factor abstracto, para calcularlo contra una medida conocida de la foto.
   metersToWidth: number
-  yawDeg: number
-  pitchDeg: number
+  // La camara orbita alrededor del cartel, que no rota: yaw positivo a la derecha del
+  // frente del cartel, pitch negativo por debajo de su centro, fov vertical en grados.
+  cameraYawDeg: number
+  cameraPitchDeg: number
+  fovDeg: number
 }
 
 export type PhotoLight = {
@@ -178,6 +181,7 @@ export type ClientTexts = {
   letterHeightLabel: string
   depthLabel: string
   previewZoomLabel: string
+  viewSignOnly: string
   priceLabel: string
   priceRangeNote: string
   disclaimer: string

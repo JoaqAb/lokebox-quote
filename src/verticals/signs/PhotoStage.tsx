@@ -1,30 +1,38 @@
 import { Canvas } from '@react-three/fiber'
 import { useEffect, useMemo, useState } from 'react'
 import type { ClientPhoto, SignSelection } from '../../core/types'
-import { HDRI_SRC, SignScene, VIEW_HALF_HEIGHT } from './scene/SignScene'
+import { HDRI_SRC, SignScene } from './scene/SignScene'
 import { layoutLetters, scenePalette, signPlacement, type SignPlacement } from './scene/sceneGeometry'
 import { hasWebGL } from './scene/webgl'
 import { disposeGlyphTextures, glyphWidth } from './scene/glyphTexture'
+import { disposeHaloGeometry } from './scene/haloGeometry'
 import { disposeSupportShadow } from './scene/supportShadow'
 import type { SignVisual } from './visuals'
 
-// Las dos primeras capas del preview (SPEC 12): la foto y el canvas transparente con el
-// cartel, dentro de un mismo contenedor que recibe el zoom. La comparten el preview y el
-// modo de calibracion, asi lo que se calibra es exactamente lo que ve el visitante.
+// Las capas del viewer (SPEC 12, version 1.12): la foto, solo en modo vista, y el canvas
+// con el cartel, que cubre el cuadro entero en los dos modos. El canvas ocupa siempre el
+// mismo lugar del arbol: cambiar de modo o de vista no lo remonta ni reinicia nada.
+// La comparten el preview y el modo de calibracion, asi lo que se calibra es exactamente
+// lo que ve el visitante.
 
 type PhotoStageProps = {
   selection: SignSelection
   visual: SignVisual
   theme: Record<string, string>
-  photo: ClientPhoto
+  // null en modo cartel.
+  photo: ClientPhoto | null
+  // De donde sale la luz en modo cartel: la primera foto del cliente.
+  lightPhoto: ClientPhoto
   reducedMotion: boolean
-  zoom: number
+  // Modo vista: escala CSS de foto y canvas juntos.
+  cssZoom: number
+  // Modo cartel: fraccion de la distancia base de la camara.
+  signZoom: number
 }
 
 // El HDRI de estudio es opcional: se sondea una vez y, si no esta, la escena corre sin
-// reflejo. Asi el dia que el archivo entre al repo no hay que tocar una linea de codigo.
-// No alcanza con res.ok: el rewrite de SPA responde 200 con el index.html para cualquier
-// ruta que no exista, asi que un HDRI ausente pasaba por presente y el loader lanzaba.
+// reflejo. No alcanza con res.ok: el rewrite de SPA responde 200 con el index.html para
+// cualquier ruta que no exista, asi que un HDRI ausente pasaba por presente.
 function useHdriReady(): boolean {
   const [ready, setReady] = useState(false)
   useEffect(() => {
@@ -46,21 +54,31 @@ function useHdriReady(): boolean {
   return ready
 }
 
-export function PhotoStage({ selection, visual, theme, photo, reducedMotion, zoom }: PhotoStageProps) {
+export function PhotoStage({
+  selection,
+  visual,
+  theme,
+  photo,
+  lightPhoto,
+  reducedMotion,
+  cssZoom,
+  signZoom,
+}: PhotoStageProps) {
   const hdriReady = useHdriReady()
   const palette = useMemo(() => scenePalette(theme), [theme])
 
-  // Las CanvasTexture viven mientras vive la escena, no una por render: se liberan aca.
+  // Las CanvasTexture y las geometrias del halo viven mientras vive la escena: se liberan aca.
   useEffect(
     () => () => {
       disposeGlyphTextures()
       disposeSupportShadow()
+      disposeHaloGeometry()
     },
     [],
   )
 
-  // Modo letters: el contorno de la palabra hace de placement, asi halo, sombra y lampara
-  // siguen a las letras igual que al panel. El alto de letra pasa a metros como el resto.
+  // Modo letters: el contorno de la palabra hace de placement, asi halo, sombra, lampara y
+  // encuadre de camara siguen a las letras igual que al panel.
   const letterHeightMeters = selection.letterHeight * visual.lengthToMeters
   const letterLayout = useMemo(
     () =>
@@ -72,43 +90,31 @@ export function PhotoStage({ selection, visual, theme, photo, reducedMotion, zoo
       ? signPlacement(selection, visual.lengthToMeters)
       : { box: { width: letterLayout.totalWidth, height: letterHeightMeters } }
 
-  // El canvas cubre un recuadro centrado en el anclaje. Su ancho en fraccion del cuadro
-  // sale de metersToWidth: cuantos metros ve la camara por cuanto ocupa un metro.
-  const canvasWidthPct = 2 * VIEW_HALF_HEIGHT * photo.anchor.metersToWidth * 100
-  const canvasHeightPct = canvasWidthPct * (16 / 9)
-
   return (
     <div
       className="absolute inset-0 origin-center transition-transform duration-200"
-      style={{ transform: `scale(${String(zoom)})` }}
+      style={{ transform: `scale(${String(photo === null ? 1 : cssZoom)})` }}
     >
-      <img src={photo.src} alt={photo.label} className="absolute inset-0 h-full w-full object-cover" />
+      {photo === null ? null : (
+        <img src={photo.src} alt={photo.label} className="absolute inset-0 h-full w-full object-cover" />
+      )}
       {hasWebGL() ? (
-        <div
-          className="absolute"
-          style={{
-            left: `${String(photo.anchor.x * 100)}%`,
-            top: `${String(photo.anchor.y * 100)}%`,
-            width: `${String(canvasWidthPct)}%`,
-            height: `${String(canvasHeightPct)}%`,
-            transform: 'translate(-50%, -50%)',
-          }}
-        >
-          <Canvas gl={{ antialias: true, alpha: true }} style={{ background: 'transparent' }}>
-            <SignScene
-              placement={placement}
-              text={selection.text}
-              material={visual.material}
-              lightingMode={visual.lighting.mode}
-              palette={palette}
-              photo={photo}
-              hdriReady={hdriReady}
-              reducedMotion={reducedMotion}
-              letters={letterLayout === null ? null : letterLayout.boxes}
-              letterDepth={visual.depthMeters}
-            />
-          </Canvas>
-        </div>
+        <Canvas gl={{ antialias: true, alpha: true }} className="!absolute inset-0" style={{ background: 'transparent' }}>
+          <SignScene
+            placement={placement}
+            text={selection.text}
+            material={visual.material}
+            lightingMode={visual.lighting.mode}
+            palette={palette}
+            photo={photo}
+            lightPhoto={lightPhoto}
+            signZoom={signZoom}
+            hdriReady={hdriReady}
+            reducedMotion={reducedMotion}
+            letters={letterLayout === null ? null : letterLayout.boxes}
+            letterDepth={visual.depthMeters}
+          />
+        </Canvas>
       ) : null}
     </div>
   )

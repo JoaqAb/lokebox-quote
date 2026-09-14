@@ -21,8 +21,9 @@ type Pointer = { x: number; y: number }
 
 const SLIDERS = [
   { key: 'metersToWidth', min: 0.01, max: 0.3, step: 0.001 },
-  { key: 'yawDeg', min: -60, max: 60, step: 0.5 },
-  { key: 'pitchDeg', min: -30, max: 30, step: 0.5 },
+  { key: 'cameraYawDeg', min: -80, max: 80, step: 0.5 },
+  { key: 'cameraPitchDeg', min: -45, max: 45, step: 0.5 },
+  { key: 'fovDeg', min: 10, max: 90, step: 0.5 },
 ] as const
 
 function round(value: number, decimals: number): number {
@@ -77,7 +78,16 @@ export function CalibrationPreview({ selection, visual, theme, photos }: Calibra
           updateAnchor(pointerFromEvent(event))
         }}
       >
-        <PhotoStage selection={selection} visual={visual} theme={theme} photo={photo} reducedMotion zoom={1} />
+        <PhotoStage
+          selection={selection}
+          visual={visual}
+          theme={theme}
+          photo={photo}
+          lightPhoto={photo}
+          reducedMotion
+          cssZoom={1}
+          signZoom={1}
+        />
         {pointer === null ? null : (
           <div className="pointer-events-none absolute inset-0">
             <div className="absolute inset-x-0 h-px bg-[var(--q-accent)]" style={{ top: `${String(pointer.y * 100)}%` }} />

@@ -4,16 +4,16 @@ import {
   BoxGeometry,
   Color,
   MathUtils,
-  type MeshStandardMaterial,
   type Mesh,
   type MeshBasicMaterial,
+  type MeshStandardMaterial,
   type PointLight,
 } from 'three'
 import type { MaterialVisual } from '../../../core/types'
+import { haloCellGeometry } from './haloGeometry'
 import { supportShadowTexture } from './supportShadow'
 import {
   DAMP_LAMBDA,
-  HALO,
   SET,
   SETTLE_EPSILON,
   SUPPORT_SHADOW,
@@ -21,9 +21,11 @@ import {
   UNIT_PLANE,
   VISIBLE_EPSILON,
   haloBox,
+  haloCells,
   lampPosition,
   lightingParams,
   supportShadowBox,
+  type HaloCellKind,
   type LetterBox,
   type SignPlacement,
 } from './sceneGeometry'
@@ -33,15 +35,28 @@ import {
 // Ninguna medida ni ningun color se escribe aca: todo sale de sceneGeometry y del visual.
 // Nada viaja como prop de JSX si lo maneja el frame loop: React lo aplicaria de una
 // en cada cambio de opcion y pisaria la transicion.
-// El cartel esta centrado en el origen: sobre que foto y en que parte se dibuja lo
-// resuelve la capa de composicion (SPEC 12, version 1.9).
-// En modo letters el panel se oculta y se dibuja una caja por letra. Cada letra tiene su
-// material, que en cada frame copia el del panel: asi color, metalness y emision
-// transicionan juntos en todas las letras. placement.box es entonces el contorno de la palabra, y halo, sombra
-// y lampara lo siguen igual que al panel.
+// El cartel esta centrado en el origen y no rota: la camara orbita a su alrededor
+// (SPEC 12, version 1.12).
+// Cada caja lleva seis materiales, uno por cara, en el orden de BoxGeometry: +x, -x, +y,
+// -y, frente, atras. Asi en back emiten los cantos y la cara trasera y la cara frontal
+// emite poco, para que el texto se lea. En modo letters el panel se oculta y se dibuja
+// una caja por letra; placement.box es el contorno de la palabra, y halo, sombra y
+// lampara lo siguen igual que al panel.
 
-// Base del halo: lo que se ve es su emision, no su color iluminado.
-const HALO_BASE_COLOR = new Color(0, 0, 0)
+const FACE_COUNT = 6
+const FRONT_FACE_INDEX = 4
+
+const HALO_KINDS: HaloCellKind[] = [
+  'center',
+  'left',
+  'right',
+  'top',
+  'bottom',
+  'topLeft',
+  'topRight',
+  'bottomLeft',
+  'bottomRight',
+]
 
 // Damp que cierra exacto: sin esto el valor final nunca es el de la tabla.
 function approach(current: number, target: number, delta: number): number {
@@ -69,7 +84,11 @@ type SignBoardProps = {
   letters: LetterBox[] | null
   // Profundidad de las letras, en metros.
   letterDepth: number
+  // El halo de back solo existe en modo vista.
+  haloEnabled: boolean
 }
+
+type FaceMaterial = { material: MeshStandardMaterial; front: boolean }
 
 export function SignBoard({
   placement,
@@ -79,10 +98,25 @@ export function SignBoard({
   reducedMotion,
   letters,
   letterDepth,
+  haloEnabled,
 }: SignBoardProps) {
   const signRef = useRef<Mesh>(null)
-  const signMaterialRef = useRef<MeshStandardMaterial>(null)
-  const letterMaterialsRef = useRef<(MeshStandardMaterial | null)[]>([])
+  const faceMaterialsRef = useRef(new Map<string, FaceMaterial>())
+  const haloMeshesRef = useRef<(Mesh | null)[]>([])
+  const haloMaterialsRef = useRef<(MeshBasicMaterial | null)[]>([])
+  const lampRef = useRef<PointLight>(null)
+  const shadowRef = useRef<Mesh>(null)
+  // Estado amortiguado del material, compartido por todas las caras de todas las cajas.
+  const look = useRef({
+    color: new Color(),
+    metalness: 0,
+    roughness: 1,
+    face: 0,
+    edge: 0,
+    haloOpacity: 0,
+    started: false,
+  })
+  const targetColor = useMemo(() => new Color(material.color), [material.color])
   const letterGeometry = useMemo(() => new BoxGeometry(...UNIT_BOX), [])
   useEffect(
     () => () => {
@@ -90,43 +124,41 @@ export function SignBoard({
     },
     [letterGeometry],
   )
-  const haloRef = useRef<Mesh>(null)
-  const haloMaterialRef = useRef<MeshStandardMaterial>(null)
-  const lampRef = useRef<PointLight>(null)
-  const shadowRef = useRef<Mesh>(null)
-  const shadowMaterialRef = useRef<MeshBasicMaterial>(null)
-  const started = useRef(false)
-  const targetColor = useMemo(() => new Color(material.color), [material.color])
+
+  function faceMaterials(owner: string) {
+    return Array.from({ length: FACE_COUNT }, (_unused, index) => {
+      const key = `${owner}-${String(index)}`
+      return (
+        <meshStandardMaterial
+          key={key}
+          attach={`material-${String(index)}`}
+          ref={(instance) => {
+            if (instance === null) {
+              faceMaterialsRef.current.delete(key)
+            } else {
+              faceMaterialsRef.current.set(key, { material: instance, front: index === FRONT_FACE_INDEX })
+            }
+          }}
+        />
+      )
+    })
+  }
 
   useFrame((_state, delta) => {
     const sign = signRef.current
-    const signMaterial = signMaterialRef.current
-    const halo = haloRef.current
-    const haloMaterial = haloMaterialRef.current
     const lamp = lampRef.current
     const shadow = shadowRef.current
-    if (
-      sign === null ||
-      signMaterial === null ||
-      halo === null ||
-      haloMaterial === null ||
-      lamp === null ||
-      shadow === null
-    ) {
+    if (sign === null || lamp === null || shadow === null) {
       return
     }
 
     const lighting = lightingParams(lightingMode)
-    const haloTarget = haloBox(
-      placement,
-      letters === null ? HALO.padding : placement.box.height * HALO.letterPaddingRatio,
-    )
     const lampTarget = lampPosition(lightingMode, placement)
-    const haloOpacity = Math.min(1, lighting.haloIntensity)
+    const state = look.current
 
     // El primer frame se acomoda de golpe, para no entrar con una animacion de carga.
-    const instant = reducedMotion || !started.current
-    started.current = true
+    const instant = reducedMotion || !state.started
+    state.started = true
     const move = (current: number, target: number): number =>
       instant ? target : approach(current, target, delta)
 
@@ -136,40 +168,40 @@ export function SignBoard({
     sign.visible = letters === null
 
     if (instant) {
-      signMaterial.color.copy(targetColor)
-      signMaterial.emissive.copy(targetColor)
+      state.color.copy(targetColor)
     } else {
-      approachColor(signMaterial.color, targetColor, delta)
-      approachColor(signMaterial.emissive, targetColor, delta)
+      approachColor(state.color, targetColor, delta)
     }
-    signMaterial.metalness = move(signMaterial.metalness, material.metalness)
-    signMaterial.roughness = move(signMaterial.roughness, material.roughness)
-    signMaterial.emissiveIntensity = move(
-      signMaterial.emissiveIntensity,
-      lighting.emissiveIntensity,
-    )
+    state.metalness = move(state.metalness, material.metalness)
+    state.roughness = move(state.roughness, material.roughness)
+    state.face = move(state.face, lighting.faceEmissiveIntensity)
+    state.edge = move(state.edge, lighting.edgeEmissiveIntensity)
+    state.haloOpacity = move(state.haloOpacity, haloEnabled ? lighting.haloOpacity : 0)
 
-    for (const letterMaterial of letterMaterialsRef.current) {
-      if (letterMaterial !== null) {
-        letterMaterial.color.copy(signMaterial.color)
-        letterMaterial.emissive.copy(signMaterial.emissive)
-        letterMaterial.metalness = signMaterial.metalness
-        letterMaterial.roughness = signMaterial.roughness
-        letterMaterial.emissiveIntensity = signMaterial.emissiveIntensity
+    for (const { material: face, front } of faceMaterialsRef.current.values()) {
+      face.color.copy(state.color)
+      face.emissive.copy(state.color)
+      face.metalness = state.metalness
+      face.roughness = state.roughness
+      face.emissiveIntensity = front ? state.face : state.edge
+    }
+
+    // El halo sigue al tamano amortiguado del cartel, no al objetivo: asi no se adelanta.
+    const cells = haloCells({ box: { width: sign.scale.x, height: sign.scale.y } })
+    const haloZ = haloBox(placement).z
+    const haloVisible = state.haloOpacity > VISIBLE_EPSILON
+    cells.forEach((cell, index) => {
+      const mesh = haloMeshesRef.current[index]
+      const haloMaterial = haloMaterialsRef.current[index]
+      if (mesh === null || mesh === undefined || haloMaterial === null || haloMaterial === undefined) {
+        return
       }
-    }
-
-    halo.scale.x = move(halo.scale.x, haloTarget.size[0])
-    halo.scale.y = move(halo.scale.y, haloTarget.size[1])
-    halo.position.z = haloTarget.z
-    if (instant) {
-      haloMaterial.emissive.copy(targetColor)
-    } else {
-      approachColor(haloMaterial.emissive, targetColor, delta)
-    }
-    haloMaterial.emissiveIntensity = move(haloMaterial.emissiveIntensity, lighting.haloIntensity)
-    haloMaterial.opacity = move(haloMaterial.opacity, haloOpacity)
-    halo.visible = haloMaterial.emissiveIntensity > VISIBLE_EPSILON
+      mesh.position.set(cell.position[0], cell.position[1], haloZ)
+      mesh.scale.set(cell.size[0], cell.size[1], 1)
+      mesh.visible = haloVisible
+      haloMaterial.color.copy(state.color)
+      haloMaterial.opacity = state.haloOpacity
+    })
 
     // Una sola luz dinamica, siempre montada: apagarla es bajar su intensidad a 0.
     // Montarla y desmontarla por modo recompila los shaders de toda la escena.
@@ -183,7 +215,7 @@ export function SignBoard({
     lamp.decay = lighting.lampDecay
     lamp.distance = lighting.lampDistance
 
-    // La sombra de apoyo sigue al cartel: es lo que impide que flote sobre la foto.
+    // La sombra de apoyo sigue al cartel: es lo que impide que flote.
     const shadowTarget = supportShadowBox(placement)
     shadow.scale.x = move(shadow.scale.x, shadowTarget.size[0])
     shadow.scale.y = move(shadow.scale.y, shadowTarget.size[1])
@@ -195,7 +227,7 @@ export function SignBoard({
     <group>
       <mesh ref={signRef} scale={UNIT_BOX}>
         <boxGeometry args={UNIT_BOX} />
-        <meshStandardMaterial ref={signMaterialRef} />
+        {faceMaterials('panel')}
       </mesh>
 
       {letters === null
@@ -207,28 +239,35 @@ export function SignBoard({
               position={[letter.x, 0, 0]}
               scale={[letter.width, placement.box.height, letterDepth]}
             >
-              <meshStandardMaterial
-                ref={(material) => {
-                  letterMaterialsRef.current[index] = material
-                }}
-              />
+              {faceMaterials(`letter-${String(index)}`)}
             </mesh>
           ))}
 
-      <mesh ref={haloRef} scale={UNIT_BOX}>
-        <planeGeometry args={UNIT_PLANE} />
-        <meshStandardMaterial
-          ref={haloMaterialRef}
-          color={HALO_BASE_COLOR}
-          transparent
-          depthWrite={false}
-        />
-      </mesh>
+      {HALO_KINDS.map((kind, index) => (
+        <mesh
+          key={kind}
+          geometry={haloCellGeometry(kind)}
+          visible={false}
+          ref={(mesh) => {
+            haloMeshesRef.current[index] = mesh
+          }}
+        >
+          <meshBasicMaterial
+            ref={(instance) => {
+              haloMaterialsRef.current[index] = instance
+            }}
+            alphaMap={supportShadowTexture()}
+            transparent
+            opacity={0}
+            depthWrite={false}
+            toneMapped={false}
+          />
+        </mesh>
+      ))}
 
       <mesh ref={shadowRef} scale={UNIT_BOX}>
         <planeGeometry args={UNIT_PLANE} />
         <meshBasicMaterial
-          ref={shadowMaterialRef}
           color={shadowColor}
           alphaMap={supportShadowTexture()}
           transparent
