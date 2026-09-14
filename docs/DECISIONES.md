@@ -256,3 +256,6 @@
 - 14/09/2026: las mayusculas son una opcion del descriptor del control de texto (uppercase), que pone la vertical; core solo la aplica. El campo devuelve el cursor a su lugar despues de pasar a mayusculas: sin eso, corregir en el medio de la palabra lo mandaba al final.
 - 14/09/2026: el typeface se carga por fetch con una sola promesa por pagina y se parsea con Font de three; si falla, el cartel se dibuja sin texto. Mientras carga, el modo letters no dibuja letras.
 - 14/09/2026: el test del typeface importa el JSON de public/ en vez de leer el archivo con node:fs, porque tsconfig.app no incluye los tipos de node. El archivo se escribio compacto y en ASCII, asi su largo serializado es su peso.
+- 14/09/2026: el totem se dibuja de verdad, con panel, poste y base, en lugar de sacarse: cobraba 400 USD de recargo (270.000 ARS) por una estructura que el preview no mostraba. El tipo y su precio quedan.
+- 14/09/2026: el cartel bandera, perpendicular a la pared, queda fuera de esta semana: en modo cartel no hay pared contra la que ser perpendicular, y en una foto frontal un cartel perpendicular se ve de canto.
+- 14/09/2026: salen las vistas de foto en angulo (angle-left-day y angle-right-day de los dos clientes) y con eso muere la calibracion por cuatro esquinas: en una foto frontal x, y y metersToWidth alcanzan. Quedan Front y Night.
