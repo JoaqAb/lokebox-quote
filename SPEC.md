@@ -3,7 +3,7 @@
 Fuente de verdad del alcance. Si algo no está acá, no se construye.
 Este documento se edita, no se contradice. Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 
-Versión: 1.11 · 14/09/2026
+Versión: 1.12 · 14/09/2026
 
 ## 1. Objetivo
 
@@ -329,7 +329,7 @@ La forma de `leads` sigue la que usaría Lokebox para un pedido en gestación. S
       "id": "front",
       "label": "Storefront",
       "src": "/clients/northline/photos/front.webp",
-      "anchor": { "x": 0.5, "y": 0.38, "metersToWidth": 0.085, "yawDeg": 0, "pitchDeg": 0 },
+      "anchor": { "x": 0.5, "y": 0.38, "metersToWidth": 0.085, "cameraYawDeg": 0, "cameraPitchDeg": -8, "fovDeg": 40 },
       "light": { "ambient": 0.9, "keyIntensity": 1.4, "keyAzimuthDeg": -25, "keyElevationDeg": 35 }
     }
   ],
@@ -361,11 +361,13 @@ La forma de `leads` sigue la que usaría Lokebox para un pedido en gestación. S
 
 `options.depths[]` suma `visual.depthMeters` (desde 1.11): la medida real de la profundidad, la que dibuja el preview. `factor` sigue siendo el multiplicador de precio de la sección 6 y no una medida; derivar la profundidad del `label` sería parsear texto. Mismo patrón que `materials[].visual`.
 
-`photos` (desde 1.9, conteo ampliado en 1.10): una entrada por ángulo fotografiado, 2 a 4 por cliente, la primera es la que se muestra al cargar. `id` único dentro del cliente. `label` es la etiqueta visible del ángulo y vive acá y no en `texts` porque la cantidad de fotos varía por cliente y una clave fija por ángulo no existiría: es el mismo criterio de `options.types[].label` y `options.materials[].label`. `anchor` dice dónde y de qué tamaño se dibuja el cartel sobre esa foto: `x` e `y` son el centro en fracción del ancho y del alto, con origen arriba a la izquierda; `metersToWidth` es qué fracción del ancho de la foto ocupa un metro de cartel, expresado así y no como factor abstracto para poder calcularlo contra una medida conocida de la foto en vez de a ojo; `yawDeg` y `pitchDeg` giran el cartel para acompañar el ángulo de la foto. `light` es la luz de la escena del cartel en esa foto, para que su volumen case con ella.
+`photos` (desde 1.9, conteo ampliado en 1.10): una entrada por ángulo fotografiado, 2 a 4 por cliente, la primera es la que se muestra al cargar. `id` único dentro del cliente. `label` es la etiqueta visible del ángulo y vive acá y no en `texts` porque la cantidad de fotos varía por cliente y una clave fija por ángulo no existiría: es el mismo criterio de `options.types[].label` y `options.materials[].label`. `anchor` dice dónde y de qué tamaño se dibuja el cartel sobre esa foto: `x` e `y` son el centro en fracción del ancho y del alto, con origen arriba a la izquierda; `metersToWidth` es qué fracción del ancho de la foto ocupa un metro de cartel, expresado así y no como factor abstracto para poder calcularlo contra una medida conocida de la foto en vez de a ojo; `cameraYawDeg`, `cameraPitchDeg` y `fovDeg` (desde 1.12, reemplazan a `yawDeg` y `pitchDeg`) describen la cámara que tomó la foto: la cámara en perspectiva del viewer orbita alrededor del cartel con ese azimut y esa elevación, con ese campo de visión vertical, y el cartel no se rota. `cameraYawDeg` positivo pone la cámara a la derecha del frente del cartel; `cameraPitchDeg` negativo la pone por debajo del centro del cartel, que es lo normal en una foto de fachada. `fovDeg` es mayor que 0 y menor que 180. `light` es la luz de la escena del cartel en esa foto, para que su volumen case con ella.
 
-Las 44 claves de `texts` requeridas, iguales en los dos idiomas:
+Las 46 claves de `texts` requeridas, iguales en los dos idiomas:
 
-`headline`, `subheadline`, `configureTitle`, `typeLabel`, `widthLabel`, `heightLabel`, `materialLabel`, `lightingLabel`, `installationLabel`, `installationYes`, `installationNo`, `quantityLabel`, `priceLabel`, `priceRangeNote`, `disclaimer`, `ctaWhatsapp`, `ctaForm`, `formTitle`, `formName`, `formContact`, `formNote`, `formSubmit`, `formSending`, `thanksTitle`, `thanksBody`, `viewQuote`, `quoteTitle`, `quoteValidity`, `quoteDateLabel`, `quoteSelectionTitle`, `quoteBreakdownTitle`, `quotePrint`, `quoteBack`, `lineMaterial`, `lineLighting`, `lineType`, `lineInstallation`, `lineDiscount`, `poweredBy`, `whatsappMessage`, `signTextLabel`, `letterHeightLabel`, `depthLabel`, `whatsappMessageLetters`.
+`headline`, `subheadline`, `configureTitle`, `typeLabel`, `widthLabel`, `heightLabel`, `materialLabel`, `lightingLabel`, `installationLabel`, `installationYes`, `installationNo`, `quantityLabel`, `priceLabel`, `priceRangeNote`, `disclaimer`, `ctaWhatsapp`, `ctaForm`, `formTitle`, `formName`, `formContact`, `formNote`, `formSubmit`, `formSending`, `thanksTitle`, `thanksBody`, `viewQuote`, `quoteTitle`, `quoteValidity`, `quoteDateLabel`, `quoteSelectionTitle`, `quoteBreakdownTitle`, `quotePrint`, `quoteBack`, `lineMaterial`, `lineLighting`, `lineType`, `lineInstallation`, `lineDiscount`, `poweredBy`, `whatsappMessage`, `signTextLabel`, `letterHeightLabel`, `depthLabel`, `whatsappMessageLetters`, `previewZoomLabel`, `viewSignOnly`.
+
+`previewZoomLabel` es la etiqueta del zoom del viewer. `viewSignOnly` (desde 1.12) es la etiqueta del botón del modo cartel en el selector de vistas: EN "The sign", ES "Solo el cartel".
 
 Los números visibles se formatean con `Intl` y el locale del cliente: `8.5` en `en`, `2,5` en `es-AR`. Eso vale para las medidas (ancho y alto) en el panel, en el mensaje de WhatsApp y en la hoja de cotización, y también para el desglose y la línea de área, que además llevan la unidad y la moneda del cliente.
 
@@ -382,51 +384,69 @@ Validación: al cargar un cliente se valida la forma en runtime. Si falta una cl
 
 Sin marcas reales, sin fotos reales, sin logos de terceros.
 
-## 12. Preview: foto fija con cartel 3D compuesto
+## 12. Preview: viewer en dos modos
 
-Desde 1.9 el preview no es una escena 3D completa. Es una foto real del rubro con el cartel renderizado encima, en un canvas transparente. Motivo: la escena de cajas costó tres bloques y seguía siendo un local genérico, mientras una foto comunica el rubro en un segundo. Lo que se cotiza, el cartel, sigue siendo 3D real con su material, su volumen y sus tres modos de luz.
+Desde 1.12 el viewer tiene dos modos sobre el mismo canvas R3F, que no se remonta al cambiar de modo ni de vista y no reinicia la selección.
 
-Tres capas apiladas en el mismo cuadro 16:9, dentro del marco del preview:
+1. Modo cartel, el default al cargar. Sin foto. Fondo `--q-surface` del marco. El cartel solo, con su sombra de apoyo, y el visitante lo gira con el mouse o el dedo.
+2. Modo vista. Una foto del cliente con el cartel compuesto encima, fijo, sin órbita: es el pivote de 1.9 con la cámara nueva.
 
-1. Foto de fondo del cliente, elegida por ángulo.
-2. Canvas R3F transparente (`alpha: true`, sin color de limpieza) con el cartel y nada más.
-3. Controles fuera del canvas: selector de ángulo y zoom.
+El selector de vistas es una fila de botones: el primero es el modo cartel, con la etiqueta `viewSignOnly`, seleccionado al cargar; después uno por foto de `photos`, con su `label`.
 
-El zoom es una transformación CSS sobre el contenedor de las dos primeras capas, nunca un movimiento de cámara: así foto y cartel escalan juntos y no existe el desalineado. Cambiar de ángulo cambia de foto y de anclaje. No hay órbita: los ángulos son los que el cliente tenga fotografiados.
+Cámara en perspectiva en los dos modos. Motivo: la ortográfica de 1.9 dibujaba el cartel de frente sobre fotos tomadas en tres cuartos, y girar el cartel no reproduce la fuga de una foto. Se orbita la cámara alrededor del cartel; el cartel no se rota nunca.
 
-Assets permitidos, y solo estos dos: las fotos de fondo del cliente y un único HDRI de estudio para todo el producto, ambos servidos desde `public/`. Sigue prohibido todo modelo importado, archivo de fuente, `Text` y `Text3D` de drei, postprocessing y sombras de mapa. La prohibición en bloque de "ningún asset que se descargue" dejó de ser cierta en 1.9 y se reescribe acá en vez de quedar contradicha.
+- Modo cartel: `fov` 30. Target en el centro del cartel. Distancia base: la que encuadra el ancho y el alto del cartel con 15 por ciento de margen por lado. `OrbitControls` con azimut libre de 360 grados, ángulo polar entre 0,6 y 1,5 rad (nunca desde abajo), sin paneo, sin zoom de rueda y sin autorotación. La luz de la escena sale del `light` de la primera foto de `photos`.
+- Modo vista: la cámara sale del anchor de la foto. Se ubica en `cameraYawDeg` y `cameraPitchDeg` alrededor del cartel, con `fovDeg` como campo vertical, a la distancia en la que un metro de cartel ocupa `metersToWidth` del ancho de la foto. El centro del cartel cae en (`x`, `y`) de la foto con un corrimiento de la vista de la cámara (lens shift), no moviendo el cartel. El canvas cubre el cuadro entero.
 
-Permitido y acotado: texturas generadas en runtime con `CanvasTexture`, que no descargan nada y no pesan en el bundle. Se usan para dos cosas y nada más: los glifos del texto del cartel y el degradado de la sombra de apoyo. Una textura por glifo, memoizada por caracter, 128 px, `SRGBColorSpace`, `dispose` al desmontar. Por caracter y no por palabra: el visitante escribe letra a letra, y por palabra se regeneraría en cada tecla. La fuente es el stack del sistema (`Arial, Helvetica, sans-serif`), sin webfonts: en Linux mapea a Liberation Sans, que es métricamente compatible, así que el cuadro no se desarma entre sistemas.
+Zoom por modo, con el mismo control:
+
+- Modo cartel: acerca la cámara entre 1,0 y 0,55 de la distancia base. Solo acercar.
+- Modo vista: transformación CSS sobre el contenedor de foto y canvas juntos, nunca un movimiento de cámara, así foto y cartel escalan juntos y no existe el desalineado.
+
+Assets permitidos, y solo estos dos: las fotos de fondo del cliente y un único HDRI de estudio para todo el producto, ambos servidos desde `public/`. Sigue prohibido todo modelo importado, archivo de fuente, `Text` y `Text3D` de drei, postprocessing y sombras de mapa.
+
+Permitido y acotado: texturas generadas en runtime con `CanvasTexture`, que no descargan nada y no pesan en el bundle. Se usan para dos cosas y nada más: los glifos del texto del cartel y un degradado radial, que comparten la sombra de apoyo y el halo de `back`. Una textura por glifo, memoizada por caracter, 128 px, `SRGBColorSpace`, `dispose` al desmontar. Por caracter y no por palabra: el visitante escribe letra a letra. La fuente es el stack del sistema (`Arial, Helvetica, sans-serif`), sin webfonts.
 
 - Cartel en modo area: caja cuyas dimensiones siguen ancho y alto en tiempo real con transición suave. Espesor fijo. En la cara va el texto del cartel con la textura de glifos, centrado y escalado al ancho disponible.
-- Cartel en modo letters: una caja por letra, ancho de cada una medido con `measureText`, profundidad igual a la opción elegida, glifo en la cara frontal y cantos con el color del material. Máximo 18 cajas. El alto de letra sale de la selección.
-- El tipo `totem` sigue siendo un tipo cotizable, pero ya no dibuja poste ni se para sobre una vereda: sin set 3D no hay piso donde apoyarlo. Se dibuja como el cartel de fachada, con su recargo de precio intacto.
-- Sombra de apoyo: quad con degradado radial generado en canvas, detrás del cartel y apenas desplazado, para que no flote sobre la foto.
-- Material: cambia color, metalness y roughness según el `visual` del material. El HDRI de estudio es lo que hace que `metalness` alto se distinga: con sola una direccional y ambiente, el aluminio se ve igual que el PVC.
-- Iluminación: tres modos. `none` sin emisión y sin luz agregada. `front` con emisión baja en el cartel más una luz puntual por delante y por arriba, apuntando a la cara. `back` con emisión alta en el cartel más un plano emisivo apenas más grande detrás y una luz puntual entre el cartel y su apoyo. Nunca más de una luz dinámica. El color emisivo y el del halo salen del `visual` del material.
-- Los tres modos se distinguen con luminancia medida, sobre la región del cartel, con la misma foto en los tres: la luminancia de la cara crece de `none` a `front`, y la del anillo inmediato crece de `front` a `back`. Son dos comparaciones y no una cadena de tres porque con fondo de foto nada de la capa 3D puede iluminar el entorno: en `front` la lámpara alumbra la cara y el anillo sigue siendo la foto intacta, y el único modo que agrega luz alrededor del cartel es `back`, por su halo. Pedir `none` menor que `front` menor que `back` en el anillo era arrastrar el criterio de una escena que ya no existe.
-- No hay escalar `dusk`. Con una foto fija de fondo, cambiar la hora de la luz del cartel sin que cambie la foto lo deja en una escena que no le corresponde. Si el cliente provee una foto de atardecer entre sus ángulos, el efecto vuelve sin código.
-- No hay degradación por rendimiento. Sin set 3D no quedan escalones que apagar: el canvas dibuja un cartel y su halo.
-- Luz de la escena del cartel: sale del `light` de la foto elegida, no de constantes del código. Sin eso, un cartel iluminado desde la izquierda sobre una foto con sol a la derecha se lee como pegado.
-- Interfaz del componente: recibe `selection`, `visual`, `theme` y la foto elegida. El preview no recibe la config del cliente y no busca nada por id.
-- Escala: la escena trabaja siempre en metros. Las medidas de la selección se multiplican por el factor de `visual` (1 en metros, 0.3048 en pies), y el `metersToWidth` del anclaje las lleva a la foto.
+- Cartel en modo letters: una caja por letra, ancho de cada una medido con `measureText`, profundidad `visual.depthMeters` de la opción elegida, glifo en la cara frontal y cantos con el color del material. Máximo 18 cajas. El alto de letra sale de la selección.
+- El tipo `totem` se dibuja como el cartel de fachada, con su recargo de precio intacto.
+- Sombra de apoyo: quad con el degradado radial, detrás del cartel y apenas desplazado, en los dos modos.
+- Material: cambia color, metalness y roughness según el `visual` del material. El HDRI de estudio es lo que hace que `metalness` alto se distinga.
+- Iluminación: tres modos, nunca más de una luz dinámica, colores del `visual` del material.
+  - `none`: sin emisión y sin luz agregada.
+  - `front`: emisión baja en la cara más una luz puntual por delante y por arriba.
+  - `back`: los cantos y la cara trasera emiten; la cara emite poco, lo justo para que el texto del cartel siga legible. En modo cartel no hay halo. En modo vista hay halo: el degradado radial detrás del cartel, con un margen de 0,12 del alto del cartel por lado, opacidad máxima 0,55, color del emisivo del material y sin borde duro.
+- En modo vista los tres modos se distinguen con luminancia medida sobre la región del cartel, con la misma foto: la cara crece de `none` a `front` y el anillo inmediato crece de `front` a `back`. En modo cartel `back` se distingue de `front` con luminancia medida, sin halo.
+- No hay escalar `dusk` ni degradación por rendimiento.
+- Luz de la escena del cartel: sale del `light` de la foto elegida en modo vista, y del de la primera foto en modo cartel. Nunca de constantes del código.
+- Interfaz del componente: recibe `selection`, `visual`, `theme`, las fotos y las etiquetas. El preview no recibe la config del cliente y no busca nada por id.
+- Escala: la escena trabaja siempre en metros. Las medidas de la selección se multiplican por el factor de `visual` (1 en metros, 0.3048 en pies).
 - Colores: el color del cartel sale del `visual` del material. Ningún hexadecimal escrito en un componente de escena.
-- Si el navegador no tiene WebGL, se muestra la foto sola con el bloque plano del cartel encima, equivalente al provisorio de TAREA_002.
+- Si el navegador no tiene WebGL, el modo vista muestra la foto sola.
 
 ## 13. Landing (quote.lokebox.com)
 
-Una página con identidad Lokebox: qué es, para quién, botón a la demo EN y a la demo ES, los dos tiers con precio, y contacto. Corta. Se hace el jueves 17.
+Una página en `/` con identidad Lokebox: qué es, para quién, botón a la demo EN (`/d/northline`) y a la demo ES (`/d/norte`), los dos tiers con precio de la sección 15, y contacto. Corta.
+
+- En inglés, sin selector de idioma.
+- Paleta propia de Lokebox, no la de ningún cliente: bg `#FAFAF8`, text `#101215`, muted `#6E737B`, accent `#1E56E0`.
+- Contacto: placeholder hasta que Canal C entregue el dato público.
+- Textos, precios, paleta y contacto salen de un JSON propio de la landing, no del código.
 
 ## 14. Tracking
 
 - Un insert en `visits` por carga de `/d/<slug>`, una sola vez por sesión.
 - Sin cookies, sin analytics de terceros, sin banner de consentimiento.
 
-## 15. Tiers comerciales (referencia para el Catalog)
+## 15. Tiers comerciales
 
-- Starter: cotizador visual con la marca del cliente, precios simples, CTA WhatsApp, "Powered by Lokebox" al pie.
-- Standard: Starter más captura de lead, guardado en tabla, hoja de cotización imprimible y sin "Powered by".
-- Advanced: no se construye. Si alguien lo pide, se cotiza a mano.
+Los dos tiers de la venta directa, los que muestra la landing:
+
+- Starter: USD 750 de setup más USD 79 por mes. Cotizador visual con la marca del cliente, una familia de producto, formulario y/o WhatsApp, lead estructurado, quote imprimible.
+- Pro: USD 1.500 de setup más USD 149 por mes. Starter más hasta dos familias relacionadas, reglas de precio más avanzadas y prioridad de implementación.
+- Custom: no se construye ni se publica en la landing. Si alguien lo pide, se cotiza a mano.
+
+El Project Catalog de Upwork conserva su pricing de penetración propio (docs/comercial/PRICING.md), que no se muestra en la landing.
 
 El cliente entrega antes de empezar: logo, colores, WhatsApp o mail, y sus reglas de precio en la planilla plantilla.
 

@@ -11,7 +11,7 @@ Reemplazar el indice temporal de `/`, que hoy muestra los slugs crudos (`src/pag
 - que es el producto;
 - para quien;
 - boton a la demo EN (`/d/northline`) y boton a la demo ES (`/d/norte`);
-- los dos tiers con precio, Starter y Standard (SPEC 15);
+- los dos tiers con precio, Starter y Pro (SPEC 15);
 - contacto.
 
 Corta, segun SPEC 13.
@@ -25,9 +25,12 @@ Restricciones vigentes: sin guiones largos; sin strings de UI hardcodeados salvo
 - La pagina no importa nada de three ni del preview: tiene que cargar en menos de 2 segundos.
 - No inserta visitas: el tracking de SPEC 14 es por slug de cliente.
 
-## Datos que SPEC no fija
+## Valores decididos
 
-Se confirman con Joaquin antes de escribir codigo: precio de cada tier, colores de la identidad Lokebox, datos de contacto publicos e idioma de la pagina. Ver docs/DECISIONES.md al cerrar.
+- Tiers: Starter USD 750 de setup mas USD 79 por mes; Pro USD 1.500 de setup mas USD 149 por mes (SPEC 15, version 1.12).
+- Idioma: ingles, sin selector de idioma.
+- Paleta Lokebox: bg `#FAFAF8`, text `#101215`, muted `#6E737B`, accent `#1E56E0`.
+- Contacto: placeholder, a completar por Canal C con el dato publico.
 
 ## Criterios de aceptacion
 

@@ -96,6 +96,8 @@ Bloque 3 cerrado: TAREA_006 aceptada con 17 criterios verificados y 2 con desví
   - La hoja con `lh` y `d` recalcula el mismo total que el cotizador, y una clave del otro modo da la pantalla de error.
   - El mensaje de WhatsApp del modo letters sale sin huecos en los dos idiomas.
   - Recorte autorizado si el viernes 18 se pone en riesgo: sale el glifo del volumen y quedan las cajas por letra. El motor, el panel, el JSON y la hoja no se recortan.
+- TAREA_014 · viewer en dos modos, cámara en perspectiva y arreglo de back-lit. Va antes que la landing: el preview falla en producción por el cartel de frente sobre fotos en tres cuartos y por el halo de back. Detalle en docs/tareas/TAREA_014_viewer_dos_modos.md.
+  - Aceptación: G1 a G6 y los criterios de la tarea, uno por uno. El criterio 2 de DONE lo valida Joaquín en captura antes de cerrar.
 - TAREA_013 · landing en `/`: qué es, para quién, dos botones a las demos, los dos tiers con precio, contacto, footer. Reemplaza el índice temporal, que hoy muestra los slugs crudos. Va última del bloque a propósito: hacerla con la estética vieja es trabajo que se tira.
   - Aceptación: G1 a G6. La landing carga en menos de 2 segundos y los botones llevan a las demos.
 - Canal C al cierre del bloque: grabar el video de 30 segundos y sacar las capturas (desktop y mobile, demo EN).
