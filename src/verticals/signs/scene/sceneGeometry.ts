@@ -320,6 +320,67 @@ export function scenePalette(theme: Record<string, string>): ScenePalette {
   }
 }
 
+// Totem (SPEC 12, version 1.15): el panel del modo area, un poste centrado debajo y una base
+// en el piso. Son del producto, como la luz de estudio: nunca van al JSON. Poste y base son
+// proporcionales al ancho del panel con limites, para que no se rompan en los extremos del
+// slider de ancho. El origen del totem es la cara inferior de la base.
+export const TOTEM_POST_HEIGHT = 1.1
+export const TOTEM_BASE_HEIGHT = 0.08
+export const TOTEM_BASE_DEPTH = 0.5
+export const TOTEM_POST_WIDTH_RATIO = 0.12
+export const TOTEM_POST_WIDTH_MIN = 0.12
+export const TOTEM_POST_WIDTH_MAX = 0.35
+export const TOTEM_POST_DEPTH_FACTOR = 1.6
+export const TOTEM_BASE_WIDTH_RATIO = 0.45
+export const TOTEM_BASE_WIDTH_MIN = 0.5
+export const TOTEM_STRUCTURE_METALNESS = 0.2
+export const TOTEM_STRUCTURE_ROUGHNESS = 0.6
+// La sombra del totem va en el piso, 1,6 veces la base, apenas arriba para no pelear con y 0.
+export const TOTEM_SHADOW = { scale: 1.6, lift: 0.002 } as const
+
+export type TotemPart = { size: Vec3; position: Vec3 }
+
+export type TotemLayout = {
+  base: TotemPart
+  post: TotemPart
+  // Altura del centro del panel sobre la cara inferior de la base.
+  panelY: number
+  // La caja del totem completo, panel mas poste mas base, y su centro.
+  volume: SignVolume
+  center: Vec3
+  shadow: TotemPart
+}
+
+export function totemLayout(panel: SignBox): TotemLayout {
+  const postWidth = Math.min(TOTEM_POST_WIDTH_MAX, Math.max(TOTEM_POST_WIDTH_MIN, panel.width * TOTEM_POST_WIDTH_RATIO))
+  const postDepth = SET.sign.thickness * TOTEM_POST_DEPTH_FACTOR
+  const postHeight = TOTEM_POST_HEIGHT - TOTEM_BASE_HEIGHT
+  const baseWidth = Math.max(TOTEM_BASE_WIDTH_MIN, panel.width * TOTEM_BASE_WIDTH_RATIO)
+  const totalHeight = TOTEM_POST_HEIGHT + panel.height
+  const volume: SignVolume = {
+    width: Math.max(panel.width, baseWidth, postWidth),
+    height: totalHeight,
+    depth: Math.max(SET.sign.thickness, postDepth, TOTEM_BASE_DEPTH),
+  }
+  return {
+    base: { size: [baseWidth, TOTEM_BASE_HEIGHT, TOTEM_BASE_DEPTH], position: [0, TOTEM_BASE_HEIGHT / 2, 0] },
+    post: { size: [postWidth, postHeight, postDepth], position: [0, TOTEM_BASE_HEIGHT + postHeight / 2, 0] },
+    panelY: TOTEM_POST_HEIGHT + panel.height / 2,
+    volume,
+    center: [0, totalHeight / 2, 0],
+    shadow: {
+      size: [baseWidth * TOTEM_SHADOW.scale, 0, TOTEM_BASE_DEPTH * TOTEM_SHADOW.scale],
+      position: [0, TOTEM_SHADOW.lift, 0],
+    },
+  }
+}
+
+// Color de poste y base: el muted del tema. Aparte de scenePalette, que es la paleta del
+// cartel, para que el cartel y la estructura no se mezclen.
+export function totemStructureColor(theme: Record<string, string>): string {
+  return `#${readColor(theme, '--q-muted').getHexString()}`
+}
+
 // Camara del viewer (SPEC 12, version 1.12). En perspectiva en los dos modos; se orbita la
 // camara alrededor del cartel, que queda siempre en el origen y sin rotar.
 export const SIGN_VIEW = {

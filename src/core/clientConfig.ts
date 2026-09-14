@@ -8,6 +8,7 @@ import type {
   LightingMode,
   LightingOption,
   MaterialOption,
+  PhotoGroundAnchor,
   PriceRules,
   PricingMode,
   QuantityConfig,
@@ -357,6 +358,40 @@ function readOptions(raw: Raw, slug: string): SignOptions {
   return result
 }
 
+// Anclaje del totem en una foto (SPEC 10, version 1.15). Opcional en la forma: si falta
+// devuelve undefined, y la regla de que el totem lo exige se aplica con las opciones leidas.
+function readGroundAnchor(entry: Raw, slug: string, path: string): PhotoGroundAnchor | undefined {
+  if (entry.anchorGround === undefined) {
+    return undefined
+  }
+  const ground = readObject(entry, 'anchorGround', slug, `${path}.anchorGround`)
+  const x = readNumber(ground, 'x', slug, `${path}.anchorGround.x`)
+  const y = readNumber(ground, 'y', slug, `${path}.anchorGround.y`)
+  const metersToWidth = readNumber(ground, 'metersToWidth', slug, `${path}.anchorGround.metersToWidth`)
+  if (x < 0 || x > 1 || y < 0 || y > 1) {
+    fail(slug, `${path}.anchorGround.x e y tienen que estar entre 0 y 1.`)
+  }
+  if (metersToWidth <= 0) {
+    fail(slug, `${path}.anchorGround.metersToWidth debe ser mayor a 0.`)
+  }
+  return { x, y, metersToWidth }
+}
+
+// Id del tipo totem (SPEC 5.1). Un totem sin anclaje de piso quedaria flotando sobre la
+// banda de la fachada, que es peor que un error: la config se rechaza al cargar.
+export const TOTEM_TYPE_ID = 'totem'
+
+function requireGroundAnchors(photos: ClientPhoto[], options: SignOptions, slug: string): void {
+  if (!options.types.some((item) => item.id === TOTEM_TYPE_ID)) {
+    return
+  }
+  for (const photo of photos) {
+    if (photo.anchorGround === undefined) {
+      fail(slug, `ofrece el tipo totem y la foto "${photo.id}" no tiene anchorGround.`)
+    }
+  }
+}
+
 // Fotos de fondo del preview (SPEC 10, version 1.9). La primera de la lista es la que
 // se muestra al cargar, asi que el orden del JSON importa.
 function readPhotos(raw: Raw, slug: string): ClientPhoto[] {
@@ -381,10 +416,12 @@ function readPhotos(raw: Raw, slug: string): ClientPhoto[] {
     if (fovDeg <= 0 || fovDeg >= 180) {
       fail(slug, `${path}.anchor.fovDeg tiene que ser mayor a 0 y menor a 180.`)
     }
+    const anchorGround = readGroundAnchor(entry, slug, path)
     return {
       id: readString(entry, 'id', slug, `${path}.id`),
       label: readString(entry, 'label', slug, `${path}.label`),
       src: readString(entry, 'src', slug, `${path}.src`),
+      ...(anchorGround === undefined ? {} : { anchorGround }),
       anchor: {
         x,
         y,
@@ -494,6 +531,10 @@ export function validateClientConfig(raw: unknown): ClientConfig {
     fail(slug, 'currency.decimals debe ser un entero mayor o igual a 0.')
   }
 
+  const photos = readPhotos(raw, slug)
+  const options = readOptions(raw, slug)
+  requireGroundAnchors(photos, options, slug)
+
   return {
     slug,
     locale: readString(raw, 'locale', slug, 'locale'),
@@ -524,8 +565,8 @@ export function validateClientConfig(raw: unknown): ClientConfig {
     cta,
     poweredBy: readBoolean(raw, 'poweredBy', slug, 'poweredBy'),
     prices_placeholder: readBoolean(raw, 'prices_placeholder', slug, 'prices_placeholder'),
-    photos: readPhotos(raw, slug),
-    options: readOptions(raw, slug),
+    photos,
+    options,
     texts: readTexts(raw, slug),
   }
 }

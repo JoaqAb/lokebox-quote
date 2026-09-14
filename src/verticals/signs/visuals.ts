@@ -5,6 +5,7 @@ import type {
   PricingMode,
   SignSelection,
 } from '../../core/types'
+import { TOTEM_TYPE_ID } from '../../core/clientConfig'
 
 // Lo que el preview necesita para dibujar, y nada mas. Funcion pura, sin React.
 // El preview no recibe ClientConfig y no busca nada por id: eso se resuelve aca.
@@ -15,6 +16,8 @@ export type SignVisual = {
   lighting: LightingVisual
   // Profundidad de las letras en metros. Solo la usa el modo letters.
   depthMeters: number
+  // El tipo totem se dibuja con poste y base (SPEC 12, version 1.15).
+  totem: boolean
   lengthToMeters: number
 }
 
@@ -61,6 +64,7 @@ export function resolveSignVisual(config: ClientConfig, selection: SignSelection
     material: material.visual,
     lighting: lighting.visual,
     depthMeters: depth.visual.depthMeters,
+    totem: signType.id === TOTEM_TYPE_ID,
     lengthToMeters: lengthToMeters(config.units.length),
   }
 }

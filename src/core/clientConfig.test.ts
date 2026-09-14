@@ -99,10 +99,10 @@ describe('validateClientConfig', () => {
 })
 
 describe('validateClientConfig: photos', () => {
-  it('los dos clientes traen las cuatro fotos reales con ids unicos', () => {
+  it('los dos clientes traen las dos fotos frontales con ids unicos', () => {
     for (const slug of ['northline', 'norte']) {
       const photos = clientOrFail(slug).photos
-      expect(photos.map((item) => item.id)).toEqual(['front-day', 'angle-left-day', 'angle-right-day', 'front-night'])
+      expect(photos.map((item) => item.id)).toEqual(['front-day', 'front-night'])
       for (const photo of photos) {
         expect(photo.src).toBe(`/assets/quote/backgrounds/${slug}-${photo.id}.webp`)
       }
@@ -136,14 +136,52 @@ describe('validateClientConfig: photos', () => {
 
   it('falla si metersToWidth no es mayor a 0', () => {
     const broken = structuredClone(northline)
-    broken.photos[2].anchor.metersToWidth = 0
+    broken.photos[1].anchor.metersToWidth = 0
     expect(() => validateClientConfig(broken)).toThrow(/metersToWidth debe ser mayor a 0/)
   })
 
   it('falla si hay ids de foto repetidos', () => {
     const broken = structuredClone(northline)
-    broken.photos[3].id = 'front-day'
+    broken.photos[1].id = 'front-day'
     expect(() => validateClientConfig(broken)).toThrow(/repetido/)
+  })
+})
+
+describe('validateClientConfig: anchorGround', () => {
+  it('las dos fotos de los dos clientes traen anchorGround, compartido entre Front y Night', () => {
+    for (const slug of ['northline', 'norte']) {
+      const [day, night] = clientOrFail(slug).photos
+      expect(day.anchorGround).toBeDefined()
+      expect(night.anchorGround).toEqual(day.anchorGround)
+      // El totem esta mas cerca de la camara que la fachada.
+      expect(day.anchorGround?.metersToWidth).toBeGreaterThan(day.anchor.metersToWidth)
+    }
+  })
+
+  it('falla si el cliente ofrece totem y una foto no tiene anchorGround, con slug e id de foto', () => {
+    const broken = structuredClone(northline)
+    delete (broken.photos[1] as Partial<(typeof broken.photos)[number]>).anchorGround
+    expect(() => validateClientConfig(broken)).toThrow(/northline/)
+    expect(() => validateClientConfig(broken)).toThrow(/totem/)
+    expect(() => validateClientConfig(broken)).toThrow(/"front-night"/)
+  })
+
+  it('sin el tipo totem anchorGround no hace falta', () => {
+    const noTotem = structuredClone(northline)
+    noTotem.options.types = noTotem.options.types.filter((item) => item.id !== 'totem')
+    for (const photo of noTotem.photos as Partial<(typeof noTotem.photos)[number]>[]) {
+      delete photo.anchorGround
+    }
+    expect(validateClientConfig(noTotem).photos).toHaveLength(2)
+  })
+
+  it('falla si anchorGround cae fuera de la foto o tiene metersToWidth no positivo', () => {
+    const outside = structuredClone(northline)
+    outside.photos[0].anchorGround.x = 1.4
+    expect(() => validateClientConfig(outside)).toThrow(/photos\[0\]\.anchorGround\.x e y/)
+    const flat = structuredClone(northline)
+    flat.photos[0].anchorGround.metersToWidth = 0
+    expect(() => validateClientConfig(flat)).toThrow(/anchorGround\.metersToWidth debe ser mayor a 0/)
   })
 })
 

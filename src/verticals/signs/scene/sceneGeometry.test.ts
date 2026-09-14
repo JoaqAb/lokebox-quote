@@ -30,6 +30,14 @@ import {
   signBoxMeters,
   signPlacement,
   supportShadowBox,
+  TOTEM_BASE_DEPTH,
+  TOTEM_BASE_HEIGHT,
+  TOTEM_POST_DEPTH_FACTOR,
+  TOTEM_POST_HEIGHT,
+  TOTEM_STRUCTURE_METALNESS,
+  TOTEM_STRUCTURE_ROUGHNESS,
+  totemLayout,
+  totemStructureColor,
 } from './sceneGeometry'
 import { hasWebGL } from './webgl'
 
@@ -388,5 +396,89 @@ describe('camara del viewer', () => {
     expect(SIGN_VIEW.minPolar).toBe(0.6)
     expect(SIGN_VIEW.startPolar).toBeGreaterThanOrEqual(SIGN_VIEW.minPolar)
     expect(SIGN_VIEW.startPolar).toBeLessThanOrEqual(SIGN_VIEW.maxPolar)
+  })
+})
+
+describe('totem de verdad', () => {
+  it('base de 0 a 0,08, poste hasta 1,10 y panel desde ahi, con la caja completa', () => {
+    const layout = totemLayout({ width: 2.4, height: 0.9 })
+    expect(layout.base.position[1] - layout.base.size[1] / 2).toBe(0)
+    expect(layout.base.size[1]).toBe(TOTEM_BASE_HEIGHT)
+    expect(layout.post.position[1] - layout.post.size[1] / 2).toBeCloseTo(TOTEM_BASE_HEIGHT, 10)
+    expect(layout.post.position[1] + layout.post.size[1] / 2).toBeCloseTo(TOTEM_POST_HEIGHT, 10)
+    expect(layout.panelY - 0.9 / 2).toBeCloseTo(TOTEM_POST_HEIGHT, 10)
+    expect(layout.volume.height).toBeCloseTo(TOTEM_POST_HEIGHT + 0.9, 10)
+    expect(layout.center[1]).toBeCloseTo(layout.volume.height / 2, 10)
+    expect(layout.volume.depth).toBe(TOTEM_BASE_DEPTH)
+    expect(layout.post.size[2]).toBeCloseTo(SET.sign.thickness * TOTEM_POST_DEPTH_FACTOR, 10)
+    // La sombra va en el piso, 1,6 veces la base.
+    expect(layout.shadow.size[0]).toBeCloseTo(layout.base.size[0] * 1.6, 10)
+    expect(layout.shadow.size[2]).toBeCloseTo(TOTEM_BASE_DEPTH * 1.6, 10)
+  })
+
+  it('en los extremos del rango de los dos clientes la base es mas angosta que el panel y mas ancha que el poste', () => {
+    for (const slug of listClientSlugs()) {
+      const client = clientOrFail(slug)
+      const factor = factorOf(slug)
+      const { width, height } = client.options
+      for (const w of [width.min, width.max]) {
+        for (const h of [height.min, height.max]) {
+          const panel = { width: w * factor, height: h * factor }
+          const layout = totemLayout(panel)
+          const [baseWidth] = layout.base.size
+          const [postWidth] = layout.post.size
+          expect(baseWidth, `${slug} ${String(w)}x${String(h)}`).toBeLessThan(panel.width)
+          expect(baseWidth, `${slug} ${String(w)}x${String(h)}`).toBeGreaterThan(postWidth)
+          expect(postWidth).toBeGreaterThanOrEqual(0.12)
+          expect(postWidth).toBeLessThanOrEqual(0.35)
+          expect(baseWidth).toBeGreaterThanOrEqual(0.5)
+          expect(layout.volume.width).toBe(panel.width)
+        }
+      }
+    }
+  })
+
+  it('la caja del totem entra en el cuadro desde cualquier azimut en los dos polares extremos', () => {
+    const aspect = 16 / 9
+    const inside = 1 / (1 + 2 * SIGN_VIEW.marginRatio)
+    const tan = Math.tan((SIGN_VIEW.fovDeg * Math.PI) / 360)
+    for (const slug of listClientSlugs()) {
+      const { width, height } = clientOrFail(slug).options
+      const factor = factorOf(slug)
+      for (const [w, h] of [[width.min, height.max], [width.max, height.max], [width.max, height.min]]) {
+        const { volume } = totemLayout({ width: w * factor, height: h * factor })
+        for (const polar of [SIGN_VIEW.minPolar, SIGN_VIEW.maxPolar]) {
+          for (let azimuth = 0; azimuth < 360; azimuth += 15) {
+            const a = (azimuth * Math.PI) / 180
+            const z = [Math.sin(polar) * Math.sin(a), Math.cos(polar), Math.sin(polar) * Math.cos(a)] as [number, number, number]
+            const distance = signFrameDistance(volume, z, aspect)
+            const flat = Math.hypot(z[0], z[2])
+            const x = [z[2] / flat, 0, -z[0] / flat]
+            const y = [z[1] * x[2], z[2] * x[0] - z[0] * x[2], -z[1] * x[0]]
+            for (const sx of [-1, 1]) {
+              for (const sy of [-1, 1]) {
+                for (const sz of [-1, 1]) {
+                  const p = [(sx * volume.width) / 2, (sy * volume.height) / 2, (sz * volume.depth) / 2]
+                  const dot = (u: number[]) => u[0] * p[0] + u[1] * p[1] + u[2] * p[2]
+                  const along = distance - dot(z)
+                  expect(Math.abs(dot(x)) / (along * tan * aspect)).toBeLessThanOrEqual(inside + 1e-9)
+                  expect(Math.abs(dot(y)) / (along * tan)).toBeLessThanOrEqual(inside + 1e-9)
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  })
+
+  it('poste y base van en el muted del tema, con metalness 0,2 y roughness 0,6', () => {
+    for (const slug of listClientSlugs()) {
+      const client = clientOrFail(slug)
+      const color = totemStructureColor(themeFromClient(client))
+      expect(new Color(color).getHexString()).toBe(new Color(client.brand.colors.muted).getHexString())
+    }
+    expect(TOTEM_STRUCTURE_METALNESS).toBe(0.2)
+    expect(TOTEM_STRUCTURE_ROUGHNESS).toBe(0.6)
   })
 })

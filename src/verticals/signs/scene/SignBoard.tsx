@@ -2,6 +2,7 @@ import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import {
   Color,
+  type Group,
   type Mesh,
   type MeshBasicMaterial,
   type MeshStandardMaterial,
@@ -17,6 +18,8 @@ import {
   SETTLE_EPSILON,
   SIGN_TEXT,
   SUPPORT_SHADOW,
+  TOTEM_STRUCTURE_METALNESS,
+  TOTEM_STRUCTURE_ROUGHNESS,
   UNIT_BOX,
   UNIT_PLANE,
   VISIBLE_EPSILON,
@@ -27,6 +30,7 @@ import {
   lightingParams,
   signModeLightingParams,
   supportShadowBox,
+  totemLayout,
   type HaloCellKind,
   type LetterBox,
   type SignPlacement,
@@ -88,6 +92,9 @@ type SignBoardProps = {
   // Modo area: el relieve de la cara ya escalado y centrado, null en modo letters.
   relief: { letters: LetterBox[]; scale: number; x: number; y: number } | null
   textColor: string
+  // Tipo totem: el panel sube sobre poste y base, y la sombra va al piso.
+  totem: boolean
+  structureColor: string
   // Modo cartel: sin halo y, en back, la cara apagada.
   signMode: boolean
 }
@@ -105,9 +112,14 @@ export function SignBoard({
   letterDepth,
   relief,
   textColor,
+  totem,
+  structureColor,
   signMode,
 }: SignBoardProps) {
   const signRef = useRef<Mesh>(null)
+  const panelGroupRef = useRef<Group>(null)
+  const postRef = useRef<Mesh>(null)
+  const baseRef = useRef<Mesh>(null)
   const faceMaterialsRef = useRef(new Map<string, FaceMaterial>())
   const haloMeshesRef = useRef<(Mesh | null)[]>([])
   const haloMaterialsRef = useRef<(MeshBasicMaterial | null)[]>([])
@@ -150,7 +162,10 @@ export function SignBoard({
     const sign = signRef.current
     const lamp = lampRef.current
     const shadow = shadowRef.current
-    if (sign === null || lamp === null || shadow === null) {
+    const panelGroup = panelGroupRef.current
+    const post = postRef.current
+    const base = baseRef.current
+    if (sign === null || lamp === null || shadow === null || panelGroup === null || post === null || base === null) {
       return
     }
 
@@ -226,7 +241,27 @@ export function SignBoard({
     lamp.decay = lighting.lampDecay
     lamp.distance = lighting.lampDistance
 
+    // Totem (SPEC 12, version 1.15): poste y base siguen al ancho amortiguado del panel, el
+    // panel sube a su altura sobre el piso y la sombra se acuesta bajo la base. Poste y base
+    // no emiten nunca: su material no pasa por el loop de caras.
+    const totemParts = totem ? totemLayout({ width: sign.scale.x, height: sign.scale.y }) : null
+    post.visible = totemParts !== null
+    base.visible = totemParts !== null
+    panelGroup.position.y = totemParts === null ? 0 : totemParts.panelY
+    if (totemParts !== null) {
+      post.scale.set(...totemParts.post.size)
+      post.position.set(...totemParts.post.position)
+      base.scale.set(...totemParts.base.size)
+      base.position.set(...totemParts.base.position)
+      shadow.rotation.x = -Math.PI / 2
+      shadow.scale.x = totemParts.shadow.size[0]
+      shadow.scale.y = totemParts.shadow.size[2]
+      shadow.position.set(...totemParts.shadow.position)
+      return
+    }
+
     // La sombra de apoyo sigue al cartel: es lo que impide que flote.
+    shadow.rotation.x = 0
     const shadowTarget = supportShadowBox(placement)
     shadow.scale.x = move(shadow.scale.x, shadowTarget.size[0])
     shadow.scale.y = move(shadow.scale.y, shadowTarget.size[1])
@@ -236,56 +271,69 @@ export function SignBoard({
 
   return (
     <group>
-      <mesh ref={signRef} scale={UNIT_BOX}>
-        <boxGeometry args={UNIT_BOX} />
-        {faceMaterials('panel', PANEL_FACES, false)}
-      </mesh>
-
-      {typeface !== null && letters !== null ? (
-        <SignText3D
-          typeface={typeface}
-          letters={letters}
-          height={placement.box.height}
-          depth={letterDepth}
-          position={[0, 0, 0]}
-          owner="letter"
-          materials={(owner) => faceMaterials(owner, LETTER_FACES, false)}
-        />
-      ) : null}
-
-      {typeface !== null && relief !== null ? (
-        <SignText3D
-          typeface={typeface}
-          letters={relief.letters}
-          height={relief.scale}
-          depth={SIGN_TEXT.reliefDepth}
-          position={[relief.x, relief.y, SET.sign.thickness / 2 + SIGN_TEXT.reliefDepth / 2]}
-          owner="relief"
-          materials={(owner) => faceMaterials(owner, LETTER_FACES, true)}
-        />
-      ) : null}
-
-      {HALO_KINDS.map((kind, index) => (
-        <mesh
-          key={kind}
-          geometry={haloCellGeometry(kind)}
-          visible={false}
-          ref={(mesh) => {
-            haloMeshesRef.current[index] = mesh
-          }}
-        >
-          <meshBasicMaterial
-            ref={(instance) => {
-              haloMaterialsRef.current[index] = instance
-            }}
-            alphaMap={supportShadowTexture()}
-            transparent
-            opacity={0}
-            depthWrite={false}
-            toneMapped={false}
-          />
+      <group ref={panelGroupRef}>
+        <mesh ref={signRef} scale={UNIT_BOX}>
+          <boxGeometry args={UNIT_BOX} />
+          {faceMaterials('panel', PANEL_FACES, false)}
         </mesh>
-      ))}
+
+        {typeface !== null && letters !== null ? (
+          <SignText3D
+            typeface={typeface}
+            letters={letters}
+            height={placement.box.height}
+            depth={letterDepth}
+            position={[0, 0, 0]}
+            owner="letter"
+            materials={(owner) => faceMaterials(owner, LETTER_FACES, false)}
+          />
+        ) : null}
+
+        {typeface !== null && relief !== null ? (
+          <SignText3D
+            typeface={typeface}
+            letters={relief.letters}
+            height={relief.scale}
+            depth={SIGN_TEXT.reliefDepth}
+            position={[relief.x, relief.y, SET.sign.thickness / 2 + SIGN_TEXT.reliefDepth / 2]}
+            owner="relief"
+            materials={(owner) => faceMaterials(owner, LETTER_FACES, true)}
+          />
+        ) : null}
+
+        {HALO_KINDS.map((kind, index) => (
+          <mesh
+            key={kind}
+            geometry={haloCellGeometry(kind)}
+            visible={false}
+            ref={(mesh) => {
+              haloMeshesRef.current[index] = mesh
+            }}
+          >
+            <meshBasicMaterial
+              ref={(instance) => {
+                haloMaterialsRef.current[index] = instance
+              }}
+              alphaMap={supportShadowTexture()}
+              transparent
+              opacity={0}
+              depthWrite={false}
+              toneMapped={false}
+            />
+          </mesh>
+        ))}
+
+        <pointLight ref={lampRef} />
+      </group>
+
+      <mesh ref={postRef} visible={false}>
+        <boxGeometry args={UNIT_BOX} />
+        <meshStandardMaterial color={structureColor} metalness={TOTEM_STRUCTURE_METALNESS} roughness={TOTEM_STRUCTURE_ROUGHNESS} />
+      </mesh>
+      <mesh ref={baseRef} visible={false}>
+        <boxGeometry args={UNIT_BOX} />
+        <meshStandardMaterial color={structureColor} metalness={TOTEM_STRUCTURE_METALNESS} roughness={TOTEM_STRUCTURE_ROUGHNESS} />
+      </mesh>
 
       <mesh ref={shadowRef} scale={UNIT_BOX}>
         <planeGeometry args={UNIT_PLANE} />
@@ -298,8 +346,6 @@ export function SignBoard({
           toneMapped={false}
         />
       </mesh>
-
-      <pointLight ref={lampRef} />
     </group>
   )
 }

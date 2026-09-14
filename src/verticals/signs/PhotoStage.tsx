@@ -2,7 +2,7 @@ import { Canvas } from '@react-three/fiber'
 import { useEffect, useMemo, useState } from 'react'
 import type { ClientPhoto, SignSelection } from '../../core/types'
 import { HDRI_SRC, SignScene } from './scene/SignScene'
-import { layoutLetters, scenePalette, signPlacement, type SignPlacement } from './scene/sceneGeometry'
+import { layoutLetters, scenePalette, signPlacement, totemStructureColor, type SignPlacement } from './scene/sceneGeometry'
 import { hasWebGL } from './scene/webgl'
 import { createTypeface, disposeGlyphGeometries, glyphAdvance, TYPEFACE_SRC, type Typeface } from './scene/typeface'
 import { disposeHaloGeometry } from './scene/haloGeometry'
@@ -93,6 +93,7 @@ export function PhotoStage({
   const hdriReady = useHdriReady()
   const typeface = useTypeface()
   const palette = useMemo(() => scenePalette(theme), [theme])
+  const structureColor = useMemo(() => totemStructureColor(theme), [theme])
 
   // Las CanvasTexture y las geometrias del halo y de las letras viven mientras vive la
   // escena: se liberan aca.
@@ -147,6 +148,8 @@ export function PhotoStage({
             letters={letterLayout === null ? null : letterLayout.boxes}
             letterDepth={visual.depthMeters}
             typeface={typeface}
+            totem={visual.totem}
+            structureColor={structureColor}
           />
         </Canvas>
       ) : null}

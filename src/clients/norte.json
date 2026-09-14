@@ -18,20 +18,7 @@
       "label": "Frente",
       "src": "/assets/quote/backgrounds/norte-front-day.webp",
       "anchor": { "x": 0.501, "y": 0.311, "metersToWidth": 0.07, "cameraYawDeg": 0, "cameraPitchDeg": 0, "fovDeg": 40 },
-      "light": { "ambient": 0.9, "keyIntensity": 1.4, "keyAzimuthDeg": -25, "keyElevationDeg": 35 }
-    },
-    {
-      "id": "angle-left-day",
-      "label": "Izquierda",
-      "src": "/assets/quote/backgrounds/norte-angle-left-day.webp",
-      "anchor": { "x": 0.6, "y": 0.332, "metersToWidth": 0.062, "cameraYawDeg": -46, "cameraPitchDeg": -11, "fovDeg": 40 },
-      "light": { "ambient": 0.9, "keyIntensity": 1.4, "keyAzimuthDeg": -25, "keyElevationDeg": 35 }
-    },
-    {
-      "id": "angle-right-day",
-      "label": "Derecha",
-      "src": "/assets/quote/backgrounds/norte-angle-right-day.webp",
-      "anchor": { "x": 0.438, "y": 0.304, "metersToWidth": 0.06, "cameraYawDeg": 40, "cameraPitchDeg": -10, "fovDeg": 40 },
+      "anchorGround": { "x": 0.25, "y": 0.9, "metersToWidth": 0.11 },
       "light": { "ambient": 0.9, "keyIntensity": 1.4, "keyAzimuthDeg": -25, "keyElevationDeg": 35 }
     },
     {
@@ -39,6 +26,7 @@
       "label": "Noche",
       "src": "/assets/quote/backgrounds/norte-front-night.webp",
       "anchor": { "x": 0.501, "y": 0.304, "metersToWidth": 0.07, "cameraYawDeg": 0, "cameraPitchDeg": 0, "fovDeg": 40 },
+      "anchorGround": { "x": 0.25, "y": 0.9, "metersToWidth": 0.11 },
       "light": { "ambient": 0.35, "keyIntensity": 0.4, "keyAzimuthDeg": 0, "keyElevationDeg": 20 }
     }
   ],

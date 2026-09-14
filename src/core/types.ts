@@ -46,6 +46,16 @@ export type PhotoAnchor = {
   fovDeg: number
 }
 
+// Anclaje del totem en una foto (SPEC 10, version 1.15). x e y son el punto de apoyo de la
+// base, en fraccion del ancho y del alto, origen arriba a la izquierda. metersToWidth es la
+// fraccion del ancho que ocupa un metro a la distancia del totem, mas cerca que la fachada.
+// La camara no esta aca: sigue saliendo del anchor de la foto.
+export type PhotoGroundAnchor = {
+  x: number
+  y: number
+  metersToWidth: number
+}
+
 export type PhotoLight = {
   ambient: number
   keyIntensity: number
@@ -60,6 +70,8 @@ export type ClientPhoto = {
   label: string
   src: string
   anchor: PhotoAnchor
+  // Obligatorio si el cliente ofrece el tipo totem: lo exige la validacion.
+  anchorGround?: PhotoGroundAnchor
   light: PhotoLight
 }
 
