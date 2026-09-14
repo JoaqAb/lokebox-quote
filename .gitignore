@@ -29,3 +29,6 @@ dist-ssr
 .env.*.local
 .vercel
 .env*
+
+# Set de capturas de validacion (TAREA_018), se rehace con npm run capturas
+validacion/
