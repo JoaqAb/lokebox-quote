@@ -100,6 +100,8 @@ Bloque 3 cerrado: TAREA_006 aceptada con 17 criterios verificados y 2 con desví
   - Aceptación: G1 a G6 y los criterios de la tarea, uno por uno. El criterio 2 de DONE lo valida Joaquín en captura antes de cerrar.
 - TAREA_015 · cierre del modo cartel: encuadre por la huella proyectada de la caja con 12 por ciento de margen, back con la cara apagada en modo cartel, luz de estudio propia del modo y criterio de luminancia de tres comparaciones. El modo vista y la calibración no se tocan. Detalle en docs/tareas/TAREA_015_cierre_modo_cartel.md.
   - Aceptación: G1 a G6 y los criterios de la tarea, uno por uno.
+- TAREA_016 · letras corpóreas reales y texto en relieve: typeface subsetado de Archivo Black como único asset nuevo, `SignText3D` con `TextGeometry` en modo letters y en relieve de 3 mm en modo area, campo de texto en mayúsculas, back de modo cartel en la letra. Bloqueante: el criterio 2 de DONE quedó rechazado. Detalle en docs/tareas/TAREA_016_letras_corporeas_reales.md.
+  - Aceptación: G1 a G6 y los criterios de la tarea, uno por uno. El criterio 2 de DONE lo valida Joaquín en captura. Al cerrar, push y verificación del deploy.
 - TAREA_013 · landing en `/`: qué es, para quién, dos botones a las demos, los dos tiers con precio, contacto, footer. Reemplaza el índice temporal, que hoy muestra los slugs crudos. Va última del bloque a propósito: hacerla con la estética vieja es trabajo que se tira.
   - Aceptación: G1 a G6. La landing carga en menos de 2 segundos y los botones llevan a las demos.
 - Canal C al cierre del bloque: grabar el video de 30 segundos y sacar las capturas (desktop y mobile, demo EN).

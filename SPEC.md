@@ -3,7 +3,7 @@
 Fuente de verdad del alcance. Si algo no está acá, no se construye.
 Este documento se edita, no se contradice. Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 
-Versión: 1.13 · 14/09/2026
+Versión: 1.14 · 14/09/2026
 
 ## 1. Objetivo
 
@@ -37,7 +37,7 @@ Fecha de DONE: viernes 18/09/2026.
 - Vitest para los tests del motor de precios.
 - Deploy estático en Vercel. Dominio quote.lokebox.com.
 - Versiones fijadas en package.json. React ~19.2.8 y three ~0.185.1 por compatibilidad con R3F y con @types/three.
-- Assets estáticos del preview, desde 1.9: las fotos de fondo del cliente (2 o 3, 16:9, WebP, unos 1600 x 900) y un único HDRI de estudio para todo el producto, CC0, entre 100 y 200 kB. No entran al bundle de JavaScript: son archivos servidos desde `public/`. El HDRI es opcional en runtime: si falta, el preview funciona sin reflejo.
+- Assets estáticos del preview, desde 1.9: las fotos de fondo del cliente (2 o 3, 16:9, WebP, unos 1600 x 900) y un único HDRI de estudio para todo el producto, CC0, entre 100 y 200 kB. Desde 1.14 suma un único typeface JSON de Archivo Black (OFL), subsetado a A a Z, 0 a 9 y espacio, techo 60 kB, para el texto 3D del cartel. No entran al bundle de JavaScript: son archivos servidos desde `public/`. El HDRI es opcional en runtime: si falta, el preview funciona sin reflejo.
 - Presupuesto de bundle: el código de la app y el vendor 3D van en chunks separados. La app por debajo de 500 kB y el vendor 3D por debajo de 1000 kB sin comprimir. El build avisa si alguno se pasa. No hay lazy loading del preview: el preview es el producto y no puede aparecer después que el resto de la página.
 
 ## 4. Arquitectura en tres capas
@@ -83,7 +83,7 @@ Tres en el MVP. Cada tipo declara su modo de precio en el JSON, `pricing: "area"
 | Variable | Control | Rango | Modo |
 |---|---|---|---|
 | Tipo | tres botones | facade, totem, letters | los dos |
-| Texto del cartel | campo de texto | 1 a 18 caracteres, default en el JSON | los dos |
+| Texto del cartel | campo de texto, en mayúsculas (desde 1.14) | 1 a 18 caracteres, default en el JSON | los dos |
 | Ancho | slider | del JSON. EN en pies, ES en metros | area |
 | Alto | slider | del JSON | area |
 | Alto de letra | slider | del JSON. EN en pies, ES en metros | letters |
@@ -403,12 +403,14 @@ Zoom por modo, con el mismo control:
 - Modo cartel: multiplica la distancia derivada de la huella entre 1,0 y 0,55. Solo acercar.
 - Modo vista: transformación CSS sobre el contenedor de foto y canvas juntos, nunca un movimiento de cámara, así foto y cartel escalan juntos y no existe el desalineado.
 
-Assets permitidos, y solo estos dos: las fotos de fondo del cliente y un único HDRI de estudio para todo el producto, ambos servidos desde `public/`. Sigue prohibido todo modelo importado, archivo de fuente, `Text` y `Text3D` de drei, postprocessing y sombras de mapa.
+Assets permitidos, y solo estos tres, servidos desde `public/`: las fotos de fondo del cliente, un único HDRI de estudio para todo el producto y, desde 1.14, un único typeface JSON de Archivo Black (OFL) subsetado a mayúsculas A a Z, números 0 a 9 y espacio, con techo de 60 kB y un solo uso: el texto 3D del cartel. Motivo: el glifo pintado sobre una caja se leía como un azulejo y no como la letra corpórea que el producto vende. Sigue prohibido todo modelo importado, cualquier otro archivo de fuente, `Text` y `Text3D` de drei, postprocessing y sombras de mapa.
 
-Permitido y acotado: texturas generadas en runtime con `CanvasTexture`, que no descargan nada y no pesan en el bundle. Se usan para dos cosas y nada más: los glifos del texto del cartel y un degradado radial, que comparten la sombra de apoyo y el halo de `back`. Una textura por glifo, memoizada por caracter, 128 px, `SRGBColorSpace`, `dispose` al desmontar. Por caracter y no por palabra: el visitante escribe letra a letra. La fuente es el stack del sistema (`Arial, Helvetica, sans-serif`), sin webfonts.
+Permitido y acotado: texturas generadas en runtime con `CanvasTexture`, que no descargan nada y no pesan en el bundle. Desde 1.14 se usan para una sola cosa: el degradado radial que comparten la sombra de apoyo y el halo de `back`. Los glifos con `CanvasTexture` salen.
 
-- Cartel en modo area: caja cuyas dimensiones siguen ancho y alto en tiempo real con transición suave. Espesor fijo. En la cara va el texto del cartel con la textura de glifos, centrado y escalado al ancho disponible.
-- Cartel en modo letters: una caja por letra, ancho de cada una medido con `measureText`, profundidad `visual.depthMeters` de la opción elegida, glifo en la cara frontal y cantos con el color del material. Máximo 18 cajas. El alto de letra sale de la selección.
+Texto 3D (desde 1.14): un componente único, `SignText3D`, con `TextGeometry` de three sobre el typeface. `curveSegments` 4, bisel chico, una sola geometría por carácter memoizada y con `dispose` al desmontar. Por carácter y no por palabra: el visitante escribe letra a letra. El espaciado sale del avance de cada glifo del typeface. Cara y cantos con el material elegido.
+
+- Cartel en modo area: caja cuyas dimensiones siguen ancho y alto en tiempo real con transición suave. Espesor fijo. En la cara va el texto del cartel en relieve de 3 mm con `SignText3D`, centrado y escalado al ancho disponible, sin salirse del panel en ninguna medida del rango.
+- Cartel en modo letters (desde 1.14): una letra corpórea con `SignText3D` por carácter del texto sin espacios, máximo 18, con el contorno real del glifo, canto y bisel. Alto de letra de la selección, profundidad `visual.depthMeters` de la opción elegida. En `back` de modo cartel la cara de la letra no emite y emiten sus cantos y su cara trasera, igual que el panel.
 - El tipo `totem` se dibuja como el cartel de fachada, con su recargo de precio intacto.
 - Sombra de apoyo: quad con el degradado radial, detrás del cartel y apenas desplazado, en los dos modos.
 - Material: cambia color, metalness y roughness según el `visual` del material. El HDRI de estudio es lo que hace que `metalness` alto se distinga.
@@ -452,7 +454,7 @@ El cliente entrega antes de empezar: logo, colores, WhatsApp o mail, y sus regla
 
 ## 16. Fuera de alcance
 
-CRM, auth, usuarios, multi-tenant, panel de administración, permisos, integraciones, email transaccional, generación de PDF en servidor, modelos 3D importados, archivos de fuente en el 3D, editor visual del JSON, un cuarto tipo de cartel, más de una vertical.
+CRM, auth, usuarios, multi-tenant, panel de administración, permisos, integraciones, email transaccional, generación de PDF en servidor, modelos 3D importados, archivos de fuente en el 3D salvo el typeface de la sección 12, editor visual del JSON, un cuarto tipo de cartel, más de una vertical.
 
 ## 17. Criterio de DONE
 
