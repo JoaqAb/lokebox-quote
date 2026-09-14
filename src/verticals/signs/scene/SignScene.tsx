@@ -4,14 +4,16 @@ import { useLayoutEffect, useMemo, useRef } from 'react'
 import { MathUtils, Vector3, type PerspectiveCamera as PerspectiveCameraImpl } from 'three'
 import type { ClientPhoto, MaterialVisual } from '../../../core/types'
 import { SignBoard } from './SignBoard'
-import { LetterFaces, SignFace } from './SignFace'
 import { StudioEnvironment } from './StudioEnvironment'
 import {
   SET,
   SIGN_STUDIO_LIGHT,
   SIGN_VIEW,
   approach,
+  fitTextOnPanel,
+  layoutLetters,
   lensShift,
+  lettersFrameVolume,
   orbitPosition,
   photoCameraDistance,
   signFrameDistance,
@@ -20,6 +22,7 @@ import {
   type SignPlacement,
   type SignVolume,
 } from './sceneGeometry'
+import { glyphAdvance, textBounds, type Typeface } from './typeface'
 
 // Contenido del canvas: camara en perspectiva, la luz, el cartel y el texto de su cara
 // (SPEC 12, version 1.13). El cartel queda siempre en el origen y sin rotar; lo que cambia
@@ -29,7 +32,8 @@ import {
 //   luz es la de estudio del producto.
 // - Modo vista: la camara sale del anchor de la foto y el centro del cartel cae en su
 //   (x, y) con setViewOffset. Sin orbita; el zoom de este modo es CSS, fuera del canvas.
-// Sin Suspense y sin loaders: el unico asset es el HDRI, que entra con su propio fallback.
+// Sin Suspense y sin loaders: el HDRI entra con su propio fallback y el typeface lo carga el
+// preview por fetch; mientras no esta, el cartel se dibuja sin texto.
 
 // Misma ruta que sondea PhotoStage: una sola fuente de verdad. Es la ruta del paquete de
 // assets de TAREA_011 (Poly Haven, Studio Small 08, CC0).
@@ -47,8 +51,10 @@ type SignSceneProps = {
   signZoom: number
   hdriReady: boolean
   reducedMotion: boolean
-  // Cajas por letra en modo letters, null en modo area.
+  // Modo letters: las letras en alto de mayuscula 1, null en modo area.
   letters: LetterBox[] | null
+  // null hasta que carga el typeface, o si no carga: el cartel se dibuja sin texto.
+  typeface: Typeface | null
   letterDepth: number
 }
 
@@ -151,6 +157,7 @@ export function SignScene({
   reducedMotion,
   letters,
   letterDepth,
+  typeface,
 }: SignSceneProps) {
   // En modo vista la luz viene de la foto: cada foto dice de donde le pega el sol, para que
   // el volumen del cartel case con ella. En modo cartel es la luz de estudio del producto.
@@ -162,8 +169,23 @@ export function SignScene({
     return [r * Math.sin(az) * Math.cos(el), r * Math.sin(el), r * Math.cos(az) * Math.cos(el)]
   }, [light])
   const { width, height } = placement.box
-  const depth = letters === null ? SET.sign.thickness : letterDepth
-  const volume = useMemo((): SignVolume => ({ width, height, depth }), [width, height, depth])
+
+  // Contorno real del texto con el typeface: encuadra las letras y escala el relieve.
+  const bounds = useMemo(() => (typeface === null ? null : textBounds(typeface, text)), [typeface, text])
+  const volume = useMemo(
+    (): SignVolume =>
+      letters === null
+        ? { width, height, depth: SET.sign.thickness }
+        : lettersFrameVolume(bounds, height, letterDepth),
+    [letters, bounds, width, height, letterDepth],
+  )
+  const relief = useMemo(() => {
+    if (typeface === null || letters !== null || bounds === null) {
+      return null
+    }
+    const layout = layoutLetters(text, 1, (char) => glyphAdvance(typeface, char))
+    return { letters: layout.boxes, ...fitTextOnPanel(bounds, { width, height }) }
+  }, [typeface, letters, bounds, text, width, height])
 
   return (
     <>
@@ -179,20 +201,13 @@ export function SignScene({
         lightingMode={lightingMode}
         shadowColor={palette.shadow}
         reducedMotion={reducedMotion}
+        typeface={typeface}
         letters={letters}
         letterDepth={letterDepth}
+        relief={relief}
+        textColor={palette.signText}
         signMode={photo === null}
       />
-      {letters === null ? (
-        <SignFace placement={placement} color={palette.signText} text={text} />
-      ) : (
-        <LetterFaces
-          letters={letters}
-          letterHeight={placement.box.height}
-          letterDepth={letterDepth}
-          color={palette.signText}
-        />
-      )}
     </>
   )
 }

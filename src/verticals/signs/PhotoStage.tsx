@@ -4,7 +4,7 @@ import type { ClientPhoto, SignSelection } from '../../core/types'
 import { HDRI_SRC, SignScene } from './scene/SignScene'
 import { layoutLetters, scenePalette, signPlacement, type SignPlacement } from './scene/sceneGeometry'
 import { hasWebGL } from './scene/webgl'
-import { disposeGlyphTextures, glyphWidth } from './scene/glyphTexture'
+import { createTypeface, disposeGlyphGeometries, glyphAdvance, TYPEFACE_SRC, type Typeface } from './scene/typeface'
 import { disposeHaloGeometry } from './scene/haloGeometry'
 import { disposeSupportShadow } from './scene/supportShadow'
 import type { SignVisual } from './visuals'
@@ -52,6 +52,35 @@ function useHdriReady(): boolean {
   return ready
 }
 
+// El typeface del texto 3D (SPEC 12, version 1.14): un solo pedido por pagina, compartido
+// entre montajes. Si no llega o no es un typeface, el cartel se dibuja sin texto; igual que
+// con el HDRI, el rewrite de SPA puede responder el index.html en su lugar.
+let typefaceRequest: Promise<Typeface | null> | null = null
+
+function requestTypeface(): Promise<Typeface | null> {
+  typefaceRequest ??= fetch(TYPEFACE_SRC)
+    .then((res) => (res.ok ? res.json() : null))
+    .then((data: unknown) => (data === null ? null : createTypeface(data as Parameters<typeof createTypeface>[0])))
+    .catch(() => null)
+  return typefaceRequest
+}
+
+function useTypeface(): Typeface | null {
+  const [typeface, setTypeface] = useState<Typeface | null>(null)
+  useEffect(() => {
+    let vivo = true
+    void requestTypeface().then((loaded) => {
+      if (vivo) {
+        setTypeface(loaded)
+      }
+    })
+    return () => {
+      vivo = false
+    }
+  }, [])
+  return typeface
+}
+
 export function PhotoStage({
   selection,
   visual,
@@ -62,30 +91,38 @@ export function PhotoStage({
   signZoom,
 }: PhotoStageProps) {
   const hdriReady = useHdriReady()
+  const typeface = useTypeface()
   const palette = useMemo(() => scenePalette(theme), [theme])
 
-  // Las CanvasTexture y las geometrias del halo viven mientras vive la escena: se liberan aca.
+  // Las CanvasTexture y las geometrias del halo y de las letras viven mientras vive la
+  // escena: se liberan aca.
   useEffect(
     () => () => {
-      disposeGlyphTextures()
+      disposeGlyphGeometries()
       disposeSupportShadow()
       disposeHaloGeometry()
     },
     [],
   )
 
-  // Modo letters: el contorno de la palabra hace de placement, asi halo, sombra, lampara y
-  // encuadre de camara siguen a las letras igual que al panel.
+  // Modo letters: el avance de la palabra por el alto de letra hace de placement, asi halo,
+  // sombra y lampara siguen a las letras igual que al panel. La composicion va en alto de
+  // mayuscula 1 y el espaciado sale del avance de cada glifo del typeface. Hasta que el
+  // typeface carga no hay letras.
   const letterHeightMeters = selection.letterHeight * visual.lengthToMeters
-  const letterLayout = useMemo(
-    () =>
-      visual.mode === 'letters' ? layoutLetters(selection.text, letterHeightMeters, glyphWidth) : null,
-    [visual.mode, selection.text, letterHeightMeters],
-  )
+  const letterLayout = useMemo(() => {
+    if (visual.mode !== 'letters') {
+      return null
+    }
+    if (typeface === null) {
+      return { boxes: [], totalWidth: 0 }
+    }
+    return layoutLetters(selection.text, 1, (char) => glyphAdvance(typeface, char))
+  }, [visual.mode, selection.text, typeface])
   const placement: SignPlacement =
     letterLayout === null
       ? signPlacement(selection, visual.lengthToMeters)
-      : { box: { width: letterLayout.totalWidth, height: letterHeightMeters } }
+      : { box: { width: letterLayout.totalWidth * letterHeightMeters, height: letterHeightMeters } }
 
   return (
     <div
@@ -109,6 +146,7 @@ export function PhotoStage({
             reducedMotion={reducedMotion}
             letters={letterLayout === null ? null : letterLayout.boxes}
             letterDepth={visual.depthMeters}
+            typeface={typeface}
           />
         </Canvas>
       ) : null}

@@ -10,7 +10,8 @@ export type FieldControl =
   | { kind: 'range'; min: number; max: number; step: number; unit: string }
   | { kind: 'boolean'; trueLabel: string; falseLabel: string }
   | { kind: 'stepper'; min: number; max: number; step: number }
-  | { kind: 'text'; maxLength: number }
+  // uppercase: el campo pasa lo escrito a mayusculas. Lo decide la vertical.
+  | { kind: 'text'; maxLength: number; uppercase: boolean }
 
 export type PanelField = {
   id: string

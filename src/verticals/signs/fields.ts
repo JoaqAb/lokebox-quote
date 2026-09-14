@@ -72,7 +72,8 @@ export function buildPanelFields(config: ClientConfig, selection: SignSelection)
     {
       id: 'text',
       labelKey: 'signTextLabel',
-      control: { kind: 'text', maxLength: options.signText.maxLength },
+      // Mayusculas: el typeface del texto 3D solo trae A a Z, 0 a 9 y espacio (SPEC 12).
+      control: { kind: 'text', maxLength: options.signText.maxLength, uppercase: true },
     },
     ...measures,
     {

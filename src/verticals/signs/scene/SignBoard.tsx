@@ -1,7 +1,6 @@
 import { useFrame } from '@react-three/fiber'
-import { useEffect, useMemo, useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import {
-  BoxGeometry,
   Color,
   type Mesh,
   type MeshBasicMaterial,
@@ -10,11 +9,13 @@ import {
 } from 'three'
 import type { MaterialVisual } from '../../../core/types'
 import { haloCellGeometry } from './haloGeometry'
+import { SignText3D } from './SignText3D'
 import { supportShadowTexture } from './supportShadow'
 import {
   DAMP_LAMBDA,
   SET,
   SETTLE_EPSILON,
+  SIGN_TEXT,
   SUPPORT_SHADOW,
   UNIT_BOX,
   UNIT_PLANE,
@@ -30,22 +31,25 @@ import {
   type LetterBox,
   type SignPlacement,
 } from './sceneGeometry'
+import { TEXT_FACE, type Typeface } from './typeface'
 
-// El conjunto entero: cartel, halo, sombra de apoyo y la unica luz dinamica, con un solo
-// useFrame. Repartirlos los deja desincronizados durante las transiciones de medida.
+// El conjunto entero: cartel, texto 3D, halo, sombra de apoyo y la unica luz dinamica, con
+// un solo useFrame. Repartirlos los deja desincronizados durante las transiciones de medida.
 // Ninguna medida ni ningun color se escribe aca: todo sale de sceneGeometry y del visual.
 // Nada viaja como prop de JSX si lo maneja el frame loop: React lo aplicaria de una
 // en cada cambio de opcion y pisaria la transicion.
 // El cartel esta centrado en el origen y no rota: la camara orbita a su alrededor
 // (SPEC 12, version 1.12).
-// Cada caja lleva seis materiales, uno por cara, en el orden de BoxGeometry: +x, -x, +y,
-// -y, frente, atras. Asi en back emiten los cantos y la cara trasera, y la cara frontal
-// emite poco en modo vista y nada en modo cartel (SPEC 12, version 1.13). En modo letters el panel se oculta y se dibuja
-// una caja por letra; placement.box es el contorno de la palabra, y halo, sombra y
-// lampara lo siguen igual que al panel.
+// El panel lleva seis materiales, uno por cara, en el orden de BoxGeometry: +x, -x, +y,
+// -y, frente, atras. Cada letra lleva tres, en el orden de TEXT_FACE. Asi en back emiten
+// los cantos y la cara trasera, y la cara frontal emite poco en modo vista y nada en modo
+// cartel (SPEC 12, version 1.14). En modo letters el panel se oculta y se dibuja una letra
+// corporea por caracter; placement.box es el contorno de la palabra, y halo, sombra y
+// lampara lo siguen igual que al panel. En modo area el texto va en relieve sobre la cara,
+// con el color del texto y sin emision: es parte de la cara.
 
-const FACE_COUNT = 6
-const FRONT_FACE_INDEX = 4
+const PANEL_FACES = { count: 6, front: 4 }
+const LETTER_FACES = { count: 3, front: TEXT_FACE.front }
 
 const HALO_KINDS: HaloCellKind[] = [
   'center',
@@ -75,15 +79,20 @@ type SignBoardProps = {
   lightingMode: string
   shadowColor: string
   reducedMotion: boolean
-  // null en modo area.
+  // Sin el typeface el cartel se dibuja igual, sin texto.
+  typeface: Typeface | null
+  // Modo letters: las letras en alto de mayuscula 1, null en modo area.
   letters: LetterBox[] | null
   // Profundidad de las letras, en metros.
   letterDepth: number
+  // Modo area: el relieve de la cara ya escalado y centrado, null en modo letters.
+  relief: { letters: LetterBox[]; scale: number; x: number; y: number } | null
+  textColor: string
   // Modo cartel: sin halo y, en back, la cara apagada.
   signMode: boolean
 }
 
-type FaceMaterial = { material: MeshStandardMaterial; front: boolean }
+type FaceMaterial = { material: MeshStandardMaterial; front: boolean; relief: boolean }
 
 export function SignBoard({
   placement,
@@ -91,8 +100,11 @@ export function SignBoard({
   lightingMode,
   shadowColor,
   reducedMotion,
+  typeface,
   letters,
   letterDepth,
+  relief,
+  textColor,
   signMode,
 }: SignBoardProps) {
   const signRef = useRef<Mesh>(null)
@@ -113,16 +125,10 @@ export function SignBoard({
     started: false,
   })
   const targetColor = useMemo(() => new Color(material.color), [material.color])
-  const letterGeometry = useMemo(() => new BoxGeometry(...UNIT_BOX), [])
-  useEffect(
-    () => () => {
-      letterGeometry.dispose()
-    },
-    [letterGeometry],
-  )
+  const reliefColor = useMemo(() => new Color(textColor), [textColor])
 
-  function faceMaterials(owner: string) {
-    return Array.from({ length: FACE_COUNT }, (_unused, index) => {
+  function faceMaterials(owner: string, faces: { count: number; front: number }, isRelief: boolean) {
+    return Array.from({ length: faces.count }, (_unused, index) => {
       const key = `${owner}-${String(index)}`
       return (
         <meshStandardMaterial
@@ -132,7 +138,7 @@ export function SignBoard({
             if (instance === null) {
               faceMaterialsRef.current.delete(key)
             } else {
-              faceMaterialsRef.current.set(key, { material: instance, front: index === FRONT_FACE_INDEX })
+              faceMaterialsRef.current.set(key, { material: instance, front: index === faces.front, relief: isRelief })
             }
           }}
         />
@@ -175,14 +181,19 @@ export function SignBoard({
     state.shade = move(state.shade, lighting.faceShade)
     state.haloOpacity = move(state.haloOpacity, lighting.haloOpacity)
 
-    for (const { material: face, front } of faceMaterialsRef.current.values()) {
+    for (const { material: face, front, relief: isRelief } of faceMaterialsRef.current.values()) {
+      face.metalness = state.metalness
+      face.roughness = state.roughness
+      if (isRelief) {
+        face.color.copy(reliefColor)
+        face.emissiveIntensity = 0
+        continue
+      }
       face.color.copy(state.color)
       if (front) {
         face.color.multiplyScalar(1 - state.shade)
       }
       face.emissive.copy(state.color)
-      face.metalness = state.metalness
-      face.roughness = state.roughness
       face.emissiveIntensity = front ? state.face : state.edge
     }
 
@@ -227,21 +238,32 @@ export function SignBoard({
     <group>
       <mesh ref={signRef} scale={UNIT_BOX}>
         <boxGeometry args={UNIT_BOX} />
-        {faceMaterials('panel')}
+        {faceMaterials('panel', PANEL_FACES, false)}
       </mesh>
 
-      {letters === null
-        ? null
-        : letters.map((letter, index) => (
-            <mesh
-              key={`${letter.char}-${String(index)}`}
-              geometry={letterGeometry}
-              position={[letter.x, 0, 0]}
-              scale={[letter.width, placement.box.height, letterDepth]}
-            >
-              {faceMaterials(`letter-${String(index)}`)}
-            </mesh>
-          ))}
+      {typeface !== null && letters !== null ? (
+        <SignText3D
+          typeface={typeface}
+          letters={letters}
+          height={placement.box.height}
+          depth={letterDepth}
+          position={[0, 0, 0]}
+          owner="letter"
+          materials={(owner) => faceMaterials(owner, LETTER_FACES, false)}
+        />
+      ) : null}
+
+      {typeface !== null && relief !== null ? (
+        <SignText3D
+          typeface={typeface}
+          letters={relief.letters}
+          height={relief.scale}
+          depth={SIGN_TEXT.reliefDepth}
+          position={[relief.x, relief.y, SET.sign.thickness / 2 + SIGN_TEXT.reliefDepth / 2]}
+          owner="relief"
+          materials={(owner) => faceMaterials(owner, LETTER_FACES, true)}
+        />
+      ) : null}
 
       {HALO_KINDS.map((kind, index) => (
         <mesh

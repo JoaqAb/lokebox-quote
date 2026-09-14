@@ -87,6 +87,7 @@ function FieldControlView({ field, label, locale, value, onChange }: FieldRowPro
         label={label}
         value={readString(field.id, value)}
         maxLength={control.maxLength}
+        uppercase={control.uppercase}
         onChange={(next) => {
           onChange(field.id, next)
         }}

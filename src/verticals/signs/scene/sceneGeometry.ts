@@ -139,10 +139,10 @@ export function supportShadowBox(
   }
 }
 
-// Letras corporeas (SPEC 12): una caja por letra. El alto de la caja es el alto de letra
-// de la seleccion y su ancho, el avance del caracter medido con measureText a ese alto.
-// fill deja un poco de aire entre cajas vecinas para que se lean separadas.
-export const LETTERS = { fill: 0.9, glyphGap: 0.002 } as const
+// Composicion del texto del cartel (SPEC 12, version 1.14): una entrada por caracter con su
+// avance. x es el centro del avance, donde se monta la letra 3D, que viene centrada en el.
+// fill queda para el ancho nominal de cada entrada, un poco menor que su avance.
+export const LETTERS = { fill: 0.9 } as const
 
 export type LetterBox = {
   char: string
@@ -153,7 +153,7 @@ export type LetterBox = {
 
 // Reparte el texto en cajas. Los espacios ocupan su avance pero no llevan caja: en letras
 // corporeas un espacio es pared. measure devuelve el avance del caracter en unidades de
-// alto de letra; se inyecta para que la funcion siga siendo pura y se pueda probar.
+// alto de letra (el del typeface); se inyecta para que la funcion siga siendo pura.
 export function layoutLetters(
   text: string,
   letterHeight: number,
@@ -174,8 +174,29 @@ export function layoutLetters(
   return { boxes, totalWidth }
 }
 
-// Los glifos del texto van sobre la cara del cartel, con margen a los cuatro lados.
-export const SIGN_TEXT = { marginRatio: 0.12, maxHeightRatio: 0.62, gap: 0.002 } as const
+// El texto en relieve va sobre la cara del cartel, con margen a los cuatro lados y 3 mm de
+// relieve (SPEC 12, version 1.14).
+export const SIGN_TEXT = { marginRatio: 0.12, maxHeightRatio: 0.62, reliefDepth: 0.003 } as const
+
+// Contorno real de un texto en alto de mayuscula, con el bisel, alrededor del centro de la
+// palabra. Lo calcula el typeface.
+export type TextBounds = { minX: number; maxX: number; minY: number; maxY: number }
+
+// Relieve del modo area: la palabra se escala al espacio disponible por ancho y por alto con
+// su contorno real, manda el menor, y se centra ese contorno en la cara. Asi un texto largo
+// achica en vez de desbordar, y ninguna punta ni bisel sale del panel.
+export function fitTextOnPanel(bounds: TextBounds, box: SignBox): { scale: number; x: number; y: number } {
+  const width = bounds.maxX - bounds.minX
+  const height = bounds.maxY - bounds.minY
+  const usableWidth = box.width * (1 - 2 * SIGN_TEXT.marginRatio)
+  const usableHeight = box.height * SIGN_TEXT.maxHeightRatio
+  const scale = Math.max(0, Math.min(usableHeight / height, usableWidth / width))
+  return {
+    scale,
+    x: (-(bounds.minX + bounds.maxX) / 2) * scale,
+    y: (-(bounds.minY + bounds.maxY) / 2) * scale,
+  }
+}
 
 // La unica luz dinamica de la escena. Nunca hay mas de una, en ningun modo.
 export const LAMP = { frontOffsetY: 0.5, frontOffsetZ: 1.6 } as const
@@ -331,6 +352,19 @@ export const SIGN_STUDIO_LIGHT: PhotoLight = {
   keyIntensity: 3,
   keyAzimuthDeg: -30,
   keyElevationDeg: 40,
+}
+
+// Caja del encuadre en modo letters: el contorno real de las letras, simetrico alrededor del
+// origen porque el encuadre centra el cuadro en el target, y la profundidad de las letras.
+export function lettersFrameVolume(bounds: TextBounds | null, letterHeight: number, depth: number): SignVolume {
+  if (bounds === null) {
+    return { width: 0, height: 0, depth }
+  }
+  return {
+    width: 2 * Math.max(Math.abs(bounds.minX), Math.abs(bounds.maxX)) * letterHeight,
+    height: 2 * Math.max(Math.abs(bounds.minY), Math.abs(bounds.maxY)) * letterHeight,
+    depth,
+  }
 }
 
 // Distancia del modo cartel (SPEC 12, version 1.13): la menor a la que las ocho esquinas
