@@ -3,7 +3,7 @@
 Fuente de verdad del alcance. Si algo no está acá, no se construye.
 Este documento se edita, no se contradice. Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 
-Versión: 1.10 · 14/09/2026
+Versión: 1.11 · 14/09/2026
 
 ## 1. Objetivo
 
@@ -345,7 +345,7 @@ La forma de `leads` sigue la que usaría Lokebox para un pedido en gestación. S
     "width": { "min": 2, "max": 20, "step": 0.5, "default": 8 },
     "height": { "min": 1, "max": 8, "step": 0.5, "default": 3 },
     "letterHeight": { "min": 0.5, "max": 3, "step": 0.25, "default": 1 },
-    "depths": [{ "id": "d2", "label": "2 in", "factor": 1 }],
+    "depths": [{ "id": "d2", "label": "2 in", "factor": 1, "visual": { "depthMeters": 0.05 } }],
     "materials": [
       { "id": "pvc", "label": "PVC", "pricePerArea": 15, "pricePerLetterHeight": 40, "visual": { "color": "#E8E8E4", "metalness": 0, "roughness": 0.8 } }
     ],
@@ -358,6 +358,8 @@ La forma de `leads` sigue la que usaría Lokebox para un pedido en gestación. S
   "texts": { "...": "todos los textos visibles" }
 }
 ```
+
+`options.depths[]` suma `visual.depthMeters` (desde 1.11): la medida real de la profundidad, la que dibuja el preview. `factor` sigue siendo el multiplicador de precio de la sección 6 y no una medida; derivar la profundidad del `label` sería parsear texto. Mismo patrón que `materials[].visual`.
 
 `photos` (desde 1.9, conteo ampliado en 1.10): una entrada por ángulo fotografiado, 2 a 4 por cliente, la primera es la que se muestra al cargar. `id` único dentro del cliente. `label` es la etiqueta visible del ángulo y vive acá y no en `texts` porque la cantidad de fotos varía por cliente y una clave fija por ángulo no existiría: es el mismo criterio de `options.types[].label` y `options.materials[].label`. `anchor` dice dónde y de qué tamaño se dibuja el cartel sobre esa foto: `x` e `y` son el centro en fracción del ancho y del alto, con origen arriba a la izquierda; `metersToWidth` es qué fracción del ancho de la foto ocupa un metro de cartel, expresado así y no como factor abstracto para poder calcularlo contra una medida conocida de la foto en vez de a ojo; `yawDeg` y `pitchDeg` giran el cartel para acompañar el ángulo de la foto. `light` es la luz de la escena del cartel en esa foto, para que su volumen case con ella.
 

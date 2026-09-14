@@ -207,3 +207,4 @@
 - 14/09/2026: el detalle del desglose en modo letters va sin palabras (`9 x 1 ft x $40 x 1,2`): una palabra como "letras" pediria una clave de texto nueva que SPEC 10 no tiene.
 - 14/09/2026: el halo de back en modo letters usa un margen de 0,3 del alto de letra y no los 0,55 m fijos del panel: sobre letras de 30 cm el fijo dejaba un rectangulo blanco que se leia como otro cartel. Medido en captura: la cara crece de none a front a back en los dos clientes.
 - 14/09/2026: cada letra tiene su propio material, que copia en cada frame el del panel. Compartir una instancia creada con useMemo y mutarla en useFrame lo marca el lint de React (immutability), y G3 pide cero hallazgos.
+- 14/09/2026: SPEC pasa a 1.11. `options.depths[]` documenta `visual.depthMeters` en el ejemplo de la seccion 10, con la misma justificacion que ya quedo anotada arriba: el factor es de precio, no una medida, y derivarla del label seria parsear texto.
