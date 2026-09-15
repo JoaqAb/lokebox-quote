@@ -291,3 +291,5 @@
 - 15/09/2026: D11, entra el chunk manual react-vendor con react, react-dom y scheduler. three-vendor tenia React adentro, arrastrado como dependencia de fiber y drei, asi que cualquier ruta que usara React precargaba el vendor 3D y el presupuesto de SPEC 3 venia midiendo mal desde TAREA_004. Es el arreglo de esa mezcla, no un atajo para C6.
 - 15/09/2026: el presupuesto de bundle pasa de igualdades a topes por grupo (three-vendor por debajo de 1000 kB, react-vendor por debajo de 250 kB, chunks de app sumados por debajo de 500 kB): con react-vendor cambio lo que hay dentro de cada chunk y los numeros fijos de 963,55 y 420,04 kB dejaron de ser comparables.
 - 15/09/2026: Canal C entrego el email publico de la landing: hola@lokebox.com. contact.placeholder pasa a false.
+- 15/09/2026: D12, el mail publico de la landing ya estaba en el JSON (hola@lokebox.com, placeholder en false); Canal C solo verifica que la casilla reciba.
+- 15/09/2026: D13, Vercel Authentication queda en Disabled y no en Only Preview Deployments: con Standard Protection la URL generada de produccion queda detras del login y eso rompe las vistas previas de links.

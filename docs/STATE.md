@@ -14,7 +14,7 @@ TAREA_013: 2241051 (apertura), cd37310 (codigo). Numeros y frenada en docs/tarea
 
 ## Proximo
 
-Canal C del bloque 4: video de 30 segundos y capturas. El jueves, con el video: el corte de controles al borde del scroll del panel.
+Canal C, pasos 3 y 4. El jueves, con el video: el corte de controles al borde del scroll del panel.
 
 ## Bloqueos
 
