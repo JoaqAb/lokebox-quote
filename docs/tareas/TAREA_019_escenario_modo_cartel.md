@@ -75,3 +75,51 @@ Entro despues de la frenada (ver Historia).
 1. Apertura: SPEC 1.16, DECISIONES, EXECUTION y este archivo.
 2. Codigo: tema, marco, sombra, tests y logos.
 3. Cierre: resultados en este archivo, STATE y `_ULTIMO.md` en 020.
+
+## Resultados
+
+Medido el 15/09/2026 con `npm run capturas` (Playwright y chromium headless, marco de 771 x 433 px).
+
+- G1: build sin warnings. App 420,04 kB, vendor 3D 963,55 kB.
+- G2: lint sin hallazgos, sin guiones largos. 205 tests en verde. En `theme.test.ts` se agregaron dos casos: `--q-stage` con color-mix al 82 sobre `--q-text` y `--q-bg` en los dos clientes, y superficie y borde en 6 y 16. En `sceneGeometry.test.ts` se editaron dos: "queda solo lo que el cartel necesita", que ahora afirma el texto derivado y sin negros y la sombra igual a la constante, y "el glifo es mas oscuro que la sombra", que pasa a "la sombra es casi negra y mas oscura que el glifo". Se agrego uno: dos temas distintos dan la misma sombra.
+- G3: luminancia en las seis de modo cartel, fondo del marco contra la banda debajo del objeto (70 px por debajo del borde inferior, mitad central del ancho):
+
+| Captura | Fondo | Debajo, media | Debajo, maximo |
+|---|---|---|---|
+| northline facade | 64,9 | 59,2 | 64,9 |
+| norte facade | 64,7 | 58,6 | 64,7 |
+| northline letters | 64,9 | 63,7 | 64,9 |
+| norte letters | 64,7 | 62,8 | 64,7 |
+| northline totem | 64,9 | 64,8 | 64,9 |
+| norte totem | 64,7 | 64,7 | 64,7 |
+
+  Antes del cambio de color la banda llegaba a 75,0 y 75,5 en facade y a 73,1 en letters. Vistas una por una: la mancha no esta, la sombra oscurece suave debajo del panel y de las letras, y las letras blancas con canto y bisel se leen claramente sobre el escenario.
+- G4: modo vista. La foto cubre el marco en las siete. Sombra suave, sin borde duro, revisada ampliada sobre la fachada clara de norte de dia y de northline. Comparaciones de luminancia, none / front / back:
+
+| Cliente | Tipo | Modo cartel, cara | Modo vista, cara | Modo vista, anillo |
+|---|---|---|---|---|
+| northline | facade | 223,4 / 232,7 / 220,9 | 212,9 / 223,9 / 215,3 | 133,1 / 133,1 / 135,3 |
+| northline | letters | 236,6 / 245,0 / 235,2 | 232,3 / 240,7 / 235,4 | 191,9 / 191,9 / 199,6 |
+| northline | totem | 210,6 / 219,9 / 211,2 | 155,5 / 161,9 / 159,1 | no aplica |
+| norte | facade | 214,8 / 224,7 / 212,5 | 199,3 / 210,9 / 201,8 | 222,2 / 222,2 / 222,5 |
+| norte | letters | 236,4 / 245,3 / 235,6 | 231,8 / 240,4 / 234,8 | 220,8 / 221,1 / 222,9 |
+| norte | totem | 205,1 / 214,8 / 205,6 | 147,2 / 154,0 / 151,9 | no aplica |
+
+  Pasan las tres en todos los casos. En modo cartel la cara se mide ahora sobre los pixeles que quedan 40 niveles por encima del escenario en las tres luces, erosionados 2 px: el metodo de TAREA_017 buscaba lo mas claro que un fondo claro. En norte de dia el anillo de facade sigue al limite, 222,2 contra 222,5. Las capturas de totem en modo vista no cambian de bytes: la sombra del totem es horizontal en el piso y la camara de la foto, con pitch 0, la ve de canto.
+- G5: sin criterio.
+- G6: la sublinea SIGNS y CARTELES se lee en las cuatro capturas de desktop y mobile; el header, el preview, el selector y el panel quedan en las mismas posiciones.
+- G7 a G9: SPEC 1.16 con las cuatro ediciones, seis lineas en DECISIONES, EXECUTION, STATE y `_ULTIMO.md` en 020.
+
+Bytes de las 18 capturas:
+
+| Archivo | northline | norte |
+|---|---|---|
+| facade-cartel-frente | 13848 | 17485 |
+| letters-cartel-frente | 14516 | 19505 |
+| totem-cartel-frente | 8370 | 9281 |
+| totem-cartel-45 | 10536 | 11583 |
+| totem-vista-front | 365078 | 380731 |
+| totem-vista-night | 391445 | 423049 |
+| facade-vista-night-back | 415951 | 448177 |
+| desktop-1440 | 79504 | 86786 |
+| mobile-390 | 49054 | 52303 |
