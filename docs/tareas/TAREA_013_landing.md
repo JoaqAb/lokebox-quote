@@ -22,6 +22,7 @@ Canal B valido las capturas de TAREA_019: la sombra esta bien en los dos modos y
 - D8. Sin logo: `brand.name` va como texto. Sin fuente nueva: el stack por defecto de Tailwind.
 - D9. `index.html` con title y description estaticos. Sin Open Graph.
 - D10. Sin prefetch de la ruta de demo.
+- D11 (despues de la frenada). Se autoriza editar `vite.config.ts`: entra un chunk manual `react-vendor` con exactamente react, react-dom y scheduler, matcheados por `node_modules/react/`, `node_modules/react-dom/` y `node_modules/scheduler/` despues del grupo del vendor 3D. react-router y react-router-dom no entran: quedan en los chunks de app. Ningun otro chunk manual y sin tocar `chunkSizeWarningLimit`. Motivo: three-vendor tenia React adentro, arrastrado como dependencia de fiber y drei, asi que cualquier ruta que usara React precargaba el vendor 3D y el presupuesto de SPEC 3 venia midiendo mal desde TAREA_004. Separar react-vendor es el arreglo de esa mezcla, no un atajo para pasar C6.
 
 ## Archivos
 
@@ -40,6 +41,7 @@ Editados:
 - `src/core/theme.ts`: exporta el helper de mezcla y las dos constantes, sin cambiar el valor de ninguna variable.
 - `index.html`: title "Lokebox Quote, a visual quote builder" y meta description "Your customer configures the product, sees it in 3D and gets an estimate. You get the request with every detail already filled in."
 - `scripts/capturas.mjs`: tres capturas de `/`, el set pasa de 18 a 21.
+- `vite.config.ts`: el grupo `react-vendor` (D11).
 - `SPEC.md` (1.17, 15/09/2026), `docs/DECISIONES.md`, `docs/EXECUTION.md`, `docs/STATE.md`.
 
 Borrado:
@@ -145,18 +147,23 @@ Validacion:
 
 G1 a G6 de docs/EXECUTION.md, y ademas, cada uno con su numero en Resultados:
 
-- C1. Build sin warnings, con el tamano de cada chunk. three-vendor en 963,55 kB. Ningun chunk de app por encima de 500 kB. La suma de los chunks que no son vendor no mas de 40 kB por encima de 420,04 kB.
+- C1 (redefinido despues de la frenada). Topes por grupo: three-vendor por debajo de 1000 kB (esperado 952,28), react-vendor por debajo de 250 kB (esperado 189,60), la suma de los chunks que no son vendor por debajo de 500 kB (esperado 251,88), build sin warnings y ningun chunk por encima del limite de aviso. Los numeros fijos 963,55 kB y 420,04 kB se retiran: con react-vendor cambio lo que hay dentro de cada chunk y dejaron de ser comparables.
 - C2. `npx tsc -b --force` con 0 errores y `npm run lint` sin hallazgos.
 - C3. Tests en verde. Los 205 previos sin editar, mas al menos 6 casos de landingConfig (JSON valido pasa, clave de texts faltante, color no hexadecimal, href a un slug inexistente, tier con setup en 0, email sin arroba) y 2 de landingTheme (las seis variables, y superficie y borde iguales a los del mismo porcentaje de mezcla).
 - C4. Sin guiones largos en ningun archivo nuevo o editado.
 - C5. Carga de `/` sobre el build servido con `npx vite preview`, cache deshabilitado, tres corridas: `loadEventEnd` por debajo de 2000 ms. Las tres y el peor caso.
 - C6. En `/` no se pide three-vendor ni ningun otro asset del preview, verificado con Playwright listando las URLs de red.
-- C7. `/d/northline` con el mismo metodo, tres corridas antes y tres despues de React.lazy. El peor caso de despues no mas de 300 ms peor que el de antes. Si es peor, se frena y se reporta, sin prefetch.
+- C7. `/d/northline` con el mismo metodo, tres corridas antes y tres despues de React.lazy. El antes tiene peor caso 86 ms, asi que el peor caso de despues no puede pasar de 386 ms. Si es peor, se frena y se reporta, sin prefetch.
 - C8. En `/d/northline` panel y preview aparecen juntos: ningun estado intermedio con el panel visible y el marco vacio. Verificado en captura.
 - C9. Los dos botones llevan a `/d/northline` y `/d/norte` y las dos demos renderizan completas, verificado en navegador.
 - C10. Cero strings de UI en el codigo de la landing, con el resultado del grep sobre `src/landing`.
 - C11. 390 px sin scroll horizontal y revision en 390, 768 y 1440 px. Tres capturas nuevas de `/` en `validacion/`: `landing-390.png`, `landing-768.png` y `landing-1440.png`, agregadas a `scripts/capturas.mjs`. El set pasa de 18 a 21.
 - C12. Cero POST a supabase.co en la carga de `/` y cero filas nuevas en `visits`.
+- C13. React no queda duplicado dentro de three-vendor: sobre dist, un marcador interno de react-dom con 0 apariciones en three-vendor y al menos una en react-vendor. Que three-vendor importe react-vendor es esperado.
+
+## Frenada
+
+Con las rutas en React.lazy, `dist/index.html` seguia precargando three-vendor: React estaba dentro de ese chunk y el entry de `/` lo importaba de ahi, asi que C6 fallaba. El arreglo pedia tocar `vite.config.ts`, fuera de la lista de archivos, y cambiaba three-vendor, que C1 fijaba en 963,55 kB. Se freno con la salida probada y descartada, y Canal B respondio con D11 y el C1 redefinido.
 
 ## Commits y deploy
 
@@ -165,3 +172,36 @@ G1 a G6 de docs/EXECUTION.md, y ademas, cada uno con su numero en Resultados:
 3. Cierre: SPEC, DECISIONES, EXECUTION, STATE y este archivo con los numeros. `_ULTIMO.md` queda en 020: 013 ya existia y es menor.
 
 Push a origin/main. Confirmar por la API de Vercel que el deploy del commit de codigo esta listo, y despues curl a `/`, `/d/northline` y `/d/norte` esperando 200 y el hash de bundle nuevo.
+
+## Resultados
+
+Medido el 15/09/2026 sobre `npx vite preview` del build, con Playwright y chromium headless, cache deshabilitado por CDP y un contexto nuevo por corrida.
+
+El antes de `/` medido sobre el indice viejo (84 ms de peor caso) no sirve como referencia: era otra pagina y bajaba three-vendor.
+
+- C1: build sin warnings y ningun chunk sobre el limite de aviso.
+
+| Chunk | Grupo | Tamano |
+|---|---|---|
+| index (entry, landing y router) | app | 73,47 kB |
+| QuotePage | app | 164,38 kB |
+| resolveClient | app | 8,09 kB |
+| QuoteSheetPage | app | 5,38 kB |
+| rolldown-runtime | app | 0,71 kB |
+| react-vendor | react-vendor | 189,60 kB |
+| three-vendor | three-vendor | 952,28 kB |
+| index.css | estilos | 22,90 kB |
+
+  App sumada 252,03 kB (tope 500), react-vendor 189,60 kB (tope 250), three-vendor 952,28 kB (tope 1000). react-router y react-router-dom quedan en el entry de app: 2 apariciones de `react-router` en el entry y 0 en los dos vendors.
+- C2: `npx tsc -b --force` sin errores y `npm run lint` sin hallazgos.
+- C3: 215 tests en verde. Los 205 previos sin editar, mas 8 de landingConfig (JSON valido, clave de texts faltante, color no hexadecimal, href a un slug inexistente, setup en 0, email sin arroba, how sin tres pasos, ids de tier repetidos) y 2 de landingTheme (seis variables, y superficie y borde iguales a la mezcla del core).
+- C4: cero guiones largos en los archivos nuevos y editados.
+- C5: `/` con loadEventEnd de 38, 32 y 37 ms. Peor caso 38 ms.
+- C6: pedidos de red de `/`: el documento, el entry, rolldown-runtime, react-vendor y el CSS. Ni three-vendor, ni QuotePage, ni HDRI, ni typeface, ni fotos.
+- C7: `/d/northline` loadEventEnd antes 86, 83 y 79 ms (peor 86); despues 40, 37 y 45 ms (peor 45). Como con React.lazy el evento load puede llegar antes que los chunks de la ruta, se midio tambien el primer frame con panel y canvas visibles, sobre un build del commit de apertura: antes 159, 117 y 127 ms en la corrida caliente (la primera corrida en frio dio 2136); despues 384, 374 y 372 ms. La demo aparece unos 225 a 260 ms mas tarde que antes, por la descarga en cascada de los chunks de la ruta, y queda dentro de los 300 ms de margen tambien con esa medida. Sin prefetch.
+- C8: en cada frame desde la navegacion se muestreo si habia panel sin canvas: 0 frames en las seis corridas de despues. Panel y canvas aparecen en el mismo frame.
+- C9: desde `/`, el primer boton lleva a `/d/northline` y el segundo a `/d/norte`; las dos demos renderizan con canvas, panel ("Build your sign" y "Armá tu cartel") y precio ($360 y $ 272.500).
+- C10: grep sobre `src/landing` de nodos de texto con letras y de `aria-label`, `title`, `placeholder` y `alt` literales: 0 resultados.
+- C11: scrollWidth igual al ancho de la ventana en 390, 768 y 1440 px. Capturas de pagina entera en `validacion/`: landing-390.png 157695 bytes, landing-768.png 158657 bytes, landing-1440.png 167424 bytes. El set queda en 21. En la revision los puntos de "Who it is for" salian como circulos vacios y pasaron a un punto de acento en una lista no ordenada.
+- C12: 0 POST a supabase.co en la carga de `/` en los tres anchos y en las tres corridas. `/` no importa la capa de datos. Las filas de `visits` no se pueden contar con la anon key (RLS devuelve lista vacia); sin requests no hay insert posible.
+- C13: sobre dist, `__SECRET_INTERNALS` da 0 en los dos vendors porque React 19 lo renombro. Con el marcador interno de react-dom de React 19, `__DOM_INTERNALS`: 0 en three-vendor y 2 en react-vendor. La definicion de `__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE` esta 1 vez en react-vendor y 0 en three-vendor; three-vendor solo la lee desde react-reconciler, dependencia de fiber, e importa react-vendor.

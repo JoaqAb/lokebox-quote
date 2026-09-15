@@ -279,3 +279,14 @@
 - 14/09/2026: SPEC 11 se corrige: los dos clientes de la demo tienen paleta clara. La estetica oscura de northline hacia varias versiones que no existia en su JSON.
 - 14/09/2026: la sombra de apoyo pasa a un color de escena casi negro y deja de derivarse del tema: una sombra oscurece siempre, y un color mezclado de una paleta clara puede quedar mas claro que el fondo. Sobre --q-stage aclaraba hasta 10 niveles debajo del panel.
 - 14/09/2026: el relleno inferior del panel sale del alcance de TAREA_019: medido, al final del scroll ningun control queda tapado en 1440 ni en 390, y lo que se ve cortado al cargar es el borde del scroll, que un relleno no cambia. Se revisa el jueves con el video.
+- 15/09/2026: D1, la landing tiene JSON propio en src/landing/landing.json con validacion propia: no es un cliente, no entra al registro ni tiene ruta /d/, y sus textos no pueden vivir en el codigo.
+- 15/09/2026: D2, la landing reusa los tokens --q- y las clases de control, con seis variables; superficie y borde con la misma mezcla que el tema de cliente, y sin --q-primary ni --q-stage porque ninguna clase de la landing los consume.
+- 15/09/2026: D4, /d/:slug y /d/:slug/quote con React.lazy y un Suspense con un div vacio de fallback: / no tiene que bajar el vendor 3D. La regla de no lazy loading es del preview dentro del cotizador, que sigue llegando con su panel porque la ruta es un chunk.
+- 15/09/2026: D5, contacto de la landing solo por email con un boton mailto: un solo canal publico hasta que Canal C entregue el dato real.
+- 15/09/2026: D6, los precios de los tiers son numeros y se formatean con formatCurrency del core: la moneda se formatea en un solo lugar del proyecto.
+- 15/09/2026: D7, cada href de demo se valida contra listClientSlugs: un boton a un cliente que no existe seria el primer click roto del visitante.
+- 15/09/2026: D8, la landing no lleva logo ni fuente nueva: brand.name como texto y el stack de Tailwind, sin assets que sumar a la carga.
+- 15/09/2026: D9, index.html con title y description estaticos y sin Open Graph: alcanza para el buscador y no suma assets de imagen.
+- 15/09/2026: D10, sin prefetch de la ruta de demo: la medicion de C7 tiene que mostrar el costo real del lazy loading, no taparlo.
+- 15/09/2026: D11, entra el chunk manual react-vendor con react, react-dom y scheduler. three-vendor tenia React adentro, arrastrado como dependencia de fiber y drei, asi que cualquier ruta que usara React precargaba el vendor 3D y el presupuesto de SPEC 3 venia midiendo mal desde TAREA_004. Es el arreglo de esa mezcla, no un atajo para C6.
+- 15/09/2026: el presupuesto de bundle pasa de igualdades a topes por grupo (three-vendor por debajo de 1000 kB, react-vendor por debajo de 250 kB, chunks de app sumados por debajo de 500 kB): con react-vendor cambio lo que hay dentro de cada chunk y los numeros fijos de 963,55 y 420,04 kB dejaron de ser comparables.

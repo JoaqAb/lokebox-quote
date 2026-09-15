@@ -3,7 +3,7 @@
 Fuente de verdad del alcance. Si algo no está acá, no se construye.
 Este documento se edita, no se contradice. Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 
-Versión: 1.16 · 15/09/2026
+Versión: 1.17 · 15/09/2026
 
 ## 1. Objetivo
 
@@ -38,7 +38,8 @@ Fecha de DONE: viernes 18/09/2026.
 - Deploy estático en Vercel. Dominio quote.lokebox.com.
 - Versiones fijadas en package.json. React ~19.2.8 y three ~0.185.1 por compatibilidad con R3F y con @types/three.
 - Assets estáticos del preview, desde 1.9: las fotos de fondo del cliente (2 o 3, 16:9, WebP, unos 1600 x 900) y un único HDRI de estudio para todo el producto, CC0, entre 100 y 200 kB. Desde 1.14 suma un único typeface JSON de Archivo Black (OFL), subsetado a A a Z, 0 a 9 y espacio, techo 60 kB, para el texto 3D del cartel. No entran al bundle de JavaScript: son archivos servidos desde `public/`. El HDRI es opcional en runtime: si falta, el preview funciona sin reflejo.
-- Presupuesto de bundle: el código de la app y el vendor 3D van en chunks separados. La app por debajo de 500 kB y el vendor 3D por debajo de 1000 kB sin comprimir. El build avisa si alguno se pasa. No hay lazy loading del preview: el preview es el producto y no puede aparecer después que el resto de la página.
+- Presupuesto de bundle (desde 1.17): tres grupos de chunks, con topes sin comprimir. `three-vendor` (solo three, @react-three/fiber y @react-three/drei) por debajo de 1000 kB; `react-vendor` (react, react-dom y scheduler) por debajo de 250 kB; y la suma de los chunks de app, todos los que no son vendor, por debajo de 500 kB. El build avisa si un chunk pasa el límite de aviso. Hasta 1.16 el chunk de vendor 3D incluía React, arrastrado como dependencia de fiber y drei, y el presupuesto de app se medía sobre un único chunk de entrada.
+- Carga por ruta (desde 1.17): `/d/:slug` y `/d/:slug/quote` se cargan con `React.lazy`, para que `/` no descargue el vendor 3D. La regla de no lazy loading es del preview dentro de la página del cotizador, no de la ruta: el preview es el producto y no puede aparecer después que su panel, y sigue llegando junto con él porque la ruta entera es un chunk. Sin prefetch de la ruta de demo.
 
 ## 4. Arquitectura en tres capas
 
@@ -431,12 +432,17 @@ Texto 3D (desde 1.14): un componente único, `SignText3D`, con `TextGeometry` de
 
 ## 13. Landing (quote.lokebox.com)
 
-Una página en `/` con identidad Lokebox: qué es, para quién, botón a la demo EN (`/d/northline`) y a la demo ES (`/d/norte`), los dos tiers con precio de la sección 15, y contacto. Corta.
+Una página en `/` con identidad Lokebox, en inglés y sin selector de idioma. Corta. Reescrita en 1.17.
 
-- En inglés, sin selector de idioma.
-- Paleta propia de Lokebox, no la de ningún cliente: bg `#FAFAF8`, text `#101215`, muted `#6E737B`, accent `#1E56E0`.
-- Contacto: placeholder hasta que Canal C entregue el dato público.
-- Textos, precios, paleta y contacto salen de un JSON propio de la landing, no del código.
+- JSON propio en `src/landing/landing.json`, validado en runtime como el de cliente. No es un cliente: no entra al registro de `src/clients` y no tiene ruta `/d/`. Forma: `locale`; `currency` con `code`, `symbol` y `decimals`; `brand.name`; `colors` con `bg`, `text`, `muted` y `accent` en hexadecimal de seis dígitos (paleta Lokebox: `#FAFAF8`, `#101215`, `#6E737B`, `#1E56E0`); `texts` con todos los textos visibles, más `how` y `forWho` como listas de tres; `demos`, exactamente dos, con `id`, `label` y `href`; `tiers`, exactamente dos, con `id`, `name`, `setup`, `monthly` y `features`; `contact` con `email` y `placeholder`.
+- `contact.placeholder` avisa a Canal C que el email todavía no es el público, igual que `prices_placeholder`. No tiene efecto visible.
+- Orden de secciones: encabezado con `brand.name` como texto, sin logo; hero con headline, subheadline y los dos botones a las demos; how it works con tres pasos numerados; who it is for con tres puntos; pricing con las dos tarjetas de la sección 15; contacto; footer.
+- Los botones de demo son enlaces nativos a los `href` del JSON. Cada `href` tiene que ser `/d/<slug>` con un slug del registro de clientes: si no, la validación falla nombrando el `href` y el slug.
+- Los precios son números en el JSON y se formatean con el formateo de moneda del core, con la moneda y el locale de la landing. La palabra de cada línea (`setup`, `per month`) sale de `texts`.
+- Contacto solo por email, con un botón `mailto`. Sin WhatsApp en la landing.
+- Reusa los tokens `--q-` y las clases de control del cotizador. El tema de la landing emite `--q-bg`, `--q-text`, `--q-muted` y `--q-accent` del JSON, más `--q-surface` y `--q-border` derivadas con el mismo `color-mix` y los mismos porcentajes del tema de cliente. No emite `--q-primary` ni `--q-stage`: ninguna clase que usa la landing los consume.
+- Cero strings de UI en el código de la landing. No importa three ni el preview, no inserta visitas ni leads, y no usa fuente propia.
+- `index.html` lleva title y description estáticos. Sin Open Graph.
 
 ## 14. Tracking
 

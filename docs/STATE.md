@@ -4,22 +4,22 @@
 
 ## Bloque actual
 
-Bloque 4. TAREA_019 cerrada: `--q-stage` al 82 por ciento del texto como fondo del marco solo en modo cartel, sombra de apoyo en color de escena casi negro, sublinea de los dos logos legible. SPEC 1.16. 205 pruebas en verde.
-Medido: debajo del panel y de las letras la luminancia queda igual o menor al fondo del marco en las seis capturas de modo cartel; las tres comparaciones de SPEC 12 pasan en facade, letters y totem. TAREA_017 aceptada por Canal B por capturas.
-Bundle: app 420,04 kB, vendor 3D 963,55 kB. `npm run capturas` rehace las 18 en `validacion/`.
+Bloque 4, codigo cerrado. TAREA_013 cerrada: landing en `/` con JSON propio validado, rutas de cliente con React.lazy y chunk react-vendor separado del vendor 3D (React estaba dentro de three-vendor desde TAREA_004). SPEC 1.17. 215 pruebas en verde.
+Bundle por grupos: app 252,03 kB, react-vendor 189,60 kB, three-vendor 952,28 kB. `/` carga en 38 ms de peor caso y no pide el vendor 3D. `/d/northline` muestra panel y canvas juntos a unos 380 ms, 225 a 260 ms mas tarde que antes del lazy loading.
+`npm run capturas` rehace 21 capturas en `validacion/`, tres de la landing.
 
 ## Ultimo cerrado
 
-TAREA_019: a819938 (apertura), cdf3467 (codigo). Numeros y frenada en docs/tareas/TAREA_019_escenario_modo_cartel.md.
+TAREA_013: 2241051 (apertura), cd37310 (codigo). Numeros y frenada en docs/tareas/TAREA_013_landing.md.
 
 ## Proximo
 
-TAREA_013, la landing minima. El jueves, con el video: revisar el corte de controles al borde del scroll del panel.
+Canal C del bloque 4: video de 30 segundos y capturas, y el email publico de la landing (contact.placeholder). El jueves, con el video: el corte de controles al borde del scroll del panel.
 
 ## Bloqueos
 
-En norte de dia el anillo de back de facade crece menos de un nivel (222,2 a 222,5). El typeface no trae Ñ ni vocales con tilde. Canal C: borrar de `visits` las filas HeadlessChrome del 14/09.
+El email de la landing es placeholder. En norte de dia el anillo de back de facade crece menos de un nivel. El typeface no trae Ñ ni vocales con tilde. Canal C: borrar de `visits` las filas HeadlessChrome del 14/09.
 
 ## Comando para retomar
 
-`cd ~/proyectos/lokebox-quote && cat docs/STATE.md docs/tareas/TAREA_019_escenario_modo_cartel.md`
+`cd ~/proyectos/lokebox-quote && cat docs/STATE.md docs/tareas/TAREA_013_landing.md`
