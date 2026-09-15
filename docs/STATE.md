@@ -14,11 +14,11 @@ TAREA_013: 2241051 (apertura), cd37310 (codigo). Numeros y frenada en docs/tarea
 
 ## Proximo
 
-Canal C del bloque 4: video de 30 segundos y capturas, y el email publico de la landing (contact.placeholder). El jueves, con el video: el corte de controles al borde del scroll del panel.
+Canal C del bloque 4: video de 30 segundos y capturas. El jueves, con el video: el corte de controles al borde del scroll del panel.
 
 ## Bloqueos
 
-El email de la landing es placeholder. En norte de dia el anillo de back de facade crece menos de un nivel. El typeface no trae Ñ ni vocales con tilde. Canal C: borrar de `visits` las filas HeadlessChrome del 14/09.
+En norte de dia el anillo de back de facade crece menos de un nivel. El typeface no trae Ñ ni vocales con tilde. Canal C: borrar de `visits` las filas HeadlessChrome del 14/09.
 
 ## Comando para retomar
 
