@@ -304,18 +304,17 @@ function blend(from: Color, to: Color, amount: number): string {
 }
 
 const MIX = {
-  shadow: 0.75,
   // Los tres materiales del MVP son claros, asi que la letra va oscura en los tres.
   signText: 0.88,
 }
 
-// Lo poco que queda de paleta se deriva del tema del cliente. El color del cartel no sale
-// de aca: sale del visual del material.
+// Lo poco que queda de paleta: el color del texto se deriva del tema del cliente y la sombra
+// es la constante de escena. El color del cartel no sale de aca: sale del visual del material.
 export function scenePalette(theme: Record<string, string>): ScenePalette {
   const primary = readColor(theme, '--q-primary')
   const text = readColor(theme, '--q-text')
   return {
-    shadow: blend(primary, text, MIX.shadow),
+    shadow: SUPPORT_SHADOW_COLOR,
     signText: blend(primary, text, MIX.signText),
   }
 }
@@ -414,6 +413,12 @@ export const SIGN_STUDIO_LIGHT: PhotoLight = {
   keyAzimuthDeg: -30,
   keyElevationDeg: 40,
 }
+
+// Color de la sombra de apoyo (SPEC 12, version 1.16), en los dos modos. Es del producto y no
+// del cliente: una sombra oscurece siempre y no tiene color de marca. Derivada de una paleta
+// clara no tenia garantia de quedar por debajo del fondo que tuviera detras, y sobre el
+// escenario oscuro del modo cartel aclaraba en vez de oscurecer.
+export const SUPPORT_SHADOW_COLOR = '#0a0a0a'
 
 // Caja del encuadre en modo letters: el contorno real de las letras, simetrico alrededor del
 // origen porque el encuadre centra el cuadro en el target, y la profundidad de las letras.

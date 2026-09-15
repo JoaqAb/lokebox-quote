@@ -11,6 +11,9 @@ import type { SignVisual } from './visuals'
 // Debajo, el selector de vistas (primero el modo cartel, despues una por foto) y el zoom,
 // que en modo cartel acerca la camara y en modo vista escala foto y canvas por CSS.
 // prefers-reduced-motion se lee aca, fuera del canvas, y baja como prop.
+// El fondo del marco depende de la vista (SPEC 12, version 1.16): en modo cartel es el
+// escenario --q-stage, que contrasta con un cartel claro; en modo vista la foto lo cubre y
+// queda --q-surface.
 
 const ZOOM = { min: 1, max: 2.5, step: 0.25 }
 
@@ -48,7 +51,7 @@ export function SignPreview({ selection, visual, theme, photos, zoomLabel, signO
     <div className="flex flex-col gap-3">
       <div
         style={theme}
-        className={`q-hairline relative aspect-video w-full overflow-hidden rounded-2xl border bg-[var(--q-surface)] ${photo === null ? 'cursor-grab active:cursor-grabbing' : ''}`}
+        className={`q-hairline relative aspect-video w-full overflow-hidden rounded-2xl border ${photo === null ? 'cursor-grab bg-[var(--q-stage)] active:cursor-grabbing' : 'bg-[var(--q-surface)]'}`}
       >
         <PhotoStage
           selection={selection}

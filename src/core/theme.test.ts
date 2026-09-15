@@ -36,6 +36,19 @@ describe('themeFromClient', () => {
     expect(pct(theme['--q-border'])).toBeGreaterThan(pct(theme['--q-surface']))
   })
 
+  it('deriva el escenario del modo cartel con color-mix sobre el texto y el fondo, en los dos clientes', () => {
+    for (const slug of ['northline', 'norte']) {
+      const theme = themeFromClient(clientOrFail(slug))
+      expect(theme['--q-stage'], slug).toBe('color-mix(in srgb, var(--q-text) 82%, var(--q-bg))')
+    }
+  })
+
+  it('superficie y borde no cambian con el escenario: siguen en 6 y 16', () => {
+    const theme = themeFromClient(clientOrFail('northline'))
+    expect(theme['--q-surface']).toBe('color-mix(in srgb, var(--q-text) 6%, var(--q-bg))')
+    expect(theme['--q-border']).toBe('color-mix(in srgb, var(--q-text) 16%, var(--q-bg))')
+  })
+
   // 9.1
   it('ninguna variable del tema lleva un hexadecimal escrito en el codigo', () => {
     const theme = themeFromClient(clientOrFail('norte'))

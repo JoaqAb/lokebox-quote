@@ -10,6 +10,7 @@ import {
   SET,
   SIGN_TEXT,
   SUPPORT_SHADOW,
+  SUPPORT_SHADOW_COLOR,
   LETTERS,
   SIGN_MODE_BACK_FACE,
   SIGN_STUDIO_LIGHT,
@@ -196,22 +197,33 @@ describe('lightingParams y lampPosition', () => {
 
 describe('scenePalette', () => {
   // 10.4
-  it('queda solo lo que el cartel necesita, derivado del tema y sin negros', () => {
+  // Editada en TAREA_019: la sombra deja de derivarse del tema y pasa a ser la constante de
+  // escena; el texto sigue derivado y sin negros.
+  it('queda solo lo que el cartel necesita: texto derivado del tema y sin negros, sombra de escena', () => {
     for (const slug of listClientSlugs()) {
       const palette = scenePalette(themeFromClient(clientOrFail(slug)))
       expect(Object.keys(palette).sort()).toEqual(['shadow', 'signText'])
-      for (const [nombre, color] of Object.entries(palette)) {
-        expect(luminance(color), `${slug}.${nombre}`).toBeGreaterThan(0.02)
-      }
+      expect(luminance(palette.signText), `${slug}.signText`).toBeGreaterThan(0.02)
+      expect(palette.shadow, slug).toBe(SUPPORT_SHADOW_COLOR)
     }
   })
 
-  // 10.4
-  it('el glifo es mas oscuro que la sombra: tiene que leerse sobre una cara clara', () => {
+  // Editada en TAREA_019: la sombra es casi negra y oscurece a cualquier fondo; el glifo,
+  // que sigue saliendo del tema, queda por encima de ella.
+  it('la sombra es casi negra y mas oscura que el glifo del texto', () => {
+    expect(luminance(SUPPORT_SHADOW_COLOR)).toBeLessThan(0.01)
     for (const slug of listClientSlugs()) {
       const palette = scenePalette(themeFromClient(clientOrFail(slug)))
-      expect(luminance(palette.signText), slug).toBeLessThan(luminance(palette.shadow))
+      expect(luminance(palette.shadow), slug).toBeLessThan(luminance(palette.signText))
     }
+  })
+
+  it('el color de la sombra no depende del tema: dos temas distintos dan la misma sombra', () => {
+    const claro = scenePalette({ '--q-primary': '#f2f1ee', '--q-text': '#c7c2b9' })
+    const oscuro = scenePalette({ '--q-primary': '#101317', '--q-text': '#f4f2ef' })
+    expect(claro.signText).not.toBe(oscuro.signText)
+    expect(claro.shadow).toBe(SUPPORT_SHADOW_COLOR)
+    expect(oscuro.shadow).toBe(SUPPORT_SHADOW_COLOR)
   })
 
   it('lanza si falta una variable del tema', () => {
