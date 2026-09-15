@@ -1,0 +1,62 @@
+{
+  "locale": "en",
+  "currency": { "code": "USD", "symbol": "$", "decimals": 0 },
+  "brand": { "name": "Lokebox Quote" },
+  "colors": { "bg": "#FAFAF8", "text": "#101215", "muted": "#6E737B", "accent": "#1E56E0" },
+  "texts": {
+    "headline": "A visual quote builder for your website",
+    "subheadline": "Your customer picks what they need, sees it in 3D and gets an estimate. You get the request with every detail already filled in.",
+    "demosTitle": "Try a live demo",
+    "howTitle": "How it works",
+    "how": [
+      "The visitor configures the product and watches it change in 3D.",
+      "The price updates live, as an estimate range that you confirm later.",
+      "You get the request by WhatsApp or email, with a printable quote."
+    ],
+    "forWhoTitle": "Who it is for",
+    "forWho": [
+      "Sign makers and print shops that quote by hand, one message at a time.",
+      "Businesses that keep getting vague questions like how much for a sign.",
+      "Owners who want the price question answered while the visitor is still on the page."
+    ],
+    "tiersTitle": "Pricing",
+    "tierSetupLabel": "setup",
+    "tierMonthlyLabel": "per month",
+    "contactTitle": "Want one for your business?",
+    "contactBody": "Tell me what you sell and how you charge for it. I reply with a demo built around your own product.",
+    "contactButton": "Send an email",
+    "footer": "Lokebox Quote. Built by Lokebox."
+  },
+  "demos": [
+    { "id": "en", "label": "English demo", "href": "/d/northline" },
+    { "id": "es", "label": "Spanish demo", "href": "/d/norte" }
+  ],
+  "tiers": [
+    {
+      "id": "starter",
+      "name": "Starter",
+      "setup": 750,
+      "monthly": 79,
+      "features": [
+        "Quote builder with your brand, colors and logo",
+        "One product family",
+        "WhatsApp button, contact form or both",
+        "Every request saved with the full selection",
+        "Printable quote sheet"
+      ]
+    },
+    {
+      "id": "pro",
+      "name": "Pro",
+      "setup": 1500,
+      "monthly": 149,
+      "features": [
+        "Everything in Starter",
+        "Up to two related product families",
+        "Advanced price rules",
+        "Priority setup"
+      ]
+    }
+  ],
+  "contact": { "email": "hello@lokebox.com", "placeholder": true }
+}

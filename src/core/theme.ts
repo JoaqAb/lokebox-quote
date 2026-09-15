@@ -11,14 +11,16 @@ import type { ClientConfig } from './types'
 
 // Cuanto del color de texto entra en cada derivada. La superficie apenas se despega del
 // fondo; el borde tiene que verse sin gritar.
-const SURFACE_MIX_PCT = 6
-const BORDER_MIX_PCT = 16
+// Se exportan junto con mix para la landing (SPEC 13), que deriva superficie y borde igual
+// sin duplicar los porcentajes. core no importa nada de la landing.
+export const SURFACE_MIX_PCT = 6
+export const BORDER_MIX_PCT = 16
 // El escenario del modo cartel (SPEC 12, version 1.16) va casi en el color del texto: el marco
 // es un escenario y tiene que contrastar con un cartel de material claro, que sobre la
 // superficie casi no se despegaba. Por eso es tan alta.
 const STAGE_MIX_PCT = 82
 
-function mix(pct: number): string {
+export function mix(pct: number): string {
   return `color-mix(in srgb, var(--q-text) ${String(pct)}%, var(--q-bg))`
 }
 

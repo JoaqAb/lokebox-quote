@@ -1,5 +1,5 @@
-// Set de capturas de validacion (TAREA_018): 18 PNG en validacion/ para que Canal B vea el
-// preview. Levanta el dev server, abre chromium con Playwright, bloquea Supabase y baja el
+// Set de capturas de validacion (TAREA_018, landing desde TAREA_013): 21 PNG en validacion/
+// para que Canal B vea el preview y la landing. Levanta el dev server, abre chromium con Playwright, bloquea Supabase y baja el
 // server al terminar. Se corre con `npm run capturas`. No hace builds ni toca dist/.
 import { spawn } from 'node:child_process'
 import { mkdir, readFile, rm, stat } from 'node:fs/promises'
@@ -16,6 +16,8 @@ const SETTLE_MS = 1500
 const DRAG_SETTLE_MS = 3000
 const DESKTOP = { width: 1440, height: 900 }
 const MOBILE = { width: 390, height: 844 }
+// La landing se revisa en los tres anchos, con la pagina entera: es una sola columna larga.
+const LANDING_WIDTHS = [390, 768, 1440]
 // La misma configuracion de navegador que las capturas de G3 de TAREA_017.
 const LAUNCH = { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] }
 
@@ -76,6 +78,10 @@ async function labelsOf(slug) {
 }
 
 async function openPage(browser, slug, viewport) {
+  return openPath(browser, `/d/${slug}`, viewport)
+}
+
+async function openPath(browser, path, viewport) {
   const page = await browser.newPage({ viewport, deviceScaleFactor: 1 })
   await page.route('**/*.supabase.co/**', (route) => {
     counters.aborted += 1
@@ -86,7 +92,7 @@ async function openPage(browser, slug, viewport) {
       counters.supabaseCompleted += 1
     }
   })
-  await page.goto(`${BASE}/d/${slug}`, { waitUntil: 'networkidle' })
+  await page.goto(`${BASE}${path}`, { waitUntil: 'networkidle' })
   await page.waitForTimeout(SETTLE_MS)
   return page
 }
@@ -180,6 +186,18 @@ async function captureClient(browser, slug) {
   return files
 }
 
+async function captureLanding(browser) {
+  const files = []
+  for (const width of LANDING_WIDTHS) {
+    const name = `landing-${String(width)}.png`
+    const page = await openPath(browser, '/', { width, height: DESKTOP.height })
+    await page.screenshot({ path: new URL(name, OUT).pathname, fullPage: true })
+    files.push(name)
+    await page.close()
+  }
+  return files
+}
+
 const server = startServer()
 let browser = null
 try {
@@ -191,6 +209,7 @@ try {
   for (const slug of SLUGS) {
     files.push(...(await captureClient(browser, slug)))
   }
+  files.push(...(await captureLanding(browser)))
   for (const name of files) {
     const { size } = await stat(new URL(name, OUT))
     console.log(`${name} ${String(size)} bytes`)
