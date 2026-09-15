@@ -58,5 +58,5 @@
       ]
     }
   ],
-  "contact": { "email": "hello@lokebox.com", "placeholder": true }
+  "contact": { "email": "hola@lokebox.com", "placeholder": false }
 }
