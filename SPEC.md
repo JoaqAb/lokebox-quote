@@ -3,7 +3,7 @@
 Fuente de verdad del alcance. Si algo no está acá, no se construye.
 Este documento se edita, no se contradice. Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 
-Versión: 1.15 · 14/09/2026
+Versión: 1.16 · 15/09/2026
 
 ## 1. Objetivo
 
@@ -48,7 +48,7 @@ Se escribe una vez y no conoce ninguna vertical ni ningún cliente concreto.
 
 - Layout responsive. Desktop: preview a la izquierda, panel de opciones a la derecha, precio siempre visible. Mobile: preview arriba, opciones abajo, barra de precio fija al pie.
 - Panel de opciones genérico, renderizado desde el esquema de la vertical. Cinco `kinds` de control: choice, range, boolean, stepper y text.
-- Tema del cliente: los cinco colores del JSON como variables CSS, más `--q-surface` y `--q-border` derivadas con `color-mix` en el contenedor raíz. El tema sale siempre del JSON del cliente: no hay tema global del core ni variantes `dark:`, que serían una segunda fuente de verdad del look.
+- Tema del cliente: los cinco colores del JSON como variables CSS, más tres derivadas con `color-mix` en el contenedor raíz: `--q-surface`, `--q-border` y, desde 1.16, `--q-stage`, el escenario del modo cartel. El tema sale siempre del JSON del cliente: no hay tema global del core ni variantes `dark:`, que serían una segunda fuente de verdad del look.
 - Motor de precios. Función pura, contrato en la sección 6.
 - Contador de precio animado y rango.
 - Captura de lead y CTA configurable: WhatsApp con mensaje armado, formulario con guardado en Supabase, o los dos.
@@ -380,8 +380,10 @@ Validación: al cargar un cliente se valida la forma en runtime. Si falta una cl
 
 ## 11. Clientes de la demo
 
-- EN: slug `northline`, marca ficticia Northline Signs. Estética oscura, tipografía grande, acento cálido.
-- ES: slug `norte`, marca ficticia Norte Carteles. Mismo esquema con idioma, unidades, moneda y precios cambiados.
+- EN: slug `northline`, marca ficticia Northline Signs. Paleta clara, tipografía grande, acento cálido.
+- ES: slug `norte`, marca ficticia Norte Carteles. Paleta clara y mismo esquema, con idioma, unidades, moneda y precios cambiados.
+
+Desde 1.16 esta sección dice lo que los JSON ya tienen: los dos clientes de la demo usan paleta clara, y la estética oscura de northline no existe desde hace varias versiones.
 
 Sin marcas reales, sin fotos reales, sin logos de terceros.
 
@@ -389,7 +391,7 @@ Sin marcas reales, sin fotos reales, sin logos de terceros.
 
 Desde 1.12 el viewer tiene dos modos sobre el mismo canvas R3F, que no se remonta al cambiar de modo ni de vista y no reinicia la selección.
 
-1. Modo cartel, el default al cargar. Sin foto. Fondo `--q-surface` del marco. El cartel solo, con su sombra de apoyo, y el visitante lo gira con el mouse o el dedo.
+1. Modo cartel, el default al cargar. Sin foto. Fondo `--q-stage` del marco (desde 1.16, antes `--q-surface`): el marco es un escenario y tiene que contrastar con un cartel de material claro, que sobre la superficie casi no se despegaba. En modo vista el marco sigue en `--q-surface`, detrás de la foto. El cartel solo, con su sombra de apoyo, y el visitante lo gira con el mouse o el dedo.
 2. Modo vista. Una foto del cliente con el cartel compuesto encima, fijo, sin órbita: es el pivote de 1.9 con la cámara nueva.
 
 El selector de vistas es una fila de botones: el primero es el modo cartel, con la etiqueta `viewSignOnly`, seleccionado al cargar; después uno por foto de `photos`, con su `label`.
@@ -413,7 +415,7 @@ Texto 3D (desde 1.14): un componente único, `SignText3D`, con `TextGeometry` de
 - Cartel en modo area: caja cuyas dimensiones siguen ancho y alto en tiempo real con transición suave. Espesor fijo. En la cara va el texto del cartel en relieve de 3 mm con `SignText3D`, centrado y escalado al ancho disponible, sin salirse del panel en ninguna medida del rango.
 - Cartel en modo letters (desde 1.14): una letra corpórea con `SignText3D` por carácter del texto sin espacios, máximo 18, con el contorno real del glifo, canto y bisel. Alto de letra de la selección, profundidad `visual.depthMeters` de la opción elegida. En `back` de modo cartel la cara de la letra no emite y emiten sus cantos y su cara trasera, igual que el panel.
 - El tipo `totem` (desde 1.15): el panel del modo area sin cambios, con su texto en relieve, un poste vertical centrado debajo y una base apoyada en el piso, con su recargo de precio intacto. El origen del totem es la cara inferior de la base: base de 0 a `TOTEM_BASE_HEIGHT` (0,08 m), poste de ahí a `TOTEM_POST_HEIGHT` (1,10 m) y panel desde `TOTEM_POST_HEIGHT` hacia arriba. Medidas proporcionales con límites, para que no se rompa en los extremos del slider de ancho: poste de 0,12 del ancho del panel entre 0,12 y 0,35 m, y de 1,6 veces el espesor del panel de profundidad; base de 0,45 del ancho del panel con piso de 0,50 m, y 0,50 m de profundidad. Son constantes nombradas del código de la escena, como la luz de estudio, nunca del JSON. Poste y base van en el color `muted` del tema, con metalness 0,2 y roughness 0,6, y nunca emiten: `front` y `back` afectan solo al panel.
-- Sombra de apoyo: quad con el degradado radial, detrás del cartel y apenas desplazado, en los dos modos. En el tipo `totem` (desde 1.15) el quad va horizontal sobre el piso, centrado bajo la base, de 1,6 veces su ancho y su profundidad, en los dos modos.
+- Sombra de apoyo: quad con el degradado radial, detrás del cartel y apenas desplazado, en los dos modos. Su color (desde 1.16) es una constante de escena casi negra y no sale del tema del cliente: una sombra oscurece siempre, y un color derivado de una paleta clara puede quedar más claro que el fondo que tiene detrás. En el tipo `totem` (desde 1.15) el quad va horizontal sobre el piso, centrado bajo la base, de 1,6 veces su ancho y su profundidad, en los dos modos.
 - Material: cambia color, metalness y roughness según el `visual` del material. El HDRI de estudio es lo que hace que `metalness` alto se distinga.
 - Iluminación: tres modos, nunca más de una luz dinámica, colores del `visual` del material.
   - `none`: sin emisión y sin luz agregada.
