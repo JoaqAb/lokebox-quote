@@ -3,7 +3,7 @@
 Fuente de verdad del alcance. Si algo no está acá, no se construye.
 Este documento se edita, no se contradice. Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 
-Versión: 1.19 · 16/09/2026
+Versión: 1.20 · 17/09/2026
 
 ## 1. Objetivo
 
@@ -280,6 +280,8 @@ Formato fijo de `detail` en modo letters: material `letras x altura x precio x f
 
 El formateo de moneda vive aparte, en `src/core/pricing/format.ts`, con `Intl.NumberFormat` y el locale del cliente.
 
+`CurrencyConfig` de la sección 10 tiene una clave más que el `currency` de `PriceRules`: `display`, opcional, `"symbol" | "code"`. El bloque de tipos de arriba no la lleva a propósito. El motor no formatea, así que no tiene nada que hacer con ella: `priceRulesFromClient` la omite al armar las reglas y `display` viaja solo hasta `formatCurrency`. Es la misma razón por la que `symbol` y `decimals` están en las reglas pero no se usan para calcular.
+
 ### 6.2 Visibilidad de precio
 
 El motor no cambia. `calculatePrice` sigue siendo la función pura de 6.1 y sigue devolviendo `total`, `min`, `max` y `lines` en todos los casos. Lo que se agrega decide quién ve ese resultado, no cómo se calcula.
@@ -303,10 +305,17 @@ Reglas:
 - El desglose del lead va en una columna propia `lines` (jsonb) de la tabla `leads` de la sección 9, no dentro de `selection`.
 - En `hidden` el CTA de la pantalla de confirmación del lead lleva a la misma hoja de la sección 8, que renderiza la plantilla de brief sin precio. Hay un solo camino de entrada a la hoja y la hoja sigue sin escribir nada.
 
+Presentación de cada modo, sin cambiar la lista de cinco:
+
+- `range` es el bloque de precio actual, tal como está: estimado animado, línea de rango con `priceRangeNote`, y disclaimer. Es lo que muestran las dos demos y lo que está grabado en el video y en las capturas.
+- `exact` es el mismo bloque sin la línea de rango. El disclaimer va igual: lo pide 5.6 en todos los casos, porque el número sigue siendo una estimación hasta que el negocio la confirma.
+- `hidden` no muestra bloque de precio ni desglose en ninguna parte del cotizador, ni la barra fija de mobile. La salida es el pedido estructurado.
+
 Etapas de implementación:
 
 - Antes del viernes 18: `exact`, `range` y `hidden`, la columna `lines` y la plantilla de brief. Es presentación y persistencia.
 - Después del viernes 18, salvo que sobre tiempo: `gated`, `internal` y `?view=owner`. El viernes no depende de los cinco modos y la landing no los demuestra.
+- En la etapa 1 `gated` e `internal` no están implementados y la validación los rechaza al cargar, nombrando el valor. No caen a `range`: un fallback silencioso mostraría precio a un cliente que pidió no mostrarlo, que es exactamente el daño que el modo existe para evitar.
 
 ## 7. Flujo del lead
 
@@ -394,6 +403,8 @@ La forma de `leads` sigue la que usaría Lokebox para un pedido en gestación. S
 }
 ```
 
+`currency.display` (desde 1.20): opcional, `"symbol" | "code"`. Sin la clave vale `"symbol"`, que es lo que muestran los dos clientes de la demo. Con `"code"`, `formatCurrency` escribe `USD 250` en lugar de `$250`. La usa la landing de la sección 13, donde el precio se lee fuera de contexto y un símbolo solo no dice en qué moneda está. Los JSON de los dos clientes no traen la clave y no cambian.
+
 `options.depths[]` suma `visual.depthMeters` (desde 1.11): la medida real de la profundidad, la que dibuja el preview. `factor` sigue siendo el multiplicador de precio de la sección 6 y no una medida; derivar la profundidad del `label` sería parsear texto. Mismo patrón que `materials[].visual`.
 
 `photos` (desde 1.9, conteo ampliado en 1.10): una entrada por ángulo fotografiado, 2 a 4 por cliente, la primera es la que se muestra al cargar. Desde 1.15 los dos clientes de la demo traen dos fotos frontales, Front y Night, y salen las vistas en ángulo: en una foto frontal `x`, `y` y `metersToWidth` alcanzan para componer el cartel y el totem. `id` único dentro del cliente. `label` es la etiqueta visible del ángulo y vive acá y no en `texts` porque la cantidad de fotos varía por cliente y una clave fija por ángulo no existiría: es el mismo criterio de `options.types[].label` y `options.materials[].label`. `anchor` dice dónde y de qué tamaño se dibuja el cartel sobre esa foto: `x` e `y` son el centro en fracción del ancho y del alto, con origen arriba a la izquierda; `metersToWidth` es qué fracción del ancho de la foto ocupa un metro de cartel, expresado así y no como factor abstracto para poder calcularlo contra una medida conocida de la foto en vez de a ojo; `cameraYawDeg`, `cameraPitchDeg` y `fovDeg` (desde 1.12, reemplazan a `yawDeg` y `pitchDeg`) describen la cámara que tomó la foto: la cámara en perspectiva del viewer orbita alrededor del cartel con ese azimut y esa elevación, con ese campo de visión vertical, y el cartel no se rota. `cameraYawDeg` positivo pone la cámara a la derecha del frente del cartel; `cameraPitchDeg` negativo la pone por debajo del centro del cartel, que es lo normal en una foto de fachada. `fovDeg` es mayor que 0 y menor que 180. `anchorGround` (desde 1.15, opcional en la forma): el anclaje del totem en esa foto. `x` e `y` son el punto de apoyo de la base, en fracción del ancho y del alto de la foto, origen arriba a la izquierda; `metersToWidth` es la fracción del ancho de la foto que ocupa un metro medido a la distancia del totem, que está más cerca de la cámara que la fachada y por eso es mayor que el del `anchor`. La cámara (`cameraYawDeg`, `cameraPitchDeg`, `fovDeg`) sigue saliendo del `anchor`: describe la cámara y no cambia por tipo. Regla: si un cliente ofrece el tipo `totem` y alguna de sus fotos no tiene `anchorGround`, la config es inválida y la validación falla al cargar con un mensaje que nombra el slug y el id de la foto. Un totem flotando sobre la banda de la fachada es peor que un error. `light` es la luz de la escena del cartel en esa foto, para que su volumen case con ella. Solo se usa en modo vista: el modo cartel tiene su luz de estudio (sección 12).
@@ -410,7 +421,15 @@ Los números visibles se formatean con `Intl` y el locale del cliente: `8.5` en 
 
 `whatsappMessageLetters` es la plantilla del modo letters: `{type}`, `{text}`, `{letters}`, `{letterHeight}`, `{unit}`, `{material}`, `{depth}`, `{lighting}`, `{installation}`, `{quantity}`, `{min}`, `{max}`. Son dos plantillas y no una con placeholders vacíos, porque un mensaje con huecos es lo primero que lee el prospecto.
 
-`pricing.display` (desde 1.18): el modo de visibilidad de precio de la sección 6.2. No está en el ejemplo de arriba porque su obligatoriedad y su valor por defecto se deciden en el bloque de implementación.
+`pricing` (desde 1.20): objeto opcional con el modo de visibilidad de precio de la sección 6.2.
+
+```ts
+pricing?: { display?: "exact" | "range" | "gated" | "hidden" | "internal" }
+```
+
+Sin el objeto, o con el objeto y sin `display`, vale `range`. No está en el ejemplo de arriba porque los dos clientes de la demo no lo traen. En la etapa 1 la validación acepta `exact`, `range` y `hidden`, y rechaza `gated`, `internal` y cualquier otro valor nombrándolo.
+
+Dos claves de texto condicionales, y solo dos, dependen de este objeto: `whatsappMessageHidden` y `whatsappMessageHiddenLetters`. Son las plantillas de WhatsApp sin precio, con los mismos placeholders que `whatsappMessage` y `whatsappMessageLetters` menos `{min}` y `{max}`. Son opcionales en la forma, y la validación las exige solo cuando `pricing.display` es `hidden` y el `cta` del cliente incluye WhatsApp, fallando con el nombre de la clave que falta. Mismo patrón condicional que `anchorGround` con el tipo `totem`. No entran a las 46 claves requeridas: obligarlas para todos haría editar los dos JSON de la demo, que usan `range` y nunca las renderizan. En `hidden` el mensaje no puede contener ninguna cifra de precio.
 
 Validación: al cargar un cliente se valida la forma en runtime. Si falta una clave o un id referenciado no existe, la app muestra un error claro en pantalla y no renderiza el cotizador a medias.
 

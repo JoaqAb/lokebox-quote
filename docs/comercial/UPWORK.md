@@ -70,114 +70,21 @@ Publicar **un solo proyecto inicialmente**, específico para signage.
 
 No llenar Catalog con servicios genéricos.
 
-### Título V1
+### Título, categoría, tags y texto
 
-**an interactive 3D sign configurator with pricing and quote capture**
+El texto del listado no vive acá. La única fuente es docs/comercial/CATALOG_LISTING.md: categoría, título, descripción, qué incluye, abono, precio, qué necesito del cliente y tags. De ahí se copia y se pega al publicar.
 
-Upwork antepone “You will get”, por lo que no repetirlo en el texto.
-
-### Tags V1
-
-- 3D Product Configurator
-- Three.js
-- Quote Calculator
-- React
-- Signage
-
-Revisar las opciones exactas que Upwork permita seleccionar al momento de publicar.
+Lo único que se queda en este documento es la regla de arriba: un solo proyecto, específico para signage.
 
 ---
 
-## 4. Pricing de lanzamiento
+## 4. Precio
 
-El pricing inicial se diseña para competir pese a tener 0 trabajos y 0 reviews.
-
-No representa el precio objetivo de largo plazo.
-
-| Tier | Precio lanzamiento | Objetivo |
-|---|---:|---|
-| Starter | **USD 79** | compra de bajo riesgo / primer contrato / primera review |
-| Standard | **USD 199** | configurador comercial usable |
-| Advanced | **USD 449** | solución de quote más completa |
-
-Revisar precios tras aproximadamente 3–5 reviews o antes si la demanda demuestra que están demasiado bajos.
-
-Referencia tentativa posterior: subir hacia aproximadamente 129 / 299 / 699 o más, según alcance y respuesta del mercado.
+El precio del listado y de la venta directa es uno solo y vive en docs/comercial/PRICING.md, que es la única fuente. Desde D17 no hay tiers, no hay planes por mercado y los add-ons no llevan precio publicado. Las secciones de pricing de lanzamiento, alcance de tiers y add-ons con precio salieron de este documento por esa decisión.
 
 ---
 
-## 5. Alcance de tiers
-
-### Starter: USD 79
-
-Propósito: que un cliente pueda ver su marca/producto dentro de un configurador sin asumir mucho riesgo.
-
-Alcance inicial propuesto:
-
-- 1 tipo de cartel/producto;
-- branding básico;
-- opciones visuales limitadas;
-- responsive;
-- URL/demo funcionando;
-- 1 revisión;
-- sin pricing complejo;
-- sin CRM;
-- sin automatizaciones;
-- sin integraciones complejas;
-- sin modelado 3D a medida de alta complejidad.
-
-Debe reutilizar el core existente. No aceptar un alcance que obligue a construir un producto nuevo por USD 79.
-
-### Standard: USD 199
-
-Producto que se espera vender con mayor frecuencia.
-
-Alcance propuesto:
-
-- 1 familia de producto;
-- white-label / branding;
-- configuración visual;
-- pricing simple;
-- lead / quote capture;
-- resumen de configuración;
-- responsive;
-- deploy/embed según alcance;
-- 2 revisiones.
-
-### Advanced: USD 449
-
-Alcance propuesto:
-
-- una familia de producto más completa;
-- branding completo;
-- reglas de pricing más avanzadas;
-- quote/lead capture;
-- resumen o quote imprimible;
-- deploy/embed;
-- personalización mayor;
-- hasta 3 revisiones;
-- una integración básica o add-on visual según lo que finalmente soporte el producto.
-
-Evitar que Advanced se convierta en “todo ilimitado”.
-
----
-
-## 6. Add-ons propuestos
-
-Precios iniciales a validar:
-
-- additional sign/product type: **+USD 99**;
-- advanced pricing rules: **+USD 99**;
-- website embed/integration: **+USD 99**;
-- PDF / branded quote output: **+USD 79**;
-- Photo-to-Sign preview: **+USD 79–99**;
-- expedited delivery: **+USD 49–99**.
-
-Los add-ons sirven para mantener un precio de entrada competitivo sin regalar alcance.
-
----
-
-## 7. Recurrencia / mensualidad
+## 5. Recurrencia / mensualidad
 
 Project Catalog vende el trabajo inicial.
 
@@ -187,16 +94,7 @@ Concepto comercial:
 
 **Lokebox Quote Platform / hosting + maintenance + support**
 
-Puede incluir:
-
-- hosting;
-- mantenimiento;
-- updates del core;
-- soporte;
-- pequeños cambios;
-- analytics;
-- almacenamiento;
-- IA dentro de límites definidos.
+El contenido del abono son los siete puntos de docs/comercial/PRICING.md, sin resumir.
 
 No describir la mensualidad como simple costo de hosting.
 
@@ -204,7 +102,7 @@ No sacar fuera de Upwork los pagos de un cliente conseguido en Upwork salvo que 
 
 ---
 
-## 8. Material visual requerido
+## 6. Material visual requerido
 
 La calidad visual es el principal mecanismo para compensar la falta de reviews.
 
@@ -219,7 +117,7 @@ Necesitamos de la versión final de Code:
 7. lead/quote result visible;
 8. Photo-to-Sign before/after si existe;
 9. ninguna marca/dato de Joe ni de terceros;
-10. recorrido fácil de grabar en 30–45 segundos.
+10. recorrido fácil de grabar en 30 a 45 segundos.
 
 ### Cover / video
 
@@ -233,7 +131,7 @@ No usar una portada puramente textual.
 
 ---
 
-## 9. Perfil general
+## 7. Perfil general
 
 Mantener por ahora:
 
@@ -252,7 +150,7 @@ Posible mejora del overview cuando Quote esté terminado:
 
 ---
 
-## 10. Qué publicar apenas la demo esté lista
+## 8. Qué publicar apenas la demo esté lista
 
 Orden operativo:
 
@@ -268,7 +166,7 @@ La posible demora de revisión del Project Catalog no debe bloquear el lanzamien
 
 ---
 
-## 11. Principio de venta
+## 9. Principio de venta
 
 No competir como:
 

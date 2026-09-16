@@ -72,8 +72,6 @@ Por D17 mueren y no se vuelven a ofrecer:
 - La founding offer internacional de USD 499 y la founding offer Tucuman de 200 a 250.
 - El pricing de penetracion del Project Catalog, de 79, 199 y 449. El Catalog publica el mismo precio que la landing.
 
-Nota: docs/comercial/UPWORK.md todavia describe los tres tiers de penetracion y sus add-ons con precio, en sus secciones 4, 5 y 6. Quedan sin efecto desde D17 y ese documento se corrige cuando se cierre el naming comercial del listado.
-
 ## Tucuman
 
 Se trabaja con la demo `/d/norte` mas WhatsApp, con un solo numero publico, y sin precio propio: el precio es el mismo de la landing. El WhatsApp es el canal de la salida en frio, no un boton de la pagina. La landing conserva el contacto solo por email.

@@ -1,22 +1,26 @@
-# Borrador del listado del Project Catalog
+# Texto del listado del Project Catalog
 
-Fecha: 2026-09-16
-Estado: borrador. El nombre y la categoria del listado se deciden el jueves 17/09 con dato de busqueda del Project Catalog, y hasta entonces quedan como hueco.
+Fecha: 2026-09-17
+Estado: cerrado. Unica fuente del texto del listado: de aca se copia y se pega al publicar. docs/comercial/UPWORK.md ya no lo duplica.
 
-Reglas que cumple este borrador:
+Reglas que cumple este texto:
 
 - El eje es hasta tres tipos de cartel con todas sus variantes, no cantidad de familias de producto (D15).
 - El precio es el mismo de la landing: USD 250 de setup mas USD 29 por mes, presentado como piso (D17). No hay tiers ni precios de add-ons.
 - No se usa la palabra gratis ni ninguna promesa de prueba (D25).
 - Ingles nivel B2, frases simples.
 
-## Nombre y categoria
+## Nombre, categoria y titulo
 
-Pendiente del jueves 17/09. Candidato de trabajo, sin cerrar:
+Categoria: Development & IT > Web Application Programming. Es donde estan todos los listados de configuradores del Catalog.
 
-> You will get an interactive 3D sign configurator with live pricing and quote capture
+Titulo, sin repetir el "You will get" que antepone Upwork:
 
-Upwork antepone "You will get", asi que el titulo no lo repite.
+> an interactive 3D sign configurator with live pricing and quote capture
+
+Motivo: "3D product configurator" es el termino con volumen y con muchos vendedores con reviews; con 0 reviews no se gana esa consulta. "sign configurator" no tiene competencia. El termino generico se cubre en el primer parrafo de la descripcion y en los tags, que tambien matchean la busqueda.
+
+Nombre publico del producto: Lokebox Quote Builder. El nombre interno del repo sigue siendo lokebox-quote.
 
 ## Descripcion
 

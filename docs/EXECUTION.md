@@ -18,23 +18,27 @@ Reglas:
   - G5 Sin guiones largos en ningún archivo nuevo o editado.
   - G6 Nada de parches. Si algo pide un workaround, se frena y se reporta.
 
-## Bloque 6 · miércoles 16 · oferta, identidad y defectos de la demo
+## Bloque 7 · jueves 17 · visibilidad de precio y Canal C
 
-- TAREA_020 · subset del typeface con Ñ y vocales con tilde, los dos defectos visuales de D24, el logo de Lokebox en la landing, la sección de oferta en lugar de los tiers, capturas de landing rehechas, PRICING.md con el esquema de D17 y el borrador del texto del Catalog. Open Graph al final, recortable. Detalle en docs/tareas/TAREA_020_oferta_identidad_defectos.md.
-  - Aceptación: G1 a G6. Topes de bundle por grupo de SPEC 3: three-vendor por debajo de 1000 kB, react-vendor por debajo de 250 kB, suma de chunks de app por debajo de 500 kB.
-  - `/` sigue sin pedir el vendor 3D ni los assets del preview.
-  - El typeface por debajo de 60 kB con el número medido, y con Ñ, Á, É, Í, Ó, Ú y Ü dibujando letra.
-  - Cero strings de UI en `src/landing`. El woff2 de títulos no existe y no se agrega.
+- TAREA_021 · etapa 1 de la visibilidad de precio de SPEC 6.2 por D30: `exact`, `range` y `hidden`, la columna `lines` de `leads`, la plantilla de brief sin precio de la hoja, y el nombre público del producto en la landing. Detalle en docs/tareas/TAREA_021_visibilidad_de_precio.md.
+  - Aceptación: G1 a G6. Topes de bundle por grupo de SPEC 3: three-vendor por debajo de 1000 kB, react-vendor por debajo de 250 kB, suma de chunks de app por debajo de 500 kB. `/` sigue sin pedir el vendor 3D.
+  - Sin editar los JSON de la demo, las dos demos sirven `range` y su bloque de precio se ve igual que hoy, comparado contra el set anterior de `validacion/`.
+  - `exact`: estimado y disclaimer, sin línea de rango, con el desglose intacto.
+  - `hidden`: cero precio en el cotizador, ni bloque, ni barra de mobile, ni desglose. Ningún control tapado y CTA a la vista a 1440 y a 390.
+  - `gated`, `internal` y un valor desconocido fallan la validación al cargar, con el valor en el mensaje.
+  - El lead escribe `lines` con el desglose del motor en los tres modos y en los dos canales.
+  - En `hidden` el mensaje de WhatsApp sale de la plantilla sin precio, sin ningún placeholder sin resolver y sin cifras de precio; si falta la clave, la validación falla nombrándola.
+  - En `hidden` la pantalla de gracias lleva a `/d/<slug>/quote` y la hoja renderiza el brief sin precio en una página. La hoja no escribe nada en Supabase en ninguno de los tres modos.
+  - `calculatePrice` no cambia: un test verifica que la salida es idéntica con los tres valores de `display`.
+  - Los 223 tests previos no se editan, salvo lo que el contrato nuevo obligue, y cada edición queda justificada en DECISIONES con su motivo.
+  - Capturas de `exact` y `hidden` en `validacion/`, con la edición temporal del JSON revertida y `git status` limpio.
+  - Landing con el nombre y el pie nuevos, `landing-1440.png` rehecha, sin la palabra gratis y sin promesa de prueba (D25).
   - Al cerrar, push y verificación del deploy repitiendo el curl hasta tres respuestas nuevas seguidas.
-
-## Bloque 7 · jueves 17 · visibilidad de precio, naming y Canal C
-
-- Etapa 1 de la sección 6.2 de SPEC, por D30: `exact`, `range` y `hidden`, la columna `lines` de `leads` y la plantilla de brief sin precio de la hoja. `gated`, `internal` y `?view=owner` quedan para después del viernes salvo que sobre tiempo.
-  - Aceptación: G1 a G6. `pricing.display` opcional con default `range` y los JSON de la demo sin editar. El lead guarda el desglose en `lines` en los tres modos. En `hidden` el CTA de confirmación lleva a la misma hoja, que renderiza el brief sin precio, y la hoja sigue sin escribir nada.
-- Naming comercial: nombre y categoría del listado, con dato de búsqueda del Project Catalog. Ninguna línea de código depende de esto. El nombre interno del repo queda congelado en `lokebox-quote`.
 - Canal C pendiente, con el cómo de cada paso:
-  - Grabar el video de 30 segundos y sacar las capturas, desktop y mobile, demo EN.
-  - Ver las dos demos en un teléfono real y confirmar fps y nivel de rendimiento con GPU de verdad. Todas las mediciones de fps previas están hechas sobre SwiftShader por software.
+  - Rehacer `desktop-1.png` y `mobile-1.png` del material de venta.
+  - Imprimir la hoja de cotización a PDF desde el navegador y revisar que entre en una página.
+  - Ver las dos demos en un teléfono real y confirmar fps con GPU de verdad. Todas las mediciones de fps previas están hechas sobre SwiftShader por software.
+  - Al final de todo, borrar las filas de prueba de `leads` y de `visits`.
 
 ## Bloque 8 · viernes 18 · publicación
 
