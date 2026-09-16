@@ -3,7 +3,7 @@
 Fuente de verdad del alcance. Si algo no está acá, no se construye.
 Este documento se edita, no se contradice. Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 
-Versión: 1.18 · 15/09/2026
+Versión: 1.19 · 16/09/2026
 
 ## 1. Objetivo
 
@@ -298,7 +298,15 @@ Reglas:
 - La demo pública usa `range`.
 - El lead guarda siempre el desglose y el estimado calculado, se muestre o no en pantalla. Ningún modo cambia lo que se persiste.
 - La hoja de cotización de la sección 8 tiene dos plantillas: con precio, y brief de pedido sin precio. La segunda es la de `hidden`, y la de `gated` antes de la captura.
-- Vista dueño: `?view=owner` muestra el estimado y el desglose en modo lectura. Solo lectura: no edita, no ajusta márgenes y no envía nada.
+- Vista dueño: `?view=owner` es un query param sobre `/d/<slug>`, no una ruta nueva. Muestra el estimado y el desglose en modo lectura: no edita, no ajusta márgenes y no envía nada. No inserta visita en la sección 14.
+- `pricing.display` es opcional y su default es `range`. Los JSON de la demo no traen la clave y siguen sirviendo `range` sin editarse.
+- El desglose del lead va en una columna propia `lines` (jsonb) de la tabla `leads` de la sección 9, no dentro de `selection`.
+- En `hidden` el CTA de la pantalla de confirmación del lead lleva a la misma hoja de la sección 8, que renderiza la plantilla de brief sin precio. Hay un solo camino de entrada a la hoja y la hoja sigue sin escribir nada.
+
+Etapas de implementación:
+
+- Antes del viernes 18: `exact`, `range` y `hidden`, la columna `lines` y la plantilla de brief. Es presentación y persistencia.
+- Después del viernes 18, salvo que sobre tiempo: `gated`, `internal` y `?view=owner`. El viernes no depende de los cinco modos y la landing no los demuestra.
 
 ## 7. Flujo del lead
 
@@ -327,7 +335,7 @@ Reglas:
 
 ## 9. Datos (Supabase)
 
-Tabla `leads`: `id`, `created_at`, `client_slug`, `channel` (whatsapp | form), `selection` (jsonb), `price_total`, `price_min`, `price_max`, `contact_name`, `contact_value`, `note`, `status` (default `new`).
+Tabla `leads`: `id`, `created_at`, `client_slug`, `channel` (whatsapp | form), `selection` (jsonb), `lines` (jsonb, el desglose por concepto que devuelve el motor), `price_total`, `price_min`, `price_max`, `contact_name`, `contact_value`, `note`, `status` (default `new`).
 
 Tabla `visits`: `id`, `created_at`, `client_slug`, `user_agent`, `referrer`.
 
@@ -459,32 +467,43 @@ Texto 3D (desde 1.14): un componente único, `SignText3D`, con `TextGeometry` de
 
 ## 13. Landing (quote.lokebox.com)
 
-Una página en `/` con identidad Lokebox, en inglés y sin selector de idioma. Corta. Reescrita en 1.17.
+Una página en `/` con identidad Lokebox, en inglés y sin selector de idioma. Corta. Reescrita en 1.19.
 
-- JSON propio en `src/landing/landing.json`, validado en runtime como el de cliente. No es un cliente: no entra al registro de `src/clients` y no tiene ruta `/d/`. Forma: `locale`; `currency` con `code`, `symbol` y `decimals`; `brand.name`; `colors` con `bg`, `text`, `muted` y `accent` en hexadecimal de seis dígitos (paleta Lokebox: `#FAFAF8`, `#101215`, `#6E737B`, `#1E56E0`); `texts` con todos los textos visibles, más `how` y `forWho` como listas de tres; `demos`, exactamente dos, con `id`, `label` y `href`; `tiers`, exactamente dos, con `id`, `name`, `setup`, `monthly` y `features`; `contact` con `email` y `placeholder`.
+- JSON propio en `src/landing/landing.json`, validado en runtime como el de cliente. No es un cliente: no entra al registro de `src/clients` y no tiene ruta `/d/`. Forma: `locale`; `currency` con `code`, `symbol` y `decimals`; `brand` con `name` y `logo`; `colors` con `bg`, `text`, `muted` y `accent` en hexadecimal de seis dígitos; `texts` con todos los textos visibles, más `how` y `forWho` como listas de tres; `demos`, exactamente dos, con `id`, `label` y `href`; `offer` con `price`, `setup`, `monthly` y `more`; `contact` con `email` y `placeholder`.
 - `contact.placeholder` avisa a Canal C que el email todavía no es el público, igual que `prices_placeholder`. No tiene efecto visible.
-- Orden de secciones: encabezado con `brand.name` como texto, sin logo; hero con headline, subheadline y los dos botones a las demos; how it works con tres pasos numerados; who it is for con tres puntos; pricing con las dos tarjetas de la sección 15; contacto; footer.
-- Los botones de demo son enlaces nativos a los `href` del JSON. Cada `href` tiene que ser `/d/<slug>` con un slug del registro de clientes: si no, la validación falla nombrando el `href` y el slug.
-- Los precios son números en el JSON y se formatean con el formateo de moneda del core, con la moneda y el locale de la landing. La palabra de cada línea (`setup`, `per month`) sale de `texts`.
+- Identidad: la landing lleva el logo horizontal de Lokebox, `public/lokebox-logo-horizontal.svg`, en el encabezado y en el pie, con su ruta en `brand.logo` y validada en runtime. Es el único lugar del producto donde aparece la identidad Lokebox: las demos `/d/<slug>` siguen white label con el tema de su JSON. La paleta y las variables siguen como en 1.17 y no se tocan en esta versión: cuando cierre la identidad visual, entra como edición del JSON. Sin fuente propia.
+- Orden de secciones: encabezado con el logo; hero con headline, subheadline y los dos botones a las demos; how it works con tres pasos numerados; who it is for con tres puntos; oferta; contacto; footer con el logo y `brand.name`.
+- Oferta, en lugar de la tabla de tiers: un solo precio presentado como piso, con el título y la línea de precio de `texts`, y tres listas que salen del JSON. `offer.setup` es lo que incluye el setup, `offer.monthly` lo que incluye el abono con su propio título, y `offer.more` lo que se construye por más y se cotiza caso por caso, también con su título. El precio no se compara contra ningún plan y no hay precios de add-ons.
+- `offer.price.setup` y `offer.price.monthly` son números en el JSON y se formatean con el formateo de moneda del core, con la moneda y el locale de la landing. La línea de precio se arma con esos dos números y las palabras de `texts`.
+- Los botones de demo son enlaces nativos a los `href` del JSON. Cada `href` tiene que ser `/d/<slug>` con un slug del registro de clientes: si no, la validación falla nombrando el `href` y el slug. Debajo de los botones va una línea que aclara que es una demostración y no está preparada para el trabajo diario del visitante. En la landing no se usa la palabra gratis ni ninguna promesa de prueba.
 - Contacto solo por email, con un botón `mailto`. Sin WhatsApp en la landing.
 - Reusa los tokens `--q-` y las clases de control del cotizador. El tema de la landing emite `--q-bg`, `--q-text`, `--q-muted` y `--q-accent` del JSON, más `--q-surface` y `--q-border` derivadas con el mismo `color-mix` y los mismos porcentajes del tema de cliente. No emite `--q-primary` ni `--q-stage`: ninguna clase que usa la landing los consume.
 - Cero strings de UI en el código de la landing. No importa three ni el preview, no inserta visitas ni leads, y no usa fuente propia.
-- `index.html` lleva title y description estáticos. Sin Open Graph.
+- `index.html` lleva title y description estáticos. Open Graph con imagen de 1200x630 es opcional y último: es lo primero que se recorta si el viernes se pone en riesgo.
 
 ## 14. Tracking
 
 - Un insert en `visits` por carga de `/d/<slug>`, una sola vez por sesión.
 - Sin cookies, sin analytics de terceros, sin banner de consentimiento.
 
-## 15. Tiers comerciales
+## 15. Oferta comercial
 
-Los dos tiers de la venta directa, los que muestra la landing:
+Un solo precio público para todos los mercados, presentado como piso:
 
-- Starter: USD 750 de setup más USD 79 por mes. Cotizador visual con la marca del cliente, una familia de producto, formulario y/o WhatsApp, lead estructurado, quote imprimible.
-- Pro: USD 1.500 de setup más USD 149 por mes. Starter más hasta dos familias relacionadas, reglas de precio más avanzadas y prioridad de implementación.
-- Custom: no se construye ni se publica en la landing. Si alguien lo pide, se cotiza a mano.
+- Setup: USD 250. Mensual: USD 29.
+- El piso filtra al prospecto. Lo que exceda el alcance cotizado va por add-ons, cotizados caso por caso y sin precio publicado: un precio de add-on que todavía no medimos se convierte en techo.
+- Se empieza por Tucumán y el piso sube después de los primeros clientes.
+- No hay tiers, ni planes por mercado, ni oferta founding.
 
-El Project Catalog de Upwork conserva su pricing de penetración propio (docs/comercial/PRICING.md), que no se muestra en la landing.
+Lo que incluye el setup: cotizador con el logo, los colores y los textos del cliente; hasta tres tipos de cartel con todas sus variantes; preview 3D que cambia mientras el visitante elige; precio en pantalla como rango, con su propia nota; leads con la configuración completa, por WhatsApp o por formulario; hoja de cotización imprimible; y sus precios cargados y revisados con él.
+
+Lo que incluye el abono, los siete puntos, sin reducirlo a mantenimiento de precios: precios al día con hasta dos actualizaciones por mes; la página online, con su dirección y su certificado; pedidos guardados con la configuración completa; cambios chicos sin costo; mejoras del producto incluidas; soporte con respuesta dentro de un día hábil; y cancelación cuando quiera, conservando sus datos.
+
+Lo que se construye por más y se cotiza caso por caso: más tipos de cartel u otra familia de producto; reglas de precio más complejas; sus fotos de trabajos reales en el preview; otro idioma en la misma página.
+
+El eje de lo que se entrega son hasta tres tipos de cartel con todas sus variantes, no una cantidad de familias de producto: es lo que el producto hace hoy y lo que el visitante ve en la demo.
+
+Tucumán se trabaja con `/d/norte` más WhatsApp y sin precio propio, con un solo número público. El WhatsApp es el canal de la salida en frío, no un botón de la página.
 
 El cliente entrega antes de empezar: logo, colores, WhatsApp o mail, y sus reglas de precio en la planilla plantilla.
 
