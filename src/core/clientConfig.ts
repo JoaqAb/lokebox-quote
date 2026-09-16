@@ -9,6 +9,7 @@ import type {
   LightingOption,
   MaterialOption,
   PhotoGroundAnchor,
+  PriceDisplay,
   PriceRules,
   PricingMode,
   QuantityConfig,
@@ -377,6 +378,37 @@ function readGroundAnchor(entry: Raw, slug: string, path: string): PhotoGroundAn
   return { x, y, metersToWidth }
 }
 
+// Modo de visibilidad de precio (SPEC 6.2 y 10). Sin el objeto, o con el objeto y sin la
+// clave, vale range. En la etapa 1 de D30 estan implementados exact, range y hidden:
+// gated e internal se rechazan al cargar en lugar de caer a range, porque un fallback
+// silencioso mostraria precio a un cliente que pidio no mostrarlo.
+const DISPLAY_IMPLEMENTED: PriceDisplay[] = ['exact', 'range', 'hidden']
+const DISPLAY_PENDING: PriceDisplay[] = ['gated', 'internal']
+export const DEFAULT_PRICE_DISPLAY: PriceDisplay = 'range'
+
+function readPricing(raw: Raw, slug: string): { display: PriceDisplay } | undefined {
+  if (raw.pricing === undefined) {
+    return undefined
+  }
+  const pricing = readObject(raw, 'pricing', slug, 'pricing')
+  if (pricing.display === undefined) {
+    return undefined
+  }
+  const display = readString(pricing, 'display', slug, 'pricing.display')
+  if (DISPLAY_IMPLEMENTED.includes(display as PriceDisplay)) {
+    return { display: display as PriceDisplay }
+  }
+  if (DISPLAY_PENDING.includes(display as PriceDisplay)) {
+    fail(slug, `pricing.display "${display}" todavia no esta implementado: la etapa 1 de SPEC 6.2 sirve exact, range y hidden.`)
+  }
+  fail(slug, `pricing.display "${display}" no es un modo valido: los modos son exact, range, gated, hidden e internal.`)
+}
+
+// Unico lugar que resuelve el default. Lo lee el cotizador una vez y lo baja como prop.
+export function priceDisplayOf(config: ClientConfig): PriceDisplay {
+  return config.pricing?.display ?? DEFAULT_PRICE_DISPLAY
+}
+
 // Id del tipo totem (SPEC 5.1). Un totem sin anclaje de piso quedaria flotando sobre la
 // banda de la fachada, que es peor que un error: la config se rechaza al cargar.
 export const TOTEM_TYPE_ID = 'totem'
@@ -454,6 +486,21 @@ function readText(texts: Raw, key: keyof ClientTexts, slug: string): string {
   return value
 }
 
+// Las dos plantillas sin precio del modo hidden (SPEC 10). Son las unicas claves de texto
+// opcionales, y por eso no entran a las 46 requeridas.
+const HIDDEN_TEMPLATE_KEYS = ['whatsappMessageHidden', 'whatsappMessageHiddenLetters'] as const
+
+function readOptionalText(texts: Raw, key: keyof ClientTexts, slug: string): string | undefined {
+  const value = texts[key]
+  if (value === undefined) {
+    return undefined
+  }
+  if (typeof value !== 'string' || value.length === 0) {
+    fail(slug, `la clave de texto "${key}" no es un string no vacio.`)
+  }
+  return value
+}
+
 // Las claves de SPEC seccion 10, una por una. El tipo ClientTexts obliga a que esten todas.
 function readTexts(raw: Raw, slug: string): ClientTexts {
   const texts = readObject(raw, 'texts', slug, 'texts')
@@ -504,6 +551,40 @@ function readTexts(raw: Raw, slug: string): ClientTexts {
     poweredBy: readText(texts, 'poweredBy', slug),
     whatsappMessage: readText(texts, 'whatsappMessage', slug),
     whatsappMessageLetters: readText(texts, 'whatsappMessageLetters', slug),
+    // Spread condicional y no la clave en undefined: un cliente que no usa hidden tiene
+    // exactamente las 46 claves de SPEC 10, y Object.keys(texts) lo sigue diciendo.
+    ...optionalTexts(texts, slug),
+  }
+}
+
+function optionalTexts(texts: Raw, slug: string): Partial<ClientTexts> {
+  const result: Partial<ClientTexts> = {}
+  for (const key of HIDDEN_TEMPLATE_KEYS) {
+    const value = readOptionalText(texts, key, slug)
+    if (value !== undefined) {
+      result[key] = value
+    }
+  }
+  return result
+}
+
+// Las dos plantillas sin precio solo hacen falta cuando el modo es hidden y el visitante
+// tiene boton de WhatsApp: la plantilla con precio dejaria {min} y {max} sin resolver, y un
+// mensaje con huecos es lo primero que lee el prospecto. Mismo patron condicional que
+// anchorGround con el tipo totem.
+function requireHiddenTemplates(
+  pricing: { display: PriceDisplay } | undefined,
+  cta: CtaMode,
+  texts: ClientTexts,
+  slug: string,
+): void {
+  if (pricing?.display !== 'hidden' || cta === 'form') {
+    return
+  }
+  for (const key of HIDDEN_TEMPLATE_KEYS) {
+    if (texts[key] === undefined) {
+      fail(slug, `usa pricing.display "hidden" con cta "${cta}" y le falta la clave de texto "${key}".`)
+    }
   }
 }
 
@@ -535,6 +616,10 @@ export function validateClientConfig(raw: unknown): ClientConfig {
   const options = readOptions(raw, slug)
   requireGroundAnchors(photos, options, slug)
 
+  const pricing = readPricing(raw, slug)
+  const texts = readTexts(raw, slug)
+  requireHiddenTemplates(pricing, cta, texts, slug)
+
   return {
     slug,
     locale: readString(raw, 'locale', slug, 'locale'),
@@ -565,9 +650,11 @@ export function validateClientConfig(raw: unknown): ClientConfig {
     cta,
     poweredBy: readBoolean(raw, 'poweredBy', slug, 'poweredBy'),
     prices_placeholder: readBoolean(raw, 'prices_placeholder', slug, 'prices_placeholder'),
+    // Solo va la clave si el JSON la trae: sin ella priceDisplayOf sirve el default.
+    ...(pricing === undefined ? {} : { pricing }),
     photos,
     options,
-    texts: readTexts(raw, slug),
+    texts,
   }
 }
 

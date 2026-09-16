@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { getClient, listClientSlugs } from '../../clients'
-import { defaultSelection, priceRulesFromClient } from '../../core/clientConfig'
+import northline from '../../clients/northline.json'
+import { defaultSelection, priceRulesFromClient, validateClientConfig } from '../../core/clientConfig'
 import { buildWhatsappMessage } from '../../core/lead/whatsapp'
 import { calculatePrice } from '../../core/pricing/calculatePrice'
 import { formatCurrency } from '../../core/pricing/format'
-import type { SignSelection } from '../../core/types'
+import type { PriceDisplay, SignSelection } from '../../core/types'
 import { signLeadSelection, signLeadTokens, signWhatsappTemplate } from './leadTokens'
 import { signQuoteRows } from './quoteRows'
 
@@ -16,11 +17,13 @@ function clientOrFail(slug: string) {
   return client
 }
 
-function tokensOf(slug: string, patch: Partial<SignSelection> = {}) {
+// El modo de visibilidad entra como parametro desde TAREA_021. range es el default del
+// producto y el de los dos clientes de la demo, asi que es el default del helper.
+function tokensOf(slug: string, patch: Partial<SignSelection> = {}, display: PriceDisplay = 'range') {
   const config = clientOrFail(slug)
   const selection: SignSelection = { ...defaultSelection(config), ...patch }
   const result = calculatePrice(priceRulesFromClient(config), selection)
-  return signLeadTokens(config, selection, result)
+  return signLeadTokens(config, selection, result, display)
 }
 
 describe('signLeadTokens', () => {
@@ -119,9 +122,9 @@ describe('WhatsApp y hoja en modo letters', () => {
       const config = clientOrFail(slug)
       const selection = { ...defaultSelection(config), type: 'letters', text: 'MI CAFÉ', installation: true }
       const result = calculatePrice(priceRulesFromClient(config), selection)
-      const template = signWhatsappTemplate(config, selection)
+      const template = signWhatsappTemplate(config, selection, 'range')
       expect(template).toBe(config.texts.whatsappMessageLetters)
-      const message = buildWhatsappMessage(template, signLeadTokens(config, selection, result))
+      const message = buildWhatsappMessage(template, signLeadTokens(config, selection, result, 'range'))
       expect(message).not.toMatch(/[{}]/)
       expect(message).not.toMatch(/ ,|,,|\s{2}|undefined|NaN/)
       expect(message).toContain('MI CAFÉ')
@@ -133,13 +136,18 @@ describe('WhatsApp y hoja en modo letters', () => {
 
   it('en modo area la plantilla sigue siendo whatsappMessage', () => {
     const config = clientOrFail('norte')
-    expect(signWhatsappTemplate(config, defaultSelection(config))).toBe(config.texts.whatsappMessage)
+    expect(signWhatsappTemplate(config, defaultSelection(config), 'range')).toBe(config.texts.whatsappMessage)
   })
 
   it('norte: el alto de letra va con coma decimal y la unidad del cliente', () => {
     const config = clientOrFail('norte')
     const selection = { ...defaultSelection(config), type: 'letters', letterHeight: 0.45 }
-    const tokens = signLeadTokens(config, selection, calculatePrice(priceRulesFromClient(config), selection))
+    const tokens = signLeadTokens(
+      config,
+      selection,
+      calculatePrice(priceRulesFromClient(config), selection),
+      'range',
+    )
     expect(tokens.letterHeight).toBe('0,45')
     expect(tokens.unit).toBe('m')
     expect(tokens.letters).toBe('5')
@@ -166,5 +174,60 @@ describe('WhatsApp y hoja en modo letters', () => {
       ['Instalación', 'No, lo instalo yo'],
       ['Cantidad', '1'],
     ])
+  })
+})
+
+describe('mensaje de WhatsApp en el modo hidden', () => {
+  // Las dos plantillas sin precio: los mismos placeholders que sus pares menos {min} y
+  // {max}. Se arma un cliente hidden, porque ninguno de los dos de la demo lo es.
+  const HIDDEN_TEXTS = {
+    whatsappMessageHidden:
+      'Hola, quiero un {type} de {width} x {height} {unit}, {material}, {lighting}, instalacion: {installation}, cantidad: {quantity}.',
+    whatsappMessageHiddenLetters:
+      'Hola, quiero {letters} letras de {letterHeight} {unit} que digan {text}, {material}, {depth}, {lighting}, instalacion: {installation}, cantidad: {quantity}.',
+  }
+
+  function hiddenClient() {
+    const raw = structuredClone(northline) as Record<string, unknown>
+    raw.pricing = { display: 'hidden' }
+    raw.texts = { ...(raw.texts as Record<string, string>), ...HIDDEN_TEXTS }
+    return validateClientConfig(raw)
+  }
+
+  it('usa la plantilla sin precio de cada modo, y no la que lleva {min} y {max}', () => {
+    const config = hiddenClient()
+    const area = defaultSelection(config)
+    const letters = { ...area, type: 'letters' }
+    expect(signWhatsappTemplate(config, area, 'hidden')).toBe(HIDDEN_TEXTS.whatsappMessageHidden)
+    expect(signWhatsappTemplate(config, letters, 'hidden')).toBe(HIDDEN_TEXTS.whatsappMessageHiddenLetters)
+    // El mismo cliente fuera de hidden sigue usando las plantillas con precio.
+    expect(signWhatsappTemplate(config, area, 'range')).toBe(config.texts.whatsappMessage)
+  })
+
+  it('el mensaje sale completo, sin placeholders sin resolver y sin ninguna cifra de precio', () => {
+    const config = hiddenClient()
+    for (const type of ['facade', 'letters']) {
+      const selection = { ...defaultSelection(config), type, installation: true }
+      const result = calculatePrice(priceRulesFromClient(config), selection)
+      const tokens = signLeadTokens(config, selection, result, 'hidden')
+      const message = buildWhatsappMessage(signWhatsappTemplate(config, selection, 'hidden'), tokens)
+      expect(message).not.toMatch(/[{}]/)
+      expect(message).not.toMatch(/undefined|NaN/)
+      // Ni el total, ni el minimo, ni el maximo, ni el simbolo de la moneda.
+      for (const amount of [result.total, result.min, result.max]) {
+        expect(message).not.toContain(formatCurrency(amount, config.currency, config.locale))
+        expect(message).not.toContain(String(amount))
+      }
+      expect(message).not.toContain(config.currency.symbol)
+      // Y los tokens de precio ni siquiera se arman.
+      expect(tokens.min).toBeUndefined()
+      expect(tokens.max).toBeUndefined()
+    }
+  })
+
+  it('en hidden sin la plantilla del modo, lanza nombrando al cliente', () => {
+    const config = hiddenClient()
+    const broken = { ...config, texts: { ...config.texts, whatsappMessageHidden: undefined } }
+    expect(() => signWhatsappTemplate(broken, defaultSelection(config), 'hidden')).toThrow(/northline/)
   })
 })

@@ -16,13 +16,21 @@ import type { ClientConfig } from '../types'
 // El nombre de la marca no se repite al lado del logo: viaja en el alt de la imagen.
 // El contenedor de scroll del panel desvanece sus ultimos 24 px con .q-scroll-fade (D24),
 // que solo aplica en lg, que es donde ese contenedor es el que scrollea.
+// En el modo hidden de SPEC 6.2 no hay bloque de precio: price llega undefined, la barra no
+// se monta y el relleno inferior de mobile deja de reservar su alto. Con el relleno de la
+// barra y sin barra quedaba un hueco de 13 rem al pie del panel.
 
 type QuoteLayoutProps = {
   config: ClientConfig
   preview: ReactNode
   panel: ReactNode
-  price: ReactNode
+  price?: ReactNode
 }
+
+// Dos cadenas completas y no una armada por concatenacion: Tailwind escanea el texto del
+// archivo y una clase partida en pedazos no se genera.
+const PANEL_PAD_WITH_BAR = 'pb-[calc(var(--q-price-h,13rem)+2rem+env(safe-area-inset-bottom))]'
+const PANEL_PAD_NO_BAR = 'pb-[calc(2rem+env(safe-area-inset-bottom))]'
 
 export function QuoteLayout({ config, preview, panel, price }: QuoteLayoutProps) {
   const { brand, texts } = config
@@ -33,6 +41,7 @@ export function QuoteLayout({ config, preview, panel, price }: QuoteLayoutProps)
   useEffect(() => {
     const root = rootRef.current
     const priceBox = priceRef.current
+    // Sin bloque de precio no hay nada que medir: el relleno del panel ya no lo usa.
     if (root === null || priceBox === null) {
       return undefined
     }
@@ -69,19 +78,25 @@ export function QuoteLayout({ config, preview, panel, price }: QuoteLayoutProps)
         </div>
 
         <div className="flex flex-1 flex-col lg:min-h-0 lg:q-hairline lg:border-l">
-          <div className="q-scroll-fade px-4 pb-[calc(var(--q-price-h,13rem)+2rem+env(safe-area-inset-bottom))] sm:px-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:px-8 lg:pb-8">
+          <div
+            className={`q-scroll-fade px-4 sm:px-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:px-8 lg:pb-8 ${
+              price === undefined ? PANEL_PAD_NO_BAR : PANEL_PAD_WITH_BAR
+            }`}
+          >
             {panel}
             {config.poweredBy ? (
               <footer className="mt-10 pb-4 text-xs text-[var(--q-muted)]">{texts.poweredBy}</footer>
             ) : null}
           </div>
 
-          <div
-            ref={priceRef}
-            className="fixed inset-x-0 bottom-0 z-20 lg:static lg:z-auto lg:shrink-0"
-          >
-            {price}
-          </div>
+          {price === undefined ? null : (
+            <div
+              ref={priceRef}
+              className="fixed inset-x-0 bottom-0 z-20 lg:static lg:z-auto lg:shrink-0"
+            >
+              {price}
+            </div>
+          )}
         </div>
       </main>
     </div>

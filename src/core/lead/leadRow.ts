@@ -27,6 +27,9 @@ export function buildLeadRow(input: LeadRowInput): Record<string, unknown> {
     client_slug: input.clientSlug,
     channel: input.channel,
     selection: input.selection,
+    // El desglose va en su propia columna y no dentro de selection (SPEC 9 y 6.2): el lead
+    // guarda siempre el estimado y sus lineas, se muestre o no el precio en pantalla.
+    lines: input.result.lines,
     price_total: input.result.total,
     price_min: input.result.min,
     price_max: input.result.max,

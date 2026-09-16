@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
-import { priceRulesFromClient } from '../core/clientConfig'
+import { priceDisplayOf, priceRulesFromClient } from '../core/clientConfig'
 import { calculatePrice } from '../core/pricing/calculatePrice'
 import { decodeQuoteParams } from '../core/quote/quoteParams'
 import { formatQuoteDate } from '../core/quote/quoteDate'
@@ -66,6 +66,7 @@ function QuoteSheetScreen({ config, params }: QuoteSheetScreenProps) {
         backHref={`/d/${config.slug}`}
         areaUnit={areaUnitSymbol(config.units.area)}
         lengthUnit={config.units.length}
+        display={priceDisplayOf(config)}
       />
     </div>
   )

@@ -1,4 +1,4 @@
-import type { ClientTexts } from '../types'
+import type { RequiredTextKey } from '../types'
 
 // Descriptores del panel de opciones. El core renderiza estos descriptores y nada mas:
 // no sabe que existen materiales, iluminacion ni carteles. La vertical los arma.
@@ -15,6 +15,6 @@ export type FieldControl =
 
 export type PanelField = {
   id: string
-  labelKey: keyof ClientTexts
+  labelKey: RequiredTextKey
   control: FieldControl
 }

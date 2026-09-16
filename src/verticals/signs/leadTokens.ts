@@ -1,16 +1,17 @@
 import { pricingModeOf } from '../../core/clientConfig'
 import { countLetters } from '../../core/pricing/calculatePrice'
 import { formatCurrency, formatLength } from '../../core/pricing/format'
-import type { ClientConfig, PriceResult, SignSelection } from '../../core/types'
+import type { ClientConfig, PriceDisplay, PriceResult, SignSelection } from '../../core/types'
 
 // Unico lugar que traduce ids de la vertical a etiquetas legibles. Puro, sin React.
 // El core no sabe que existen materiales ni carteles: recibe el mensaje ya armado.
 
 // Placeholders de cada plantilla de SPEC 10. Son dos plantillas y no una con huecos:
 // cada modo arma exactamente los tokens de la suya.
-type CommonTokenKey = 'type' | 'unit' | 'material' | 'lighting' | 'installation' | 'quantity' | 'min' | 'max'
-export type SignAreaTokens = Record<CommonTokenKey | 'width' | 'height', string>
-export type SignLettersTokens = Record<CommonTokenKey | 'text' | 'letters' | 'letterHeight' | 'depth', string>
+type CommonTokenKey = 'type' | 'unit' | 'material' | 'lighting' | 'installation' | 'quantity'
+type PricedTokenKey = CommonTokenKey | 'min' | 'max'
+export type SignAreaTokens = Record<PricedTokenKey | 'width' | 'height', string>
+export type SignLettersTokens = Record<PricedTokenKey | 'text' | 'letters' | 'letterHeight' | 'depth', string>
 // Hacia afuera es un mapa de placeholder a valor, que es lo que consume el core.
 export type SignLeadTokens = Record<string, string>
 
@@ -39,10 +40,14 @@ export function depthLabelOf(config: ClientConfig, selection: SignSelection): st
   return labelOf(config.options.depths, selection.depthId, 'profundidad')
 }
 
+// En hidden el mensaje no puede traer ninguna cifra de precio: {min} y {max} no se arman,
+// y la plantilla que los consume tampoco se usa. Un token de precio que quedara en el mapa
+// se colaria en el mensaje en cuanto alguien lo escribiera en la plantilla sin precio.
 export function signLeadTokens(
   config: ClientConfig,
   selection: SignSelection,
   result: PriceResult,
+  display: PriceDisplay,
 ): SignLeadTokens {
   const { texts, units, currency, locale } = config
   const labels = signIdLabels(config, selection)
@@ -53,32 +58,47 @@ export function signLeadTokens(
     lighting: labels.lighting,
     installation: selection.installation ? texts.installationYes : texts.installationNo,
     quantity: String(selection.quantity),
-    min: formatCurrency(result.min, currency, locale),
-    max: formatCurrency(result.max, currency, locale),
+    ...(display === 'hidden'
+      ? {}
+      : {
+          min: formatCurrency(result.min, currency, locale),
+          max: formatCurrency(result.max, currency, locale),
+        }),
   }
   if (pricingModeOf(config.options, selection.type) === 'letters') {
-    const letters: SignLettersTokens = {
+    return {
       ...common,
       text: selection.text,
       letters: String(countLetters(selection.text)),
       letterHeight: formatLength(selection.letterHeight, locale),
       depth: depthLabelOf(config, selection),
     }
-    return letters
   }
-  const area: SignAreaTokens = {
+  return {
     ...common,
     width: formatLength(selection.width, locale),
     height: formatLength(selection.height, locale),
   }
-  return area
 }
 
-// La plantilla del modo del tipo elegido.
-export function signWhatsappTemplate(config: ClientConfig, selection: SignSelection): string {
-  return pricingModeOf(config.options, selection.type) === 'letters'
-    ? config.texts.whatsappMessageLetters
-    : config.texts.whatsappMessage
+// La plantilla del modo del tipo elegido, y en hidden la que no lleva precio. La validacion
+// ya garantizo que las dos plantillas sin precio existen cuando el modo es hidden y el
+// cliente tiene boton de WhatsApp: aca no hay default silencioso.
+export function signWhatsappTemplate(
+  config: ClientConfig,
+  selection: SignSelection,
+  display: PriceDisplay,
+): string {
+  const { texts } = config
+  const letters = pricingModeOf(config.options, selection.type) === 'letters'
+  if (display === 'hidden') {
+    const template = letters ? texts.whatsappMessageHiddenLetters : texts.whatsappMessageHidden
+    if (template === undefined) {
+      throw new Error(`signWhatsappTemplate: falta la plantilla sin precio del cliente "${config.slug}"`)
+    }
+    return template
+  }
+  return letters ? texts.whatsappMessageLetters : texts.whatsappMessage
 }
 
 // Lo que va a la columna selection: ids, etiquetas legibles y unidad.

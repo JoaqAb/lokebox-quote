@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
-import { defaultSelection, pricingModeOf, priceRulesFromClient } from '../core/clientConfig'
+import { defaultSelection, priceDisplayOf, pricingModeOf, priceRulesFromClient } from '../core/clientConfig'
 import { insertRow } from '../core/data/insertRow'
 import { useVisitOnce } from '../core/data/useVisitOnce'
 import { buildLeadRow, type LeadContact } from '../core/lead/leadRow'
@@ -42,6 +42,9 @@ function QuoteScreen({ config }: QuoteScreenProps) {
     valuesFromSelection(defaultSelection(config)),
   )
   const rules = useMemo(() => priceRulesFromClient(config), [config])
+  // El modo de visibilidad de SPEC 6.2 se lee del config una sola vez y baja como prop:
+  // sin contexto y sin estado global. Es config, no estado: no cambia mientras se navega.
+  const display = useMemo(() => priceDisplayOf(config), [config])
   const theme = useMemo(() => themeFromClient(config), [config])
   const areaUnit = useMemo(() => areaUnitSymbol(config.units.area), [config])
   const [searchParams] = useSearchParams()
@@ -66,8 +69,8 @@ function QuoteScreen({ config }: QuoteScreenProps) {
 
   // El mensaje de WhatsApp se arma aca: la vertical traduce ids a etiquetas y el core
   // solo reemplaza los placeholders de la plantilla del cliente.
-  const tokens = signLeadTokens(config, selection, result)
-  const whatsappMessage = buildWhatsappMessage(signWhatsappTemplate(config, selection), tokens)
+  const tokens = signLeadTokens(config, selection, result, display)
+  const whatsappMessage = buildWhatsappMessage(signWhatsappTemplate(config, selection, display), tokens)
 
   // La hoja se abre con un enlace nativo, no con window.open: asi el navegador no lo
   // bloquea y la pestana del cotizador conserva el estado del visitante.
@@ -132,7 +135,11 @@ function QuoteScreen({ config }: QuoteScreenProps) {
             locale={config.locale}
             onChange={handleChange}
           />
-          <PriceBreakdown result={result} config={config} areaUnit={areaUnit} />
+          {/* En hidden no se muestra precio en ninguna parte del cotizador: ni el
+              desglose ni el bloque de abajo. La salida es el pedido estructurado. */}
+          {display === 'hidden' ? null : (
+            <PriceBreakdown result={result} config={config} areaUnit={areaUnit} />
+          )}
           <LeadSection
             cta={config.cta}
             texts={config.texts}
@@ -144,7 +151,7 @@ function QuoteScreen({ config }: QuoteScreenProps) {
           />
         </>
       }
-      price={<PriceBar result={result} config={config} />}
+      price={display === 'hidden' ? undefined : <PriceBar result={result} config={config} display={display} />}
     />
   )
 }

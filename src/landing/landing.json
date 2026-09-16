@@ -1,7 +1,7 @@
 {
   "locale": "en",
   "currency": { "code": "USD", "symbol": "$", "decimals": 0, "display": "code" },
-  "brand": { "name": "Lokebox Quote", "logo": "/lokebox-logo-horizontal.svg" },
+  "brand": { "name": "Lokebox Quote Builder", "logo": "/lokebox-logo-horizontal.svg" },
   "colors": { "bg": "#FAFAF8", "text": "#101215", "muted": "#6E737B", "accent": "#1E56E0" },
   "texts": {
     "headline": "A visual quote builder for your website",
@@ -27,7 +27,7 @@
     "contactTitle": "Want one for your business?",
     "contactBody": "Tell me what you sell and how you charge for it. I reply with a demo built around your own product.",
     "contactButton": "Send an email",
-    "footer": "Lokebox Quote. Built by Lokebox."
+    "footer": "Interactive quote builders for custom products. Built by Lokebox."
   },
   "demos": [
     { "id": "en", "label": "See the English demo", "href": "/d/northline" },

@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { getClient, listClientSlugs } from '../clients'
 import northline from '../clients/northline.json'
 import {
+  DEFAULT_PRICE_DISPLAY,
   defaultSelection,
   materialsForMode,
+  priceDisplayOf,
   priceRulesFromClient,
   pricingModeOf,
   validateClientConfig,
@@ -348,5 +350,119 @@ describe('validateClientConfig: camara del anchor', () => {
   it('viewSignOnly sale del JSON en los dos idiomas', () => {
     expect(clientOrFail('northline').texts.viewSignOnly).toBe('The sign')
     expect(clientOrFail('norte').texts.viewSignOnly).toBe('Solo el cartel')
+  })
+})
+
+// northline tiene cta "both", asi que en hidden la validacion exige las dos plantillas sin
+// precio. Van en todos los helpers que arman un cliente hidden.
+const HIDDEN_TEMPLATES = {
+  whatsappMessageHidden: 'Hi, I want a {type} of {width} x {height} {unit}.',
+  whatsappMessageHiddenLetters: 'Hi, I want {letters} letters of {letterHeight} {unit}.',
+}
+
+describe('validateClientConfig: pricing.display', () => {
+  // Un JSON con el objeto pricing, que ningun cliente de la demo trae.
+  function withDisplay(display: unknown) {
+    const raw = structuredClone(northline) as Record<string, unknown>
+    raw.pricing = { display }
+    raw.texts = { ...(raw.texts as Record<string, string>), ...HIDDEN_TEMPLATES }
+    return raw
+  }
+
+  it('los dos clientes de la demo no traen pricing y sirven range', () => {
+    for (const slug of listClientSlugs()) {
+      const config = clientOrFail(slug)
+      expect(config.pricing).toBeUndefined()
+      expect(priceDisplayOf(config)).toBe('range')
+    }
+    expect(DEFAULT_PRICE_DISPLAY).toBe('range')
+  })
+
+  it('sin el objeto, o con el objeto y sin display, vale range', () => {
+    const raw = structuredClone(northline) as Record<string, unknown>
+    expect(priceDisplayOf(validateClientConfig(raw))).toBe('range')
+    raw.pricing = {}
+    expect(priceDisplayOf(validateClientConfig(raw))).toBe('range')
+  })
+
+  it('exact, range y hidden pasan y quedan en el config', () => {
+    for (const display of ['exact', 'range', 'hidden'] as const) {
+      const config = validateClientConfig(withDisplay(display))
+      expect(config.pricing).toEqual({ display })
+      expect(priceDisplayOf(config)).toBe(display)
+    }
+  })
+
+  // No caen a range: un fallback silencioso mostraria precio a un cliente que pidio
+  // no mostrarlo. La etapa 1 de D30 los rechaza al cargar.
+  it('gated e internal fallan nombrando el valor y diciendo que faltan', () => {
+    for (const display of ['gated', 'internal'] as const) {
+      expect(() => validateClientConfig(withDisplay(display))).toThrow(
+        new RegExp(`"${display}".*no esta implementado`),
+      )
+    }
+  })
+
+  it('un valor desconocido falla nombrandolo', () => {
+    expect(() => validateClientConfig(withDisplay('secreto'))).toThrow(/"secreto".*no es un modo valido/)
+    expect(() => validateClientConfig(withDisplay(7))).toThrow(/pricing\.display/)
+  })
+})
+
+describe('validateClientConfig: plantillas de WhatsApp sin precio', () => {
+  function hidden(cta: string, texts: Record<string, string> = {}) {
+    const raw = structuredClone(northline) as Record<string, unknown>
+    raw.pricing = { display: 'hidden' }
+    raw.cta = cta
+    raw.texts = { ...(raw.texts as Record<string, string>), ...texts }
+    return raw
+  }
+
+  const BOTH = HIDDEN_TEMPLATES
+
+  it('con hidden y cta whatsapp o both, exige las dos claves y nombra la que falta', () => {
+    for (const cta of ['whatsapp', 'both']) {
+      expect(() => validateClientConfig(hidden(cta))).toThrow(/whatsappMessageHidden"/)
+      const onlyArea = { whatsappMessageHidden: BOTH.whatsappMessageHidden }
+      expect(() => validateClientConfig(hidden(cta, onlyArea))).toThrow(/whatsappMessageHiddenLetters"/)
+      expect(validateClientConfig(hidden(cta, BOTH)).texts.whatsappMessageHidden).toBe(
+        BOTH.whatsappMessageHidden,
+      )
+    }
+  })
+
+  it('con hidden y cta form no hacen falta: no hay boton de WhatsApp', () => {
+    expect(validateClientConfig(hidden('form')).texts.whatsappMessageHidden).toBeUndefined()
+  })
+
+  it('fuera de hidden no hacen falta, y las 46 claves requeridas no cambian', () => {
+    const raw = structuredClone(northline) as Record<string, unknown>
+    expect(validateClientConfig(raw).texts.whatsappMessageHidden).toBeUndefined()
+  })
+
+  it('si la clave esta pero vacia, falla: una plantilla vacia manda un mensaje en blanco', () => {
+    expect(() => validateClientConfig(hidden('both', { ...BOTH, whatsappMessageHidden: '' }))).toThrow(
+      /whatsappMessageHidden/,
+    )
+  })
+})
+
+describe('el motor no cambia con el modo de visibilidad', () => {
+  // SPEC 6.2: lo que se agrega decide quien ve el resultado, no como se calcula.
+  it('calculatePrice da la misma salida con los tres valores de display', () => {
+    const base = structuredClone(northline) as Record<string, unknown>
+    const selection = defaultSelection(validateClientConfig(base))
+    const results = (['exact', 'range', 'hidden'] as const).map((display) => {
+      const raw = structuredClone(northline) as Record<string, unknown>
+      raw.pricing = { display }
+      raw.texts = { ...(raw.texts as Record<string, string>), ...HIDDEN_TEMPLATES }
+      const config = validateClientConfig(raw)
+      return calculatePrice(priceRulesFromClient(config), selection)
+    })
+    const [exact, range, hiddenResult] = results
+    expect(range).toEqual(exact)
+    expect(hiddenResult).toEqual(exact)
+    // Y contra el cliente sin la clave, que es el de la demo.
+    expect(calculatePrice(priceRulesFromClient(validateClientConfig(base)), selection)).toEqual(exact)
   })
 })

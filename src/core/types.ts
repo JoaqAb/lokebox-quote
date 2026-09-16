@@ -226,9 +226,27 @@ export type ClientTexts = {
   poweredBy: string
   whatsappMessage: string
   whatsappMessageLetters: string
+  // Plantillas sin precio del modo hidden (SPEC 10). Opcionales en la forma y exigidas
+  // por validacion condicional cuando el modo es hidden y el cta incluye WhatsApp, igual
+  // que anchorGround con el tipo totem. No entran a las 46 claves requeridas.
+  whatsappMessageHidden?: string
+  whatsappMessageHiddenLetters?: string
 }
 
+// Las claves de texto que siempre estan. Las dos plantillas del modo hidden son
+// opcionales, asi que una etiqueta de panel nunca puede apuntar a ellas y este tipo lo
+// impide en compilacion. Se deriva de ClientTexts: sumar una clave opcional nueva la deja
+// fuera sola, sin listas que mantener.
+export type RequiredTextKey = {
+  [K in keyof ClientTexts]-?: undefined extends ClientTexts[K] ? never : K
+}[keyof ClientTexts]
+
 export type CtaMode = 'whatsapp' | 'form' | 'both'
+
+// Modo de visibilidad de precio (SPEC 6.2). Los cinco valores son capacidades del core,
+// no variantes por mercado ni por canal. En la etapa 1 de D30 estan implementados exact,
+// range y hidden; gated e internal los rechaza la validacion al cargar.
+export type PriceDisplay = 'exact' | 'range' | 'gated' | 'hidden' | 'internal'
 
 export type ClientConfig = {
   slug: string
@@ -240,6 +258,9 @@ export type ClientConfig = {
   cta: CtaMode
   poweredBy: boolean
   prices_placeholder: boolean
+  // Opcional, como en el JSON: sin la clave el modo es range. El default lo resuelve
+  // priceDisplayOf de clientConfig.ts, que es el unico lugar que lo conoce.
+  pricing?: { display: PriceDisplay }
   photos: ClientPhoto[]
   options: SignOptions
   texts: ClientTexts
