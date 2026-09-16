@@ -3,6 +3,9 @@
 Unica fuente de que tareas estan cerradas (D20). Una linea por tarea: numero, titulo,
 estado y commit de cierre. docs/EXECUTION.md contiene solo lo abierto.
 
+Una tarea se anota con su commit de codigo cuando el commit de docs de cierre es el que
+escribe su propia linea, que es el caso de la ultima fila.
+
 El numero no indica orden de ejecucion. Las tareas estan listadas en el orden en que se
 ejecutaron, que es el orden del historial: TAREA_013 se ejecuto despues de TAREA_019.
 
@@ -28,4 +31,4 @@ ejecutaron, que es el orden del historial: TAREA_013 se ejecuto despues de TAREA
 | TAREA_018 | Set de capturas de validacion con npm run capturas | cerrada | be929c7 |
 | TAREA_019 | Escenario del modo cartel, sombra de escena y sublinea del logo | cerrada | 6f56f83 |
 | TAREA_013 | Landing minima en / y rutas de cliente con React.lazy | cerrada | 4f62af9 |
-| TAREA_020 | Oferta, identidad y defectos de la demo | en curso | |
+| TAREA_020 | Oferta, identidad y defectos de la demo | cerrada | 33d985b |
