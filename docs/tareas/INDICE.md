@@ -32,3 +32,4 @@ ejecutaron, que es el orden del historial: TAREA_013 se ejecuto despues de TAREA
 | TAREA_019 | Escenario del modo cartel, sombra de escena y sublinea del logo | cerrada | 6f56f83 |
 | TAREA_013 | Landing minima en / y rutas de cliente con React.lazy | cerrada | 4f62af9 |
 | TAREA_020 | Oferta, identidad y defectos de la demo | cerrada | 33d985b |
+| TAREA_021 | Etapa 1 de la visibilidad de precio: exact, range y hidden | cerrada | 3def20d |

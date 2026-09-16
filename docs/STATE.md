@@ -1,24 +1,24 @@
 # STATE
 
-16/09/2026
+17/09/2026
 
 ## Bloque actual
 
-Bloque 6 cerrado. TAREA_020: typeface de 44 glifos con N y vocales acentuadas (15.524 bytes, techo 60 kB), los dos bordes del panel de D24, el logo horizontal de Lokebox en la landing, la seccion de oferta de SPEC 15 en lugar de los tiers, PRICING.md con el esquema de D17, el borrador del listado del Catalog y la imagen de Open Graph. 223 pruebas en verde. Bundle por grupos: app 253,98 kB, react-vendor 189,60 kB, three-vendor 952,28 kB, CSS 23,79 kB. `npm run capturas` rehizo las 21 capturas en `validacion/`.
-SPEC 1.19. Los criterios de las tareas cerradas ya no viven en EXECUTION: la unica fuente es `docs/tareas/INDICE.md`.
+Bloque 7, codigo cerrado. TAREA_021: etapa 1 de la visibilidad de precio de SPEC 6.2 por D30. `exact`, `range` y `hidden` con validacion que rechaza `gated` e `internal`; la columna `lines` del lead; la plantilla de brief sin precio de la hoja; las dos plantillas de WhatsApp sin precio, opcionales y condicionales; y el nombre publico Lokebox Quote Builder en la landing. 237 pruebas en verde. Bundle por grupos: app 255,65 kB, react-vendor 189,60 kB, three-vendor 952,28 kB, CSS 23,89 kB.
+Las cuatro capturas de demo del set de 21 salieron byte a byte iguales a las de TAREA_020, o sea que `range` no cambio de forma, y hay cinco capturas mas de verificacion de `exact` y `hidden` en `validacion/`. SPEC 1.20, naming comercial cerrado en D31.
 
 ## Ultimo cerrado
 
-TAREA_020: 1409bda (apertura), 33d985b (codigo). Numeros y verificaciones en docs/tareas/TAREA_020_oferta_identidad_defectos.md.
+TAREA_021: b586608 (apertura), 3def20d (codigo). Numeros y verificaciones en docs/tareas/TAREA_021_visibilidad_de_precio.md.
 
 ## Proximo
 
-Bloque 7, jueves 17: etapa 1 de SPEC 6.2 por D30 (exact, range y hidden, la columna `lines` de `leads` y la plantilla de brief sin precio), naming comercial con dato de busqueda del Catalog, y el Canal C pendiente: video de 30 segundos, capturas, y las dos demos en un telefono real.
+Canal C del bloque 7: rehacer `desktop-1.png` y `mobile-1.png`, imprimir la hoja a PDF y revisar que entre en una pagina, ver las dos demos en un telefono real con GPU de verdad, y al final borrar las filas de prueba. Despues, bloque 8 del viernes 18: publicar el listado con el texto de `docs/comercial/CATALOG_LISTING.md`, la planilla de precios, la lista de 40 carteleries y la plantilla del mensaje.
 
 ## Bloqueos
 
 En norte de dia el anillo de back de facade crece menos de un nivel.
-Abierto, no bloquea implementacion: el naming comercial se decide el jueves 17/09. El nombre interno del repo queda congelado en lokebox-quote. docs/comercial/UPWORK.md quedo desactualizado en sus secciones 4, 5 y 6 por D17, y se corrige cuando cierre el naming.
+Despues del viernes, salvo que sobre tiempo: `gated`, `internal` y `?view=owner`, la etapa 2 de SPEC 6.2 por D30.
 
 ## Comando para retomar
 
