@@ -113,3 +113,27 @@
     background: var(--q-surface);
   }
 }
+
+/* Los dos bordes del panel (D24). El ultimo control del panel quedaba cortado al medio y se
+   leia como un defecto de render, no como contenido que sigue. El relleno inferior no lo
+   arregla: lo que se ve cortado es el borde del recorte, no el fondo de la columna.
+
+   El bloque de precio suma una sombra corta hacia arriba a su borde superior, asi se lee
+   como un bloque apoyado sobre el panel y no como una linea de corte. Sirve en los dos
+   layouts: fijo al pie de la ventana en mobile, y al pie de la columna en desktop.
+
+   El contenedor de scroll del panel desvanece sus ultimos 24 px con una mascara. Solo
+   aplica donde el panel es su propio contenedor de scroll, o sea en desktop: abajo de
+   1024 px el que scrollea es el documento y el corte lo tapa el bloque de precio.
+
+   El color de la sombra sale de --q-text mezclado con el fondo: ningun hexadecimal. */
+
+.q-price-edge {
+  box-shadow: 0 -6px 14px -8px color-mix(in srgb, var(--q-text) 45%, transparent);
+}
+
+@media (min-width: 64rem) {
+  .q-scroll-fade {
+    mask-image: linear-gradient(to bottom, black calc(100% - 24px), transparent 100%);
+  }
+}

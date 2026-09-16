@@ -1,156 +1,96 @@
 # Pricing comercial · Lokebox Quote
 
-Fecha: 2026-09-12
-Estado: V1 cerrada para salida comercial inicial
+Fecha: 2026-09-16
+Estado: V2 cerrada por D17. Reemplaza entera a la V1 del 12/09.
 
 ## Principio
 
 Lokebox Quote se vende como producto implementado, no como desarrollo abierto por horas.
 
-El pricing estándar se organiza por escalones. El alcance se mantiene cerrado y reutilizable. Cualquier personalización que no pueda reutilizarse razonablemente en otros clientes pasa a Custom.
+Hay un solo precio publico, para todos los mercados y todos los canales, y se presenta como piso. Lo que exceda el alcance cotizado se cotiza caso por caso.
 
-La mensualidad no se presenta como hosting: cubre operación de Lokebox Quote Platform, mantenimiento del core, actualizaciones, monitoreo, soporte y continuidad del servicio.
+La mensualidad no se presenta como hosting: es lo que mantiene la pagina viva, los precios al dia y al cliente atendido.
 
-## Pricing directo internacional
+## Precio
 
-### Starter
+- Setup: USD 250
+- Mensual: USD 29
 
-- Setup: USD 750
-- Mensual: USD 79
+Se presenta asi, textual: desde USD 250 de setup, mas USD 29 por mes.
 
-Incluye:
-- 1 familia de producto;
-- branding white-label;
-- configuración visual sobre módulos existentes;
-- reglas estándar de pricing/estimación/rango;
-- formulario y/o WhatsApp;
-- lead estructurado;
-- quote imprimible;
-- URL hospedada por Lokebox Quote;
-- responsive;
-- 1 ronda de revisión;
-- objetivo operativo: 1–2 días reales de trabajo después de recibir todos los insumos.
+Por que un piso y no una tabla:
 
-No incluye:
-- modelado 3D bespoke complejo;
-- integraciones ERP/CRM;
-- workflows internos a medida;
-- múltiples familias no relacionadas;
-- IA custom.
+- Un piso filtra al prospecto antes de la llamada, sin dar un numero cerrado sobre un alcance que todavia no se conoce.
+- Una tabla de tiers obliga al prospecto a elegir plan antes de entender el producto, y el que elige mal se va.
+- Un precio de add-on que todavia no se midio se convierte en techo. Los add-ons no llevan precio publicado.
 
-### Pro
+Se empieza por Tucuman. El piso sube despues de los primeros clientes, con horas reales medidas.
 
-- Setup: USD 1.500
-- Mensual: USD 149
+## Que incluye el setup
 
-Incluye:
-- hasta 2 familias relacionadas o variantes de producto que reutilicen la vertical existente;
-- branding más profundo;
-- reglas de pricing más avanzadas;
-- configuración visual más completa;
-- lead/quote completo;
-- 2 rondas de revisión;
-- prioridad de implementación;
-- objetivo operativo: 2–4 días reales de trabajo después de recibir todos los insumos.
+- Cotizador con el logo, los colores y los textos del cliente.
+- Hasta tres tipos de cartel, con todas sus variantes.
+- Preview 3D que cambia mientras el visitante elige opciones.
+- Precio en pantalla como rango, con la nota del propio cliente.
+- Leads con la configuracion completa, por WhatsApp o por formulario.
+- Hoja de cotizacion imprimible.
+- Los precios del cliente cargados y revisados con el.
 
-Las integraciones y desarrollos especiales siguen siendo add-on o Custom.
+El eje es hasta tres tipos de cartel con todas sus variantes, no una cantidad de familias de producto: es lo que el producto hace hoy y lo que el visitante ve en la demo.
 
-### Custom
+## Que incluye el abono
 
-- Setup: desde USD 3.000
-- Mensual: desde USD 249
+Los siete puntos, siempre enumerados. El abono no se resume como mantenimiento de precios: asi contado parece un gasto y no un servicio.
 
-Para:
-- experiencia 3D bespoke;
-- múltiples familias complejas;
-- integraciones;
-- CRM/ERP;
-- automatizaciones comerciales;
-- IA / Photo-to-Sign productizado;
-- workflows específicos;
-- necesidades que excedan el core reutilizable.
+- Precios al dia, con hasta dos actualizaciones por mes.
+- La pagina online, con su direccion y su certificado.
+- Pedidos guardados con la configuracion completa.
+- Cambios chicos sin costo.
+- Mejoras del producto incluidas.
+- Soporte con respuesta dentro de un dia habil.
+- Cancelacion cuando quiera, conservando sus datos.
 
-Custom puede convertirse en una implementación de Lokebox Platform cuando el alcance real ya no sea solamente Quote.
+## Que se construye por mas
 
-## Founding offer internacional
+Se cotiza caso por caso, sin precio publicado:
 
-Para los primeros casos internacionales reales:
+- Mas tipos de cartel, u otra familia de producto.
+- Reglas de precio mas complejas.
+- Fotos de trabajos reales del cliente en el preview.
+- Otro idioma en la misma pagina.
+- Integraciones, webhooks y flujos internos.
+- Modelado 3D a medida.
 
-- Starter scope
-- Setup: USD 499
-- Mensual: USD 59
-- cupo limitado a los primeros 3 clientes internacionales;
-- a cambio de feedback y, cuando sea posible, permiso de usar el caso comercial.
+Si un pedido implica desarrollo que no se reutiliza en otro cliente, deja de ser Quote y se cotiza como implementacion.
 
-El descuento no amplía alcance.
+## Que sale de la V1
 
-## Pricing Argentina
+Por D17 mueren y no se vuelven a ofrecer:
 
-### Starter AR
+- Los tiers Starter, Pro y Custom, con sus setups de 750, 1.500 y 3.000.
+- El pricing Argentina aparte, con sus tres escalones equivalentes.
+- La founding offer internacional de USD 499 y la founding offer Tucuman de 200 a 250.
+- El pricing de penetracion del Project Catalog, de 79, 199 y 449. El Catalog publica el mismo precio que la landing.
 
-- Setup: USD 350 equivalente
-- Mensual: USD 39 equivalente
+Nota: docs/comercial/UPWORK.md todavia describe los tres tiers de penetracion y sus add-ons con precio, en sus secciones 4, 5 y 6. Quedan sin efecto desde D17 y ese documento se corrige cuando se cierre el naming comercial del listado.
 
-### Pro AR
+## Tucuman
 
-- Setup: USD 700 equivalente
-- Mensual: USD 79 equivalente
-
-### Custom AR
-
-- Setup: desde USD 1.500 equivalente
-- Mensual: desde USD 149 equivalente
-
-## Founding offer Tucumán
-
-Para los primeros 2–3 clientes locales:
-
-- una familia de producto;
-- setup: USD 200–250 equivalente;
-- mensual: USD 30–39 equivalente;
-- alcance cerrado;
-- feedback y caso cuando sea posible.
+Se trabaja con la demo `/d/norte` mas WhatsApp, con un solo numero publico, y sin precio propio: el precio es el mismo de la landing. El WhatsApp es el canal de la salida en frio, no un boton de la pagina. La landing conserva el contacto solo por email.
 
 ## Regla de descuentos
 
-No negociar precio lead por lead sin criterio.
+No se negocia precio lead por lead. El unico descuento permitido es puntual y a cambio de una contraprestacion concreta y explicita, como el permiso de usar el caso. Nunca se descuenta a cambio de alcance adicional.
 
-Solo se permiten:
-- Founding offer;
-- pricing regional definido;
-- descuento puntual a cambio de una contraprestación concreta y explícita.
+## Que entrega el cliente antes de empezar
 
-Nunca descontar a cambio de alcance adicional.
+Logo, colores, WhatsApp o mail, y sus reglas de precio en la planilla plantilla.
 
-## Add-ons
+## Regla de revision
 
-Los add-ons todavía no se publican como tabla definitiva hasta cerrar la auditoría funcional/visual del producto.
+Revisar este documento despues de:
 
-Candidatos:
-- familia adicional que reutilice módulos existentes;
-- embed/integración web;
-- dominio/subdominio específico;
-- pricing avanzado;
-- integración/webhook;
-- Photo-to-Sign;
-- modelado 3D bespoke.
-
-Si un add-on implica desarrollo no reutilizable, pasa a Custom.
-
-## Upwork
-
-Project Catalog mantiene pricing de penetración separado del directo porque su objetivo inicial es conseguir contratos y reviews:
-- Starter: USD 79
-- Standard: USD 199
-- Advanced: USD 449
-
-No usar esos precios como referencia para venta directa.
-
-## Regla de revisión
-
-Revisar esta tabla después de:
-- 3–5 clientes pagos;
-- evidencia de demanda clara;
-- medición real de horas de implementación;
-- primeras objeciones de precio;
-- primeras renovaciones mensuales.
+- 3 a 5 clientes pagos;
+- medicion real de horas de implementacion;
+- las primeras objeciones de precio;
+- las primeras renovaciones mensuales.

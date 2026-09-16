@@ -9,13 +9,15 @@ export type LandingTexts = {
   headline: string
   subheadline: string
   demosTitle: string
+  demosNote: string
   howTitle: string
   how: string[]
   forWhoTitle: string
   forWho: string[]
-  tiersTitle: string
-  tierSetupLabel: string
-  tierMonthlyLabel: string
+  offerTitle: string
+  offerPrice: string
+  offerMonthlyTitle: string
+  offerMoreTitle: string
   contactTitle: string
   contactBody: string
   contactButton: string
@@ -35,22 +37,24 @@ export type LandingDemo = {
   href: string
 }
 
-export type LandingTier = {
-  id: string
-  name: string
-  setup: number
-  monthly: number
-  features: string[]
+// La oferta de SPEC 15: un solo precio piso, lo que incluye el setup, lo que incluye el
+// abono y lo que se construye por mas y se cotiza caso por caso. Sin tiers y sin precios
+// de add-ons: un precio de add-on que todavia no se midio se convierte en techo.
+export type LandingOffer = {
+  price: { setup: number; monthly: number }
+  setup: string[]
+  monthly: string[]
+  more: string[]
 }
 
 export type LandingConfig = {
   locale: string
   currency: CurrencyConfig
-  brand: { name: string }
+  brand: { name: string; logo: string }
   colors: LandingColors
   texts: LandingTexts
   demos: LandingDemo[]
-  tiers: LandingTier[]
+  offer: LandingOffer
   // true mientras el email no sea el publico: lo completa Canal C. Sin efecto visible.
   contact: { email: string; placeholder: boolean }
 }
@@ -60,19 +64,24 @@ type Raw = Record<string, unknown>
 const HEX_COLOR = /^#[0-9A-Fa-f]{6}$/
 const DEMO_HREF = /^\/d\/([^/]+)$/
 const EMAIL = /^[^@]+@[^@]+\.[^@]+$/
+const ASSET_PATH = /^\/[^\s]+\.[a-z0-9]+$/i
 const STEPS_PER_LIST = 3
 const DEMO_COUNT = 2
-const TIER_COUNT = 2
+// Huecos de texts.offerPrice: los completa la landing con el formateo de moneda del core.
+// No son texto visible, son las marcas donde entra cada numero.
+export const PRICE_SLOTS = { setup: '{setup}', monthly: '{monthly}' } as const
 
 const STRING_TEXT_KEYS = [
   'headline',
   'subheadline',
   'demosTitle',
+  'demosNote',
   'howTitle',
   'forWhoTitle',
-  'tiersTitle',
-  'tierSetupLabel',
-  'tierMonthlyLabel',
+  'offerTitle',
+  'offerPrice',
+  'offerMonthlyTitle',
+  'offerMoreTitle',
   'contactTitle',
   'contactBody',
   'contactButton',
@@ -152,10 +161,18 @@ function readCurrency(raw: Raw): CurrencyConfig {
   if (typeof decimals !== 'number' || !Number.isInteger(decimals) || decimals < 0) {
     fail('falta currency.decimals o no es un entero mayor o igual a 0.')
   }
+  // display es opcional en CurrencyConfig y sin la clave vale "symbol", que es lo que
+  // muestran las dos demos. La landing la trae en "code" porque su precio se lee fuera de
+  // contexto y un simbolo solo no dice en que moneda esta.
+  const display = currency.display
+  if (display !== undefined && display !== 'symbol' && display !== 'code') {
+    fail(`currency.display tiene que ser "symbol" o "code" y es "${String(display)}".`)
+  }
   return {
     code: readString(currency, 'code', 'currency.code'),
     symbol: readString(currency, 'symbol', 'currency.symbol'),
     decimals,
+    ...(display === undefined ? {} : { display }),
   }
 }
 
@@ -183,6 +200,11 @@ function readTexts(raw: Raw): LandingTexts {
     }
     return items
   }
+  for (const slot of Object.values(PRICE_SLOTS)) {
+    if (!strings.offerPrice.includes(slot)) {
+      fail(`texts.offerPrice tiene que traer el hueco ${slot} y no lo trae.`)
+    }
+  }
   return { ...strings, how: list('how'), forWho: list('forWho') }
 }
 
@@ -203,21 +225,36 @@ function readDemos(raw: Raw): LandingDemo[] {
   })
 }
 
-function readTiers(raw: Raw): LandingTier[] {
-  return readEntries(raw, 'tiers', 'tiers', TIER_COUNT).map((entry, index) => {
-    const path = `tiers[${String(index)}]`
-    const features = readStringList(entry, 'features', `${path}.features`)
-    if (features.length === 0) {
-      fail(`${path}.features esta vacia.`)
+function readOffer(raw: Raw): LandingOffer {
+  const offer = readObject(raw, 'offer', 'offer')
+  const price = readObject(offer, 'price', 'offer.price')
+  const list = (key: 'setup' | 'monthly' | 'more'): string[] => {
+    const items = readStringList(offer, key, `offer.${key}`)
+    if (items.length === 0) {
+      fail(`offer.${key} esta vacia.`)
     }
-    return {
-      id: readString(entry, 'id', `${path}.id`),
-      name: readString(entry, 'name', `${path}.name`),
-      setup: readPositive(entry, 'setup', `${path}.setup`),
-      monthly: readPositive(entry, 'monthly', `${path}.monthly`),
-      features,
-    }
-  })
+    return items
+  }
+  return {
+    price: {
+      setup: readPositive(price, 'setup', 'offer.price.setup'),
+      monthly: readPositive(price, 'monthly', 'offer.price.monthly'),
+    },
+    setup: list('setup'),
+    monthly: list('monthly'),
+    more: list('more'),
+  }
+}
+
+// El logo horizontal de Lokebox, servido desde public/. Es la unica marca Lokebox del
+// producto: las demos /d/<slug> siguen con el logo de su cliente. Se valida la forma de la
+// ruta, no el archivo: si el archivo falta, el navegador lo dice y la pagina sigue viva.
+function readLogo(brand: Raw): string {
+  const logo = readString(brand, 'logo', 'brand.logo')
+  if (!ASSET_PATH.test(logo)) {
+    fail(`brand.logo "${logo}" tiene que ser una ruta absoluta de public con extension.`)
+  }
+  return logo
 }
 
 function readContact(raw: Raw): LandingConfig['contact'] {
@@ -241,11 +278,11 @@ export function validateLandingConfig(raw: unknown): LandingConfig {
   return {
     locale: readString(raw, 'locale', 'locale'),
     currency: readCurrency(raw),
-    brand: { name: readString(brand, 'name', 'brand.name') },
+    brand: { name: readString(brand, 'name', 'brand.name'), logo: readLogo(brand) },
     colors: readColors(raw),
     texts: readTexts(raw),
     demos: readDemos(raw),
-    tiers: readTiers(raw),
+    offer: readOffer(raw),
     contact: readContact(raw),
   }
 }

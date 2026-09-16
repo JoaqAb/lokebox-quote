@@ -5,6 +5,9 @@ export type CurrencyConfig = {
   code: string
   symbol: string
   decimals: number
+  // Como se nombra la moneda al formatear: "symbol" da $250 y "code" da USD 250.
+  // Opcional, y sin la clave vale "symbol": los JSON de cliente no la traen.
+  display?: 'symbol' | 'code'
 }
 
 export type UnitsConfig = {

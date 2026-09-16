@@ -7,6 +7,9 @@ export function formatCurrency(value: number, currency: CurrencyConfig, locale: 
   const formatter = new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: currency.code,
+    // Sin la clave, el simbolo: es lo que muestran las dos demos. La landing pide el
+    // codigo, porque su precio se lee fuera de contexto y un $ solo es ambiguo.
+    currencyDisplay: currency.display ?? 'symbol',
     minimumFractionDigits: currency.decimals,
     maximumFractionDigits: currency.decimals,
   })

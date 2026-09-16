@@ -15,13 +15,28 @@ import {
   textBounds,
 } from './typeface'
 // El mismo archivo que sirve public/ en TYPEFACE_SRC. Se escribio con JSON.stringify
-// compacto y en ASCII, asi su largo serializado es su peso en bytes.
+// compacto, asi su serializacion es la del archivo. Desde que el subset trae N con
+// virgulilla y vocales acentuadas ya no es ASCII puro: el peso se cuenta en bytes UTF-8
+// con TextEncoder y no en caracteres.
 import typefaceJson from '../../../../public/assets/quote/fonts/archivo-black-subset.typeface.json'
 
 
 const data = typefaceJson as FontData
 const typeface = createTypeface(data)
-const SUBSET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 '
+const SUBSET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZÑÁÉÍÓÚÜ0123456789 '
+// Acentuadas del subset, con la letra que acentua cada una. Solo mayusculas: el campo de
+// texto del panel fuerza mayusculas.
+const ACCENTED = [
+  ['Ñ', 'N'],
+  ['Á', 'A'],
+  ['É', 'E'],
+  ['Í', 'I'],
+  ['Ó', 'O'],
+  ['Ú', 'U'],
+  ['Ü', 'U'],
+] as const
+// Un caracter que el typeface sigue sin tener, y que no es una letra del espanol.
+const MISSING = 'Ç'
 
 function clientOrFail(slug: string) {
   const client = getClient(slug)
@@ -46,11 +61,33 @@ function groupNormalZ(geometry: BufferGeometry, materialIndex: number): number {
 }
 
 describe('typeface de Archivo Black', () => {
-  it('pesa menos de 60 kB y trae exactamente A a Z, 0 a 9 y espacio', () => {
+  it('pesa menos de 60 kB y trae exactamente A a Z, 0 a 9, espacio y las acentuadas', () => {
     expect(TYPEFACE_SRC).toBe('/assets/quote/fonts/archivo-black-subset.typeface.json')
-    expect(JSON.stringify(data).length).toBeLessThan(60 * 1024)
+    expect(new TextEncoder().encode(JSON.stringify(data)).length).toBeLessThan(60 * 1024)
     expect(Object.keys(data.glyphs).sort()).toEqual([...SUBSET].sort())
     expect(data.original_font_information.copyright).toMatch(/Archivo Black/)
+  })
+
+  it('la N con virgulilla y las vocales acentuadas dibujan letra', () => {
+    const cap = glyphBounds(typeface, 'H')
+    if (cap === null) {
+      throw new Error('la H no dio contorno')
+    }
+    for (const [char, base] of ACCENTED) {
+      const geometry = buildGlyphGeometry(typeface, char)
+      if (geometry === null) {
+        throw new Error(`"${char}" no dio geometria`)
+      }
+      const bounds = glyphBounds(typeface, char)
+      if (bounds === null) {
+        throw new Error(`"${char}" no dio contorno`)
+      }
+      // La tilde y la virgulilla quedan por encima del alto de mayuscula, y cada letra
+      // avanza como la que acentua: asi PEÑA y CAFÉ se leen enteras y no pierden el hueco.
+      expect(bounds.maxY).toBeGreaterThan(cap.maxY)
+      expect(glyphAdvance(typeface, char)).toBeCloseTo(glyphAdvance(typeface, base), 10)
+      geometry.dispose()
+    }
   })
 
   it('el alto de mayuscula sale de la H y el avance de cada glifo', () => {
@@ -61,9 +98,9 @@ describe('typeface de Archivo Black', () => {
   })
 
   it('un caracter que no esta no dibuja y ocupa el avance del espacio', () => {
-    expect(buildGlyphGeometry(typeface, 'Ñ')).toBeNull()
+    expect(buildGlyphGeometry(typeface, MISSING)).toBeNull()
     expect(buildGlyphGeometry(typeface, ' ')).toBeNull()
-    expect(glyphAdvance(typeface, 'Ñ')).toBe(glyphAdvance(typeface, ' '))
+    expect(glyphAdvance(typeface, MISSING)).toBe(glyphAdvance(typeface, ' '))
   })
 })
 
@@ -108,7 +145,7 @@ describe('geometria de cada letra', () => {
 
 describe('texto en relieve del modo area', () => {
   it('en ninguna medida del rango el relieve sale de la cara del panel', () => {
-    const texts = ['WWWWWWWWWWWWWWWWWW', 'MMMMMMMMM MMMMMMMM', 'I', 'NORTHLINE', 'NORTE', 'Q8JW 0']
+    const texts = ['WWWWWWWWWWWWWWWWWW', 'MMMMMMMMM MMMMMMMM', 'I', 'NORTHLINE', 'NORTE', 'Q8JW 0', 'PEÑA Y CAFÉ', 'ÑÁÉÍÓÚÜ']
     for (const slug of ['northline', 'norte']) {
       const client = clientOrFail(slug)
       const factor = lengthToMeters(client.units.length)

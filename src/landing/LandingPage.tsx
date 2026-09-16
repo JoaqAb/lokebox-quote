@@ -2,13 +2,16 @@ import { useEffect } from 'react'
 import { formatCurrency } from '../core/pricing/format'
 import { ErrorScreen } from '../pages/ErrorScreen'
 import landingJson from './landing.json'
-import { validateLandingConfig, type LandingConfig } from './landingConfig'
+import { PRICE_SLOTS, validateLandingConfig, type LandingConfig } from './landingConfig'
 import { themeFromLanding } from './landingTheme'
 
 // Landing en / (SPEC 13). Todo texto visible sale de landing.json: aca no se escribe ninguna
 // palabra. No importa three ni el preview, no inserta visitas ni leads, y los botones de demo
 // son enlaces nativos a los href del JSON, que la validacion ya cruzo con el registro.
 // Si el JSON no valida se muestra ErrorScreen, igual que con un cliente roto.
+// Es el unico lugar del producto con identidad Lokebox (D18): el logo horizontal va en el
+// encabezado y en el pie, con el nombre de la marca en su alt. Las demos /d/<slug> siguen
+// white label con el tema de su JSON.
 
 type Resolution = { ok: true; landing: LandingConfig } | { ok: false; detail: string }
 
@@ -61,27 +64,45 @@ function Bullets({ title, items, numbered }: BulletsProps) {
   )
 }
 
-function Tiers({ landing }: { landing: LandingConfig }) {
-  const { texts, currency, locale } = landing
-  const money = (value: number): string => formatCurrency(value, currency, locale)
+// Una lista de la oferta. Sin marcador de numero: no son pasos, son cosas que entran.
+function OfferList({ items }: { items: string[] }) {
+  return (
+    <ul className="flex flex-col gap-2">
+      {items.map((item) => (
+        <li key={item} className="flex gap-3 text-sm leading-relaxed">
+          <span aria-hidden="true" className="mt-2 size-1.5 shrink-0 rounded-full bg-[var(--q-accent)]" />
+          {item}
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+// La oferta de SPEC 15, en lugar de la tabla de tiers: un precio piso, lo que incluye el
+// setup, lo que incluye el abono y lo que se construye por mas. Los dos numeros salen del
+// JSON y se formatean con formatCurrency del core, que es el unico lugar del proyecto que
+// formatea plata; la frase que los rodea vive entera en texts.offerPrice.
+function Offer({ landing }: { landing: LandingConfig }) {
+  const { texts, currency, locale, offer } = landing
+  const price = texts.offerPrice
+    .replace(PRICE_SLOTS.setup, formatCurrency(offer.price.setup, currency, locale))
+    .replace(PRICE_SLOTS.monthly, formatCurrency(offer.price.monthly, currency, locale))
   return (
     <section className={SECTION}>
-      <h2 className={SECTION_TITLE}>{texts.tiersTitle}</h2>
-      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-        {landing.tiers.map((tier) => (
-          <article key={tier.id} className="q-panel q-hairline flex flex-col rounded-2xl border p-6">
-            <h3 className="text-xl font-semibold">{tier.name}</h3>
-            <p className="mt-3 text-3xl font-semibold tracking-tight">{`${money(tier.setup)} ${texts.tierSetupLabel}`}</p>
-            <p className="mt-1 text-base text-[var(--q-muted)]">{`${money(tier.monthly)} ${texts.tierMonthlyLabel}`}</p>
-            <ul className="mt-6 flex flex-col gap-2 border-t q-hairline pt-6">
-              {tier.features.map((feature) => (
-                <li key={feature} className="text-sm leading-relaxed">
-                  {feature}
-                </li>
-              ))}
-            </ul>
-          </article>
-        ))}
+      <h2 className={SECTION_TITLE}>{texts.offerTitle}</h2>
+      <p className="mt-5 text-xl font-semibold tracking-tight sm:text-2xl">{price}</p>
+      <div className="mt-6 flex flex-col gap-4 md:grid md:grid-cols-2 md:items-start">
+        <article className="q-panel q-hairline rounded-2xl border p-6">
+          <OfferList items={offer.setup} />
+        </article>
+        <article className="q-panel q-hairline rounded-2xl border p-6">
+          <h3 className="mb-4 text-base font-semibold">{texts.offerMonthlyTitle}</h3>
+          <OfferList items={offer.monthly} />
+        </article>
+      </div>
+      <h3 className="mt-8 text-base font-semibold">{texts.offerMoreTitle}</h3>
+      <div className="mt-4">
+        <OfferList items={offer.more} />
       </div>
     </section>
   )
@@ -99,7 +120,7 @@ function Landing({ landing }: { landing: LandingConfig }) {
     <div style={themeFromLanding(landing)} className="min-h-dvh bg-[var(--q-bg)] text-[var(--q-text)]">
       <div className="mx-auto w-full max-w-[960px] px-5 sm:px-8">
         <header className="py-6">
-          <p className="text-base font-semibold tracking-tight">{brand.name}</p>
+          <img src={brand.logo} alt={brand.name} className="h-7 w-auto sm:h-8" />
         </header>
 
         <section className="pt-6 pb-12 sm:pt-10 sm:pb-16">
@@ -115,17 +136,18 @@ function Landing({ landing }: { landing: LandingConfig }) {
               <a
                 key={demo.id}
                 href={demo.href}
-                className={`q-control sm:min-w-48 ${index === 0 ? 'q-on' : 'q-off'}`}
+                className={`q-control sm:min-w-56 ${index === 0 ? 'q-on' : 'q-off'}`}
               >
                 {demo.label}
               </a>
             ))}
           </div>
+          <p className="mt-3 max-w-xl text-sm text-[var(--q-muted)]">{texts.demosNote}</p>
         </section>
 
         <Bullets title={texts.howTitle} items={texts.how} numbered />
         <Bullets title={texts.forWhoTitle} items={texts.forWho} numbered={false} />
-        <Tiers landing={landing} />
+        <Offer landing={landing} />
 
         <section className={SECTION}>
           <h2 className={SECTION_TITLE}>{texts.contactTitle}</h2>
@@ -135,7 +157,10 @@ function Landing({ landing }: { landing: LandingConfig }) {
           </a>
         </section>
 
-        <footer className="border-t q-hairline py-8 text-sm text-[var(--q-muted)]">{texts.footer}</footer>
+        <footer className="flex flex-col gap-4 border-t q-hairline py-8 sm:flex-row sm:items-center sm:justify-between">
+          <img src={brand.logo} alt={brand.name} className="h-6 w-auto" />
+          <p className="text-sm text-[var(--q-muted)]">{texts.footer}</p>
+        </footer>
       </div>
     </div>
   )

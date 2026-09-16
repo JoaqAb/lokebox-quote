@@ -21,6 +21,14 @@ describe('formatCurrency', () => {
     const twoDecimals: CurrencyConfig = { code: 'USD', symbol: '$', decimals: 2 }
     expect(formatCurrency(2390.5, twoDecimals, 'en')).toMatch(/[.,]50$/)
   })
+
+  it('sin display pone el simbolo, y con display code pone el codigo de la moneda', () => {
+    const byCode: CurrencyConfig = { ...usd, display: 'code' }
+    expect(formatCurrency(250, usd, 'en')).toBe('$250')
+    // El separador que mete Intl entre el codigo y el numero es un espacio duro.
+    expect(formatCurrency(250, byCode, 'en').replace(/\u00a0/g, ' ')).toBe('USD 250')
+    expect(formatCurrency(29, byCode, 'en').replace(/\u00a0/g, ' ')).toBe('USD 29')
+  })
 })
 
 describe('formatLength', () => {

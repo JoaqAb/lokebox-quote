@@ -14,6 +14,8 @@ import type { ClientConfig } from '../types'
 // SPEC 12 fija. Centrado, el sobrante se reparte arriba y abajo en vez de caer todo al
 // pie, que era el aire muerto anotado en STATE.
 // El nombre de la marca no se repite al lado del logo: viaja en el alt de la imagen.
+// El contenedor de scroll del panel desvanece sus ultimos 24 px con .q-scroll-fade (D24),
+// que solo aplica en lg, que es donde ese contenedor es el que scrollea.
 
 type QuoteLayoutProps = {
   config: ClientConfig
@@ -67,7 +69,7 @@ export function QuoteLayout({ config, preview, panel, price }: QuoteLayoutProps)
         </div>
 
         <div className="flex flex-1 flex-col lg:min-h-0 lg:q-hairline lg:border-l">
-          <div className="px-4 pb-[calc(var(--q-price-h,13rem)+2rem+env(safe-area-inset-bottom))] sm:px-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:px-8 lg:pb-8">
+          <div className="q-scroll-fade px-4 pb-[calc(var(--q-price-h,13rem)+2rem+env(safe-area-inset-bottom))] sm:px-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:px-8 lg:pb-8">
             {panel}
             {config.poweredBy ? (
               <footer className="mt-10 pb-4 text-xs text-[var(--q-muted)]">{texts.poweredBy}</footer>

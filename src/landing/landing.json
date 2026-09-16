@@ -1,12 +1,13 @@
 {
   "locale": "en",
-  "currency": { "code": "USD", "symbol": "$", "decimals": 0 },
-  "brand": { "name": "Lokebox Quote" },
+  "currency": { "code": "USD", "symbol": "$", "decimals": 0, "display": "code" },
+  "brand": { "name": "Lokebox Quote", "logo": "/lokebox-logo-horizontal.svg" },
   "colors": { "bg": "#FAFAF8", "text": "#101215", "muted": "#6E737B", "accent": "#1E56E0" },
   "texts": {
     "headline": "A visual quote builder for your website",
     "subheadline": "Your customer picks what they need, sees it in 3D and gets an estimate. You get the request with every detail already filled in.",
-    "demosTitle": "Try a live demo",
+    "demosTitle": "See how it works",
+    "demosNote": "This is a demo to show you the product. It is not set up for your daily work.",
     "howTitle": "How it works",
     "how": [
       "The visitor configures the product and watches it change in 3D.",
@@ -19,44 +20,45 @@
       "Businesses that keep getting vague questions like how much for a sign.",
       "Owners who want the price question answered while the visitor is still on the page."
     ],
-    "tiersTitle": "Pricing",
-    "tierSetupLabel": "setup",
-    "tierMonthlyLabel": "per month",
+    "offerTitle": "What you get",
+    "offerPrice": "From {setup} setup, plus {monthly} per month.",
+    "offerMonthlyTitle": "Included every month",
+    "offerMoreTitle": "Built on request, quoted case by case",
     "contactTitle": "Want one for your business?",
     "contactBody": "Tell me what you sell and how you charge for it. I reply with a demo built around your own product.",
     "contactButton": "Send an email",
     "footer": "Lokebox Quote. Built by Lokebox."
   },
   "demos": [
-    { "id": "en", "label": "English demo", "href": "/d/northline" },
-    { "id": "es", "label": "Spanish demo", "href": "/d/norte" }
+    { "id": "en", "label": "See the English demo", "href": "/d/northline" },
+    { "id": "es", "label": "See the Spanish demo", "href": "/d/norte" }
   ],
-  "tiers": [
-    {
-      "id": "starter",
-      "name": "Starter",
-      "setup": 750,
-      "monthly": 79,
-      "features": [
-        "Quote builder with your brand, colors and logo",
-        "One product family",
-        "WhatsApp button, contact form or both",
-        "Every request saved with the full selection",
-        "Printable quote sheet"
-      ]
-    },
-    {
-      "id": "pro",
-      "name": "Pro",
-      "setup": 1500,
-      "monthly": 149,
-      "features": [
-        "Everything in Starter",
-        "Up to two related product families",
-        "Advanced price rules",
-        "Priority setup"
-      ]
-    }
-  ],
+  "offer": {
+    "price": { "setup": 250, "monthly": 29 },
+    "setup": [
+      "Quote tool with your logo, your colors and your texts.",
+      "Up to three sign types, with all their options.",
+      "3D preview that changes while the visitor picks options.",
+      "Price on screen as a range, with your own note.",
+      "Leads with the full configuration, by WhatsApp or by form.",
+      "Printable quote sheet.",
+      "Your prices loaded and checked with you."
+    ],
+    "monthly": [
+      "Prices kept up to date, up to two updates per month.",
+      "Your page online, with your address and its certificate.",
+      "Orders saved with the full configuration.",
+      "Small changes at no cost.",
+      "Product improvements included.",
+      "Support with an answer within one working day.",
+      "Cancel whenever you want and keep your data."
+    ],
+    "more": [
+      "More sign types, or another product family.",
+      "More complex price rules.",
+      "Your photos of real jobs in the preview.",
+      "Another language on the same page."
+    ]
+  },
   "contact": { "email": "hola@lokebox.com", "placeholder": false }
 }
