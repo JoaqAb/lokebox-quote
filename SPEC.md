@@ -3,7 +3,7 @@
 Fuente de verdad del alcance. Si algo no está acá, no se construye.
 Este documento se edita, no se contradice. Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 
-Versión: 1.17 · 15/09/2026
+Versión: 1.18 · 15/09/2026
 
 ## 1. Objetivo
 
@@ -187,7 +187,11 @@ Modo letters, demo ES (ARS). Misma derivación, con el paso extra de pie a metro
 
 Todo precio se muestra como estimación, siempre acompañado del texto del JSON: el presupuesto final lo confirma el negocio.
 
-## 6. Motor de precios (contrato)
+Si hay precio en pantalla lo decide el modo de visibilidad de la sección 6.2. Cuando lo hay, esta regla vale sin excepción; el rango con disclaimer es el modo `range`, el que usa la demo pública.
+
+## 6. Motor de precios
+
+### 6.1 Contrato
 
 Archivo: `src/core/pricing/calculatePrice.ts`. Función pura. Sin React, sin Supabase, sin fetch, sin Date.now, sin Math.random, sin formateo de moneda adentro.
 
@@ -276,9 +280,29 @@ Formato fijo de `detail` en modo letters: material `letras x altura x precio x f
 
 El formateo de moneda vive aparte, en `src/core/pricing/format.ts`, con `Intl.NumberFormat` y el locale del cliente.
 
+### 6.2 Visibilidad de precio
+
+El motor no cambia. `calculatePrice` sigue siendo la función pura de 6.1 y sigue devolviendo `total`, `min`, `max` y `lines` en todos los casos. Lo que se agrega decide quién ve ese resultado, no cómo se calcula.
+
+El JSON de cliente trae `pricing.display`, con cinco valores fijos:
+
+- `exact`: muestra el precio calculado.
+- `range`: muestra un rango con disclaimer, el de 5.3 y 5.6.
+- `gated`: el visitante configura y ve el resumen y el preview; para ver el estimado deja contacto.
+- `hidden`: no se muestra precio. La salida es el pedido estructurado.
+- `internal`: el visitante no ve precio. El estimado viaja en el lead.
+
+Reglas:
+
+- Los cinco modos son capacidades del core. No son variantes por mercado, por idioma ni por canal de venta: cualquier cliente puede usar cualquiera de los cinco.
+- La demo pública usa `range`.
+- El lead guarda siempre el desglose y el estimado calculado, se muestre o no en pantalla. Ningún modo cambia lo que se persiste.
+- La hoja de cotización de la sección 8 tiene dos plantillas: con precio, y brief de pedido sin precio. La segunda es la de `hidden`, y la de `gated` antes de la captura.
+- Vista dueño: `?view=owner` muestra el estimado y el desglose en modo lectura. Solo lectura: no edita, no ajusta márgenes y no envía nada.
+
 ## 7. Flujo del lead
 
-1. El usuario configura y ve el precio.
+1. El usuario configura y ve el precio, según el modo de `pricing.display` de la sección 6.2.
 2. Botón principal según `cta` del JSON:
    - `whatsapp`: abre `wa.me` con mensaje armado (tipo, medidas, material, luz, instalación, cantidad y rango de precio).
    - `form`: formulario con nombre, contacto (email o teléfono) y comentario.
@@ -298,6 +322,7 @@ El formateo de moneda vive aparte, en `src/core/pricing/format.ts`, con `Intl.Nu
 - Selección completa con nombres legibles y desglose por concepto, total y rango.
 - Fecha, validez (texto del JSON) y disclaimer.
 - Una página A4 o carta, estilos `@media print`, sin librerías de PDF. La exportación la hace el navegador con imprimir a PDF. Los controles de la hoja (imprimir, volver) no se imprimen.
+- Dos plantillas, según el modo de visibilidad de la sección 6.2: con precio, y brief de pedido sin precio. Las dos comparten marca, selección, fecha y validez; la segunda no lleva desglose, total ni rango.
 - Se llega desde la pantalla de confirmación del flujo del lead, con un enlace en pestaña nueva.
 
 ## 9. Datos (Supabase)
@@ -376,6 +401,8 @@ Los números visibles se formatean con `Intl` y el locale del cliente: `8.5` en 
 `whatsappMessage` es la plantilla del modo area, con placeholders: `{type}`, `{text}`, `{width}`, `{height}`, `{unit}`, `{material}`, `{lighting}`, `{installation}`, `{quantity}`, `{min}`, `{max}`.
 
 `whatsappMessageLetters` es la plantilla del modo letters: `{type}`, `{text}`, `{letters}`, `{letterHeight}`, `{unit}`, `{material}`, `{depth}`, `{lighting}`, `{installation}`, `{quantity}`, `{min}`, `{max}`. Son dos plantillas y no una con placeholders vacíos, porque un mensaje con huecos es lo primero que lee el prospecto.
+
+`pricing.display` (desde 1.18): el modo de visibilidad de precio de la sección 6.2. No está en el ejemplo de arriba porque su obligatoriedad y su valor por defecto se deciden en el bloque de implementación.
 
 Validación: al cargar un cliente se valida la forma en runtime. Si falta una clave o un id referenciado no existe, la app muestra un error claro en pantalla y no renderiza el cotizador a medias.
 
@@ -464,6 +491,12 @@ El cliente entrega antes de empezar: logo, colores, WhatsApp o mail, y sus regla
 ## 16. Fuera de alcance
 
 CRM, auth, usuarios, multi-tenant, panel de administración, permisos, integraciones, email transaccional, generación de PDF en servidor, modelos 3D importados, archivos de fuente en el 3D salvo el typeface de la sección 12, editor visual del JSON, un cuarto tipo de cartel, más de una vertical.
+
+Desde 1.18 también quedan fuera:
+
+- Ajuste manual de precio o de margen desde la vista dueño.
+- Generación de propuesta y envío desde la vista dueño.
+- Render de imagen con IA. Queda anotado como upsell del listado, no se construye.
 
 ## 17. Criterio de DONE
 

@@ -293,3 +293,10 @@
 - 15/09/2026: Canal C entrego el email publico de la landing: hola@lokebox.com. contact.placeholder pasa a false.
 - 15/09/2026: D12, el mail publico de la landing ya estaba en el JSON (hola@lokebox.com, placeholder en false); Canal C solo verifica que la casilla reciba.
 - 15/09/2026: D13, Vercel Authentication queda en Disabled y no en Only Preview Deployments: con Standard Protection la URL generada de produccion queda detras del login y eso rompe las vistas previas de links.
+- 15/09/2026: la visibilidad de precio pasa a ser un campo del JSON de cliente con cinco modos (exact, range, gated, hidden, internal). Motivo: hay negocios que no quieren precio publico y el motor no necesita cambiar para servirlos.
+- 15/09/2026: los cinco modos son capacidades universales del core, no segmentacion por mercado ni por canal. Motivo: el canal de venta no determina que modo necesita el cliente final.
+- 15/09/2026: la demo publica usa range. Motivo: un visitante tiene que ver el precio moverse en los primeros segundos o no entiende que compra.
+- 15/09/2026: el modo internal en el MVP es solo lectura: estimado en el lead y ?view=owner en lectura. Motivo: ajuste de margen y generacion de propuesta son CPQ y ponen en riesgo el viernes 18.
+- 15/09/2026: el nombre interno del proyecto y del repo queda congelado como lokebox-quote. Motivo: renombrar no mueve ninguna venta.
+- 15/09/2026: el nombre y la categoria comercial se deciden el jueves 17/09 con dato de busqueda del Upwork Project Catalog. Motivo: ninguna linea de codigo depende de eso, vive en el copy del listado y de la landing.
+- 15/09/2026: el render de imagen con IA queda fuera del MVP, anotado como upsell. Motivo: costo por uso, latencia y riesgo de resultado malo en la demo.
