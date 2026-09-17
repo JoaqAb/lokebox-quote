@@ -18,33 +18,12 @@ Reglas:
   - G5 Sin guiones largos en ningún archivo nuevo o editado.
   - G6 Nada de parches. Si algo pide un workaround, se frena y se reporta.
 
-## Bloque 7 · jueves 17 · visibilidad de precio y Canal C
-
-- TAREA_021 · etapa 1 de la visibilidad de precio de SPEC 6.2 por D30: `exact`, `range` y `hidden`, la columna `lines` de `leads`, la plantilla de brief sin precio de la hoja, y el nombre público del producto en la landing. Detalle en docs/tareas/TAREA_021_visibilidad_de_precio.md.
-  - Aceptación: G1 a G6. Topes de bundle por grupo de SPEC 3: three-vendor por debajo de 1000 kB, react-vendor por debajo de 250 kB, suma de chunks de app por debajo de 500 kB. `/` sigue sin pedir el vendor 3D.
-  - Sin editar los JSON de la demo, las dos demos sirven `range` y su bloque de precio se ve igual que hoy, comparado contra el set anterior de `validacion/`.
-  - `exact`: estimado y disclaimer, sin línea de rango, con el desglose intacto.
-  - `hidden`: cero precio en el cotizador, ni bloque, ni barra de mobile, ni desglose. Ningún control tapado y CTA a la vista a 1440 y a 390.
-  - `gated`, `internal` y un valor desconocido fallan la validación al cargar, con el valor en el mensaje.
-  - El lead escribe `lines` con el desglose del motor en los tres modos y en los dos canales.
-  - En `hidden` el mensaje de WhatsApp sale de la plantilla sin precio, sin ningún placeholder sin resolver y sin cifras de precio; si falta la clave, la validación falla nombrándola.
-  - En `hidden` la pantalla de gracias lleva a `/d/<slug>/quote` y la hoja renderiza el brief sin precio en una página. La hoja no escribe nada en Supabase en ninguno de los tres modos.
-  - `calculatePrice` no cambia: un test verifica que la salida es idéntica con los tres valores de `display`.
-  - Los 223 tests previos no se editan, salvo lo que el contrato nuevo obligue, y cada edición queda justificada en DECISIONES con su motivo.
-  - Capturas de `exact` y `hidden` en `validacion/`, con la edición temporal del JSON revertida y `git status` limpio.
-  - Landing con el nombre y el pie nuevos, `landing-1440.png` rehecha, sin la palabra gratis y sin promesa de prueba (D25).
-  - Al cerrar, push y verificación del deploy repitiendo el curl hasta tres respuestas nuevas seguidas.
-- Canal C pendiente, con el cómo de cada paso:
-  - Rehacer `desktop-1.png` y `mobile-1.png` del material de venta.
-  - Imprimir la hoja de cotización a PDF desde el navegador y revisar que entre en una página.
-  - Ver las dos demos en un teléfono real y confirmar fps con GPU de verdad. Todas las mediciones de fps previas están hechas sobre SwiftShader por software.
-  - Al final de todo, borrar las filas de prueba de `leads` y de `visits`.
-
-## Bloque 8 · viernes 18 · publicación
+## Bloque 9 · viernes 18 · salida comercial
 
 Sin tareas de código salvo arreglos bloqueantes.
 
-- Canal C: publicar el listado en el Project Catalog con el precio de D17, el video y las capturas.
-- Canal C: armar la planilla plantilla de precios para el cliente.
-- Canal C: lista de 40 cartelerías de Tucumán con WhatsApp, y plantilla del mensaje de salida en frío.
+- Canal C: portfolio item en el perfil de Upwork, que sí admite enlace a sitio, con el video, las capturas y el enlace a https://quote.lokebox.com.
+- Canal C: planilla plantilla de precios para el cliente, la que el listado promete en "Your prices, in the spreadsheet I send you".
+- Canal C: lista de cartelerías de Tucumán con WhatsApp, y plantilla del mensaje de salida en frío.
+- Canal C, cuando el listado salga de Under Review: agregar el enlace a la demo y quote-northline.pdf editando el proyecto aprobado (D38).
 - Cierre: docs/STATE.md con el resultado del DONE de SPEC 17, punto por punto.

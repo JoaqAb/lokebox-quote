@@ -1,7 +1,7 @@
 # Texto del listado del Project Catalog
 
 Fecha: 2026-09-17
-Estado: cerrado. Unica fuente del texto del listado: de aca se copia y se pega al publicar. docs/comercial/UPWORK.md ya no lo duplica.
+Estado: enviado el 17/09/2026, en Under Review. Este documento es el registro de lo que se envio, mas lo que falta agregar despues de la aprobacion. Unica fuente del texto del listado. docs/comercial/UPWORK.md ya no lo duplica.
 
 Reglas que cumple este texto:
 
@@ -17,6 +17,12 @@ Categoria: Development & IT > Web Application Programming. Es donde estan todos 
 Titulo, sin repetir el "You will get" que antepone Upwork:
 
 > an interactive 3D sign configurator with live pricing and quote capture
+
+Titulo corto de respaldo, anotado por D40:
+
+> a 3D sign configurator with live pricing and quote capture
+
+Motivo del respaldo: el tope de 75 caracteres puede llegar a contar el prefijo "You will get" que antepone Upwork, y en ese caso el titulo largo no entra.
 
 Motivo: "3D product configurator" es el termino con volumen y con muchos vendedores con reviews; con 0 reviews no se gana esa consulta. "sign configurator" no tiene competencia. El termino generico se cubre en el primer parrafo de la descripcion y en los tags, que tambien matchean la busqueda.
 
@@ -42,7 +48,25 @@ Nombre publico del producto: Lokebox Quote Builder. El nombre interno del repo s
 > - Printable quote sheet.
 > - Your prices loaded and checked with you.
 
-## Abono, los siete puntos
+## Precio
+
+> From USD 250 setup, plus USD 29 per month.
+>
+> Anything beyond that scope is quoted case by case.
+
+Si el Catalog obliga a cargar un precio unico de entrega, se carga el setup de USD 250 y el abono se explica en la descripcion y se contrata aparte.
+
+## Que necesito del cliente
+
+> - Your logo and your colors.
+> - Your WhatsApp number or your email.
+> - Your prices, in the spreadsheet I send you.
+
+## FAQ
+
+Las dos secciones que el formulario del Catalog no tiene (D39). El texto en ingles es el mismo que estaba aprobado.
+
+Responde "que incluye el abono mensual":
 
 > Included every month:
 >
@@ -54,15 +78,7 @@ Nombre publico del producto: Lokebox Quote Builder. El nombre interno del repo s
 > - Support with an answer within one working day.
 > - Cancel whenever you want and keep your data.
 
-## Precio
-
-> From USD 250 setup, plus USD 29 per month.
->
-> Anything beyond that scope is quoted case by case.
-
-Si el Catalog obliga a cargar un precio unico de entrega, se carga el setup de USD 250 y el abono se explica en la descripcion y se contrata aparte.
-
-## Lo que se construye por mas
+Responde "que se puede construir mas alla del alcance":
 
 > Built on request, quoted case by case:
 >
@@ -71,17 +87,17 @@ Si el Catalog obliga a cargar un precio unico de entrega, se carga el setup de U
 > - Your photos of real jobs in the preview.
 > - Another language on the same page.
 
-## Que necesito del cliente
+## Para agregar despues de la aprobacion
 
-> - Your logo and your colors.
-> - Your WhatsApp number or your email.
-> - Your prices, in the spreadsheet I send you.
+Fuera del primer envio por D38: la regla de Upwork sobre informacion de contacto contra una ventana de revision de 5 dias habiles, donde un rechazo cuesta mas que la demora. Cuando el proyecto salga de Under Review se edita y se pega esto.
 
-## Enlace a la demo
+Enlace a la demo, texto integro para pegar:
 
 > See how it works: https://quote.lokebox.com
 >
 > This is a demo to show you the product. It is not set up for your daily work.
+
+Y el archivo validacion/venta/quote-northline.pdf, la hoja de cotizacion de ejemplo.
 
 ## Material visual
 
