@@ -4,21 +4,21 @@
 
 ## Bloque actual
 
-Bloque 7, codigo cerrado. TAREA_021: etapa 1 de la visibilidad de precio de SPEC 6.2 por D30. `exact`, `range` y `hidden` con validacion que rechaza `gated` e `internal`; la columna `lines` del lead; la plantilla de brief sin precio de la hoja; las dos plantillas de WhatsApp sin precio, opcionales y condicionales; y el nombre publico Lokebox Quote Builder en la landing. 237 pruebas en verde. Bundle por grupos: app 255,65 kB, react-vendor 189,60 kB, three-vendor 952,28 kB, CSS 23,89 kB.
-Las cuatro capturas de demo del set de 21 salieron byte a byte iguales a las de TAREA_020, o sea que `range` no cambio de forma, y hay cinco capturas mas de verificacion de `exact` y `hidden` en `validacion/`. SPEC 1.20, naming comercial cerrado en D31.
+Bloque 8 cerrado. El listado del Project Catalog quedo enviado el 17/09 y esta en Under Review, con la revision de Upwork a hasta 5 dias habiles: categoria Development & IT > Web Application Programming, un solo nivel de entrega de USD 250, video de portada mas las seis imagenes de `validacion/venta/subir/`, 4 requisitos, 4 project steps y 5 FAQ (D37). El enlace a la demo y `quote-northline.pdf` se agregan editando el proyecto una vez aprobado (D38). Se borraron las filas de prueba de `public.leads` y `public.visits`, con las tablas y la columna `lines` intactas: el conteo arranca de cero el 18/09 (D41). Codigo sin cambios desde TAREA_021: 237 pruebas en verde y los mismos bundles.
 
 ## Ultimo cerrado
 
-TAREA_021: b586608 (apertura), 3def20d (codigo). Numeros y verificaciones en docs/tareas/TAREA_021_visibilidad_de_precio.md.
+TAREA_022, docs del cierre del bloque 8: D37 a D43, CATALOG_LISTING.md como registro de lo enviado, y el bloque 9 en EXECUTION. Ultimo de codigo: TAREA_021, commit 3def20d.
 
 ## Proximo
 
-Canal C del bloque 7: rehacer `desktop-1.png` y `mobile-1.png`, imprimir la hoja a PDF y revisar que entre en una pagina, ver las dos demos en un telefono real con GPU de verdad, y al final borrar las filas de prueba. Despues, bloque 8 del viernes 18: publicar el listado con el texto de `docs/comercial/CATALOG_LISTING.md`, la planilla de precios, la lista de 40 carteleries y la plantilla del mensaje.
+Bloque 9 del viernes 18, salida comercial, sin tareas de codigo salvo arreglos bloqueantes: portfolio item en el perfil de Upwork con el video, las capturas y el enlace a la demo; planilla plantilla de precios para el cliente; lista de cartelerias de Tucuman con WhatsApp mas la plantilla del mensaje de salida en frio; y, cuando el listado salga de Under Review, agregar el enlace a la demo y `quote-northline.pdf`. Cierra con el DONE de SPEC 17 punto por punto.
 
 ## Bloqueos
 
-En norte de dia el anillo de back de facade crece menos de un nivel.
-Despues del viernes, salvo que sobre tiempo: `gated`, `internal` y `?view=owner`, la etapa 2 de SPEC 6.2 por D30.
+Ninguno bloqueante.
+Pendiente D18: el contraste del texto sobre `.q-on` cuando entre la identidad que se esta cerrando en el otro frente, donde el mango con texto blanco no pasa.
+Pendiente, despues del viernes: etapa 2 de SPEC 6.2, `gated`, `internal` y `?view=owner` (D30).
 
 ## Comando para retomar
 
