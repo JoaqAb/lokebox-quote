@@ -32,4 +32,4 @@ Sin tareas de código salvo arreglos bloqueantes.
 
 Objetivo: que el configurador resista una comparacion lado a lado con un configurador comercial de referencia (D48), con ese nivel en core (SPEC 18).
 
-- TAREA_023, pipeline de render y pantalla de carga: criterios en docs/tareas/TAREA_023_pipeline_de_render_y_carga.md.
+- TAREA_024, iluminacion y materiales PBR: criterios en docs/tareas/TAREA_024_iluminacion_y_materiales_pbr.md.

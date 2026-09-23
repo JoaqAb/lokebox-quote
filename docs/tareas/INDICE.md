@@ -34,3 +34,4 @@ ejecutaron, que es el orden del historial: TAREA_013 se ejecuto despues de TAREA
 | TAREA_020 | Oferta, identidad y defectos de la demo | cerrada | 33d985b |
 | TAREA_021 | Etapa 1 de la visibilidad de precio: exact, range y hidden | cerrada | 3def20d |
 | TAREA_022 | Cierre documental del bloque 8 | cerrada | ca52ecc |
+| TAREA_023 | Pipeline de render, perfiles de calidad y pantalla de carga | cerrada | 10d469e |

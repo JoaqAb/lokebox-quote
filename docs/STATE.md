@@ -4,20 +4,20 @@
 
 ## Bloque actual
 
-Bloque 10, Quote premium, abierto con SPEC 2.0 (D44 a D48). TAREA_023 esta abierta y frenada en el Bloom. Con el codigo en 10d469e, el preview monta el canvas del core con N8AO, ToneMapping AgX y SMAA, sombras de mapa en modo cartel, perfiles high y medium, y pantalla de carga con progreso real. texts tiene 47 claves. 244 tests en verde. Primera carga: 632 kB transferidos, primer frame en 4,1 s con slow 4G, 60 fps en orbita.
+Bloque 10, Quote premium, con SPEC 2.1 (D49 a D54). TAREA_024 abierta: HDRI, materiales PBR con acabados generados en runtime, acrilico opal sin transmision y bloom selectivo por emisores. Codigo vigente en 10d469e: canvas del core con N8AO, ToneMapping AgX y SMAA, perfiles high y medium, pantalla de carga. 244 tests en verde.
 
 ## Ultimo cerrado
 
-TAREA_022, docs del cierre del bloque 8. Ultimo commit de codigo: 10d469e, de TAREA_023.
+TAREA_023, pipeline de render y pantalla de carga, cerrada sin bloom (D49). Codigo en 10d469e.
 
 ## Proximo
 
-Decidir el Bloom de TAREA_023 (detalle en su tarea), despues TAREA_024 del bloque 10. Para TAREA_025: revisar la sombra de apoyo con CanvasTexture.
+Cerrar TAREA_024. Para TAREA_025: revisar la sombra de apoyo con CanvasTexture.
 Bloque 9, Canal C, sigue pendiente: portfolio de Upwork, planilla de precios, lista de Tucuman y el enlace a la demo cuando el listado salga de Under Review.
 
 ## Bloqueos
 
-Bloom de TAREA_023, espera decision. Pendiente D18: el contraste del texto sobre `.q-on` cuando entre la identidad nueva.
+Pendiente D18: el contraste del texto sobre `.q-on` cuando entre la identidad nueva.
 Pendiente D30: etapa 2 de SPEC 6.2, `gated`, `internal` y `?view=owner`.
 
 ## Comando para retomar

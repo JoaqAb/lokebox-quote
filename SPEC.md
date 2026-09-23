@@ -3,7 +3,7 @@
 Fuente de verdad del alcance. Si algo no está acá, no se construye.
 Este documento se edita, no se contradice. Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 
-Versión: 2.0 · 23/09/2026
+Versión: 2.1 · 23/09/2026
 
 ## 1. Objetivo
 
@@ -392,7 +392,14 @@ La forma de `leads` sigue la que usaría Lokebox para un pedido en gestación. S
     "letterHeight": { "min": 0.5, "max": 3, "step": 0.25, "default": 1 },
     "depths": [{ "id": "d2", "label": "2 in", "factor": 1, "visual": { "depthMeters": 0.05 } }],
     "materials": [
-      { "id": "pvc", "label": "PVC", "pricePerArea": 15, "pricePerLetterHeight": 40, "visual": { "color": "#E8E8E4", "metalness": 0, "roughness": 0.8 } }
+      {
+        "id": "pvc", "label": "PVC", "pricePerArea": 15, "pricePerLetterHeight": 40,
+        "visual": {
+          "color": "#E8E8E4", "finish": "foam", "metalness": 0, "roughness": 0.9,
+          "specularIntensity": 0.3, "clearcoat": 0, "clearcoatRoughness": 0,
+          "anisotropy": 0, "normalScale": 0.3, "translucency": 0
+        }
+      }
     ],
     "lighting": [{ "id": "none", "label": "None", "pricePerArea": 0, "pricePerLetter": 0, "visual": { "mode": "none" } }],
     "installation": { "fixed": 350, "perArea": 10, "perLetter": 45 },
@@ -405,6 +412,16 @@ La forma de `leads` sigue la que usaría Lokebox para un pedido en gestación. S
 ```
 
 `currency.display` (desde 1.20): opcional, `"symbol" | "code"`. Sin la clave vale `"symbol"`, que es lo que muestran los dos clientes de la demo. Con `"code"`, `formatCurrency` escribe `USD 250` en lugar de `$250`. La usa la landing de la sección 13, donde el precio se lee fuera de contexto y un símbolo solo no dice en qué moneda está. Los JSON de los dos clientes no traen la clave y no cambian.
+
+`materials[].visual` (desde 2.1, D52): el material deja de ser color, metalness y roughness. Lleva los parámetros físicos del material y `finish`, el acabado. Los parámetros son del cliente y van al JSON; los generadores de mapas son del código, y `finish` elige cuál se usa. Todas las claves son obligatorias, para que un cliente nuevo no herede valores escondidos en el código:
+
+- `color`: hexadecimal, el color base y el del emisivo.
+- `finish`: `"foam"` (espumado, mate con microrelieve), `"brushed"` (cepillado, con anisotropía) o `"polished"` (pulido). Otro valor falla nombrándolo.
+- `metalness`, `roughness`, `specularIntensity`, `clearcoat`, `clearcoatRoughness` y `anisotropy`: los de `MeshPhysicalMaterial`, entre 0 y 1.
+- `normalScale`: entre 0 y 1, la fuerza del relieve del mapa normal generado.
+- `translucency`: entre 0 y 1, cuánto de la luz de `back` deja pasar la cara. 0 es una cara opaca, que en `back` queda apagada; el acrílico opal la tiene mayor que 0 y en `back` su cara enciende pareja (sección 12).
+
+No hay `transmission`, `thickness` ni `ior`: la transmisión está descartada (D54, sección 12).
 
 `options.depths[]` suma `visual.depthMeters` (desde 1.11): la medida real de la profundidad, la que dibuja el preview. `factor` sigue siendo el multiplicador de precio de la sección 6 y no una medida; derivar la profundidad del `label` sería parsear texto. Mismo patrón que `materials[].visual`.
 
@@ -464,7 +481,7 @@ Zoom por modo, con el mismo control:
 
 Assets (desde 2.0, D45): se deroga la lista cerrada de tres assets y la prohibición de assets descargados en runtime. Quedan permitidos, servidos desde `public/`: las fotos de fondo del cliente, HDRI de hasta 2k, mapas PBR y typefaces, dentro del presupuesto de primera carga de la sección 3. El texto 3D del cartel sigue saliendo del typeface JSON de Archivo Black (OFL) de 1.14, porque el glifo pintado sobre una caja se leía como un azulejo y no como la letra corpórea que el producto vende. Sigue prohibido todo modelo importado y `Text` y `Text3D` de drei. Se derogan también la prohibición de postprocesado y la de sombras de mapa: las regula el pipeline de render de abajo.
 
-Permitido y acotado: texturas generadas en runtime con `CanvasTexture`, que no descargan nada y no pesan en el bundle. Desde 1.14 se usan para una sola cosa: el degradado radial que comparten la sombra de apoyo y el halo de `back`. Los glifos con `CanvasTexture` salen.
+Permitido y acotado: texturas generadas en runtime, que no descargan nada y no pesan en el bundle. Con `CanvasTexture`, desde 1.14, una sola cosa: el degradado radial que comparten la sombra de apoyo y el halo de `back`. Los glifos con `CanvasTexture` salen. Desde 2.1 (D53), los mapas de los acabados, que se generan con ruido determinista y nunca se descargan (ver Material).
 
 Texto 3D (desde 1.14): un componente único, `SignText3D`, con `TextGeometry` de three sobre el typeface. `curveSegments` 4, bisel chico, una sola geometría por carácter memoizada y con `dispose` al desmontar. Por carácter y no por palabra: el visitante escribe letra a letra. El espaciado sale del avance de cada glifo del typeface. Cara y cantos con el material elegido.
 
@@ -472,11 +489,16 @@ Texto 3D (desde 1.14): un componente único, `SignText3D`, con `TextGeometry` de
 - Cartel en modo letters (desde 1.14): una letra corpórea con `SignText3D` por carácter del texto sin espacios, máximo 18, con el contorno real del glifo, canto y bisel. Alto de letra de la selección, profundidad `visual.depthMeters` de la opción elegida. En `back` de modo cartel la cara de la letra no emite y emiten sus cantos y su cara trasera, igual que el panel.
 - El tipo `totem` (desde 1.15): el panel del modo area sin cambios, con su texto en relieve, un poste vertical centrado debajo y una base apoyada en el piso, con su recargo de precio intacto. El origen del totem es la cara inferior de la base: base de 0 a `TOTEM_BASE_HEIGHT` (0,08 m), poste de ahí a `TOTEM_POST_HEIGHT` (1,10 m) y panel desde `TOTEM_POST_HEIGHT` hacia arriba. Medidas proporcionales con límites, para que no se rompa en los extremos del slider de ancho: poste de 0,12 del ancho del panel entre 0,12 y 0,35 m, y de 1,6 veces el espesor del panel de profundidad; base de 0,45 del ancho del panel con piso de 0,50 m, y 0,50 m de profundidad. Son constantes nombradas del código de la escena, como la luz de estudio, nunca del JSON. Poste y base van en el color `muted` del tema, con metalness 0,2 y roughness 0,6, y nunca emiten: `front` y `back` afectan solo al panel.
 - Sombra de apoyo: quad con el degradado radial, detrás del cartel y apenas desplazado, en los dos modos. Su color (desde 1.16) es una constante de escena casi negra y no sale del tema del cliente: una sombra oscurece siempre, y un color derivado de una paleta clara puede quedar más claro que el fondo que tiene detrás. En el tipo `totem` (desde 1.15) el quad va horizontal sobre el piso, centrado bajo la base, de 1,6 veces su ancho y su profundidad, en los dos modos.
-- Material: cambia color, metalness y roughness según el `visual` del material. El HDRI de estudio es lo que hace que `metalness` alto se distinga.
+- Material (desde 2.1, D52 a D54): las caras del cartel y de las letras son `MeshPhysicalMaterial` con los parámetros físicos del `visual` (sección 10) y los mapas del acabado. Motivo: con color, metalness y roughness solos, PVC y acrílico se veían iguales entre sí incluso con el HDRI 1k (medido el 14/09), y en las capturas de TAREA_023 los tres materiales se leían como el mismo plástico claro.
+  - Mapas (D53): roughness y normal, generados en runtime con ruido determinista en `src/core/preview/`, uno por acabado, memoizados y con `dispose` al desmontar, igual que las geometrías de glifo. Nunca se descarga un mapa: si un acabado pareciera necesitar uno fotográfico, se frena y se decide. El mapa se repite por metro de superficie y no se estira con el slider de medida.
+  - `foam`, el PVC espumado: mate, microrelieve fino y reflejo especular bajo. No refleja el estudio.
+  - `brushed`, la chapa: metálico, con anisotropía horizontal en la cara y a lo largo de cada canto. Sin el HDRI la anisotropía no se lee.
+  - `polished`, el acrílico opal: roughness de base baja y clearcoat alto con clearcoatRoughness baja. Se separa del PVC por reflejo, no por transparencia: refleja el estudio y el PVC no.
+  - Transmisión descartada (2.1, D54). El acrílico es opal: difunde la luz y no deja ver lo que tiene detrás, que es lo que hace un cartel real. Motivo medido: el canvas es transparente en los dos modos, la foto y el escenario son capas HTML, y el pase de transmisión de three no tiene escena que samplear; con alpha de limpieza menor a 1 limpia su buffer con blanco a medio alpha. Con transmission 1 el acrílico sube hasta 32 niveles hacia el blanco en modo vista, sin mostrar la fachada, y baja 25 en modo cartel, gris. Se descarta también mover la foto y el escenario adentro de WebGL: rompe el zoom CSS del modo vista, el criterio de alpha con diferencia 0 y la capa HTML del marco, y el producto no gana. No se reintenta en otra vertical sin resolver antes el fondo.
 - Iluminación: tres modos, nunca más de una luz dinámica, colores del `visual` del material.
   - `none`: sin emisión y sin luz agregada.
   - `front`: emisión baja en la cara más una luz puntual por delante y por arriba.
-  - `back`: los cantos y la cara trasera emiten. En modo cartel (desde 1.13) la cara no emite: queda en el color del material apenas oscurecido, y no hay halo. Sale la emisión en la cara para back, porque un back-lit real tiene la cara apagada y el resplandor detrás, y con la cara emisiva back y front no se distinguen de frente. En modo vista la cara emite poco, lo justo para que el texto siga legible, y hay halo: el degradado radial detrás del cartel, con un margen de 0,12 del alto del cartel por lado, opacidad máxima 0,55, color del emisivo del material y sin borde duro.
+  - `back`: los cantos y la cara trasera emiten. En modo cartel (desde 1.13) la cara no emite: queda en el color del material apenas oscurecido, y no hay halo. Excepción desde 2.1: una cara con `translucency` mayor que 0, el acrílico opal, enciende por emisión pareja en toda la superficie, en los dos modos, con la intensidad de los cantos por su `translucency`. Sale la emisión en la cara para back, porque un back-lit real tiene la cara apagada y el resplandor detrás, y con la cara emisiva back y front no se distinguen de frente. En modo vista la cara emite poco, lo justo para que el texto siga legible, y hay halo: el degradado radial detrás del cartel, con un margen de 0,12 del alto del cartel por lado, opacidad máxima 0,55, color del emisivo del material y sin borde duro.
 - Los tres modos se distinguen con luminancia medida sobre la región del cartel, con tres comparaciones (desde 1.13): la cara crece de `none` a `front`, la cara baja de `front` a `back`, y el anillo inmediato crece de `front` a `back` en modo vista. Las tres se miden en modo vista con la misma foto; las dos de la cara se miden también en modo cartel, de frente y sin girar, y desde 1.15 también en el tipo `totem`.
 - No hay escalar `dusk`. No hay degradación por rendimiento medido: la calidad sale de un perfil que se elige una vez al montar, por capacidad del dispositivo (D46).
 - Luz de la escena del cartel: en modo vista sale del `light` de la foto elegida, nunca de constantes del código. En modo cartel es la luz de estudio del producto, con constantes nombradas, y nunca del JSON.
@@ -489,7 +511,7 @@ Pipeline de render (desde 2.0, D45):
 
 - Un solo `EffectComposer`, en este orden: N8AO, Bloom, ToneMapping AgX y SMAA. El renderer va con `antialias` apagado, porque el AA lo hace SMAA, y sin tone mapping propio, para no aplicarlo dos veces.
 - N8AO conservador, en metros de escena: se lee en el encuentro del cartel con su apoyo y en los cantos, no como contorno.
-- Bloom con umbral alto sobre la luminancia lineal, calibrado para que solo lo dispare el emisivo de `back`. En `none` y `front` el cartel no brilla, y se verifica midiendo. Pendiente de decisión desde TAREA_023 y hoy no se monta: medido, ningún umbral lo cumple, porque los brillos especulares del acrílico en `front` pasan 12 de luminancia lineal y los cantos de `back` quedan por debajo de 4.
+- Bloom selectivo por emisores (desde 2.1, D50). La vertical declara qué mallas emiten, habilitando en ellas la capa de bloom que exporta el core, igual que decide qué proyecta sombra; el core solo recibe la selección y la hace brillar. El umbral de luminancia deja de ser el mecanismo. Motivo medido en TAREA_023: con umbral sobre la luminancia del cuadro ningún valor separaba el emisivo de los brillos, porque los especulares del acrílico bajo la puntual de `front` pasan 12 de luminancia lineal y los cantos de `back` quedan por debajo de 4; y el panel en `back` visto de frente no tiene emisor a la vista, así que da 0 píxeles en todo umbral, lo que es correcto. Un umbral no separa un especular de un emisivo, y subir el emisivo para que pase queda rechazado. La selección son los emisores de `back`: cantos y cara trasera del panel y de las letras, y la cara con `translucency` mayor que 0. Para que la cara apagada no entre, panel y letras se dibujan como dos mallas sobre la misma geometría, la cara y la cáscara. En `none` y `front` la selección está vacía y el cuadro no cambia ni un píxel.
 - Sombras suaves de mapa: el canvas va con `PCFShadowMap` y radio de filtro en la luz, y la key del modo cartel proyecta. `PCFSoftShadowMap` está deprecado en three 0.185 y cae a `PCFShadowMap` con un aviso por consola. La sombra de apoyo con `CanvasTexture` se conserva.
 - En modo vista el canvas sigue transparente sobre la foto: el composer respeta el alpha y el tone mapping no toca la foto, que es una capa HTML debajo del canvas.
 
@@ -570,7 +592,7 @@ Desde 1.18 también quedan fuera:
 
 Desde 2.0 (D44). El nivel visual del preview vive en core, para que las próximas verticales lo hereden sin reescribirlo.
 
-- Viven en `src/core/`: el pipeline de render y el canvas que lo monta (`src/core/preview/`), los perfiles de calidad (`src/core/preview/quality.ts`), la pantalla de carga (`src/core/ui/LoadingScreen.tsx`) y los controles del panel (`src/core/ui/controls/`).
+- Viven en `src/core/`: el pipeline de render y el canvas que lo monta (`src/core/preview/`), los perfiles de calidad (`src/core/preview/quality.ts`), la pantalla de carga (`src/core/ui/LoadingScreen.tsx`), los controles del panel (`src/core/ui/controls/`) y, desde 2.1, los generadores de mapas por acabado y la capa de bloom (`src/core/preview/`).
 - No conocen la vertical. La vertical entrega su escena como contenido del canvas del core y decide qué objetos proyectan sombra y cuáles emiten. El core decide cómo se renderiza.
 - `src/core` sigue sin importar de `src/verticals` ni de `src/clients`.
 - La pantalla de carga necesita el logo del cliente y `loadingLabel`: el preview de la vertical los recibe como props, junto con las etiquetas de la sección 12.

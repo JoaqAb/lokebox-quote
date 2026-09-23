@@ -96,16 +96,17 @@ caliente. La eleccion es una funcion pura con tests.
 
 ## Resultado (23/09/2026)
 
-Estado: abierta, frenada en el Bloom. Codigo en 10d469e. Todo lo demas cumple.
+Estado: cerrada (D49). Codigo en 10d469e. Aceptada sin bloom: el criterio 4 queda verificado en
+luminancia y su parte de bloom pasa a TAREA_024 por D51, como bloom selectivo por emisores (D50).
 
 1. G1 a G6: build sin warnings, tsc 0 errores, lint limpio, 244 tests en verde, sin guiones largos.
 2. Capturas: 54 antes y 54 despues en `validacion/premium/023/`, con la GPU del equipo. Las
    dos corridas se sacaron con el mismo script y el mismo renderer.
 3. Peso: 632 kB transferidos, 79 kB de assets 3D. Primer frame: 1,3 s en fast 4G y 4,1 s en
    slow 4G. Orbita: 60 fps a dpr 1 y 2 en GPU integrada AMD. Detalle en `mediciones.md`.
-4. Bloom: NO cumple. Barrido de umbral de 2 a 12: con 3 o menos brilla la cara de front; con 4
+4. Bloom: verificado en luminancia; la parte de bloom pasa a TAREA_024 (D51). Barrido de umbral de 2 a 12: con 3 o menos brilla la cara de front; con 4
    o mas el panel en back ya no dispara nada; los brillos del acrilico en letters front pasan
-   12. No hay umbral que separe los dos. Se saco del pipeline y queda para decision.
+   12. No hay umbral que separe los dos. Se saco del pipeline.
 5. Alpha en modo vista: la foto fuera del cartel es identica a la foto sola en los 36 cuadros
    de vista, diferencia 0. El tone mapping no la toca.
 6. Luminancia: none baja 13 y front baja 10 en promedio (escala 0 a 255), por el cambio de
