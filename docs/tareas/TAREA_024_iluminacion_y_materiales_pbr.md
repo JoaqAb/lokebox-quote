@@ -161,7 +161,8 @@ Despues de los tres, push.
 
 ## Resultado (23/09/2026)
 
-Estado: entregada, cierre pendiente de Canal B por el criterio 6b. Codigo en a0ee0d1.
+Estado: cerrada. Canal B la acepta el 23/09 (D63): 3b queda como dato, el criterio 5 falla solo
+en letras de acrilico con la cara de front en el techo de AgX, y 6b pasa a TAREA_025. Codigo en a0ee0d1.
 Mediciones en `validacion/premium/024/` (`medir2.py`, `c3.txt` a `c6-despues.txt`), capturas en
 `despues/` y `sinbloom/`, 202 cuadros por corrida.
 

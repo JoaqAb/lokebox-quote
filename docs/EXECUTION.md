@@ -32,4 +32,4 @@ Sin tareas de código salvo arreglos bloqueantes.
 
 Objetivo: que el configurador resista una comparacion lado a lado con un configurador comercial de referencia (D48), con ese nivel en core (SPEC 18).
 
-- TAREA_024, iluminacion y materiales PBR: criterios en docs/tareas/TAREA_024_iluminacion_y_materiales_pbr.md.
+- TAREA_025, detalle del objeto y halo: criterios en docs/tareas/TAREA_025_detalle_del_objeto_y_halo.md.

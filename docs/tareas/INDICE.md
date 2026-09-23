@@ -35,3 +35,4 @@ ejecutaron, que es el orden del historial: TAREA_013 se ejecuto despues de TAREA
 | TAREA_021 | Etapa 1 de la visibilidad de precio: exact, range y hidden | cerrada | 3def20d |
 | TAREA_022 | Cierre documental del bloque 8 | cerrada | ca52ecc |
 | TAREA_023 | Pipeline de render, perfiles de calidad y pantalla de carga | cerrada | 10d469e |
+| TAREA_024 | Iluminacion y materiales PBR | cerrada | a0ee0d1 |
