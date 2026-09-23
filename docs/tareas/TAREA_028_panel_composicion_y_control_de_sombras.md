@@ -91,3 +91,38 @@ Cualquier workaround se frena y se reporta antes de commitear (G6, D88). Sin cla
 3. docs: cierre de TAREA_028.
 
 Despues, push.
+
+## Resultado (23/09/2026)
+
+Estado: entregada. Codigo en 54dc917. Mediciones en `validacion/premium/028/` (`c0-conteo.txt`,
+`contar_sombras.mjs`, `c0-sonda/`, `pantallas.mjs`, `c1-c2-c4.txt`, `validar.mjs`,
+`validar-anclaje/medicion.txt`, `validar-zoom/medicion.txt`, `validar-flujo/`, `validar-hidden/`,
+`carga.txt`) y capturas en `capturas/`.
+
+- C0. Si. Sale el render de 1x1. Contado con un parche temporal sobre `shadowMap.render`
+  (`parche-temporal-c0.txt`): 1,000 renders de mapas de sombra por cuadro en modo cartel, en modo
+  cartel con back y bloom, y en vista con totem (180 de 180 cuadros cada uno). Las 40 sondas de 027
+  (totem, composicion y 6a) dan 0 niveles de diferencia con el pipeline nuevo: el poste proyecta.
+- C1. Si. A 1440x900 el preview ocupa 72,2 por ciento del ancho y a 1280x720 68,8, en los dos
+  clientes; precio, rango y CTA se ven sin scroll.
+- C2. Si. A 390x844 el preview queda sticky arriba con 354 px, la barra lleva precio y CTA, el
+  ultimo paso termina en 454 y la barra empieza en 688 al final del scroll, y no hay scroll
+  horizontal. D24 se mantiene: mascara del panel en lg y sombra corta del bloque de pie.
+- C3. En parte. 34 de 36 casos a 0,5 px o menos en 1440, 1280 y 390, las cuatro fotos y los tres
+  tipos; fachada y totem todos. Dos de letras dan 0,58 y 0,62: la caja de la tinta de la palabra se
+  mide con bordes de pixel entero (inferido; en 027 el mismo metodo daba hasta 0,5 en letras).
+- C4. Si. Swatches visibles con el color del JSON (#E8E8E4, #B8BDC4, #F2F5F7) en los dos clientes;
+  `src/core` sin imports de verticals ni de clients.
+- C5. Si. Modo vista: la escala CSS pasa de 1 a 1,35 con una vuelta de rueda, a 2,025 con pinch
+  simulado de dos punteros, a 2,275 con el boton +, tope 2,5 y vuelta a 1. Modo cartel: el cartel
+  crece con rueda y pinch, el + se deshabilita en el maximo y el - vuelve al alto base. El canvas no
+  se remonta al cambiar de modo, de vista y de tipo.
+- C6. Si. EN y ES: enlace de WhatsApp con el mensaje armado, formulario hasta la confirmacion y hoja
+  imprimible. hidden, con cta form (cambio temporal del JSON en `hidden-temporal.txt`): sin precio
+  en ninguna parte, bloque de pie con el CTA, visible a 1440 y 390.
+- C7. Si. `capturas/`: 1440, 1280 y 390 por cliente, en modo cartel y en modo vista, mas el paso de
+  material por cliente.
+- C8. Si. Build sin avisos, tsc sin errores, lint limpio, 302 tests en verde, sin rayas largas.
+  Primer frame en slow 4G 3,9 s, 572 kB.
+
+Decisiones de ejecucion en DECISIONES (23/09/2026, TAREA_028).

@@ -33,3 +33,4 @@ Sin tareas de código salvo arreglos bloqueantes.
 Objetivo: que el configurador resista una comparacion lado a lado con un configurador comercial de referencia (D48), con ese nivel en core (SPEC 18).
 
 - TAREA_028, panel, composicion y control de sombras: criterios en docs/tareas/TAREA_028_panel_composicion_y_control_de_sombras.md.
+- Proxima tarea del bloque 10: pendiente de brief de Canal B.

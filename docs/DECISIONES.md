@@ -425,3 +425,10 @@
 - 23/09/2026: D95, mobile. El preview queda arriba, sticky, con 42svh de alto, y el panel scrollea debajo. La barra fija al pie lleva precio y CTA.
 - 23/09/2026: D96, no entran claves nuevas en texts. Si alguna hace falta, se frena y se reporta.
 - 23/09/2026: apertura de TAREA_028, SPEC 4.1 se edita junto con 7, 12 y 18: describe el layout y el panel, y sin tocarla contradice D90, D94 y D95.
+- 23/09/2026: TAREA_028, los mapas de sombra se piden en un useFrame de prioridad 0 del canvas del core, que corre antes del render del composer (prioridad 1), y autoUpdate se apaga en onCreated. El primer render del cuadro es el pase principal, con la camara en la capa 0, que es la de todo lo que proyecta.
+- 23/09/2026: TAREA_028, el ultimo paso del panel lleva instalacion y cantidad en el orden de SPEC 5.2, con el titulo de la cantidad (stepTitleKey en el descriptor): el titulo del paso no siempre es la etiqueta del primer campo.
+- 23/09/2026: TAREA_028, el numero de cada paso lo pone un contador de CSS: no es texto de la pagina y no pide clave en texts (D96).
+- 23/09/2026: TAREA_028, el zoom es uno solo para los dos modos, como antes. La rueda cambia el zoom por un factor de 0,15 por cada 100 px de deltaY; el pinch, por la razon entre las distancias de los dos punteros; los botones, de a 0,25. Siempre entre 1 y 2,5.
+- 23/09/2026: TAREA_028, la proporcion de la caja de la foto se mide de la imagen al cargar, con 16:9 hasta entonces.
+- 23/09/2026: TAREA_028, QuotePage arma el mensaje de WhatsApp solo si el CTA incluye WhatsApp. Defecto previo encontrado al probar hidden: con cta form la plantilla sin precio no es obligatoria (SPEC 10) y la pagina se caia.
+- 23/09/2026: TAREA_028, el modo de calibracion va dentro de un contenedor con scroll: el area del preview tiene alto fijo.
