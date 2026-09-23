@@ -1,7 +1,8 @@
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useLayoutEffect, useMemo, useRef } from 'react'
-import { MathUtils, Vector3, type PerspectiveCamera as PerspectiveCameraImpl } from 'three'
+import { Color, MathUtils, Vector3, type DirectionalLight, type PerspectiveCamera as PerspectiveCameraImpl } from 'three'
+import { ATTENUATION_LAYER } from '../../../core/preview/render'
 import type { ClientPhoto, MaterialVisual, Mount, PhotoGroundAnchor } from '../../../core/types'
 import { SignBoard } from './SignBoard'
 import { StudioEnvironment } from '../../../core/preview/StudioEnvironment'
@@ -13,11 +14,12 @@ import {
   approach,
   fitTextOnPanel,
   layoutLetters,
-  lensShift,
   lettersFrameVolume,
   totemLayout,
   orbitPosition,
-  photoCameraDistance,
+  photoCameraPose,
+  photoShadowVolume,
+  tintedLightColor,
   signFrameDistance,
   studioShadowReach,
   type LetterBox,
@@ -35,14 +37,17 @@ import { glyphAdvance, textBounds, type Typeface } from './typeface'
 //   distancia derivada en cada frame de la huella de la caja, el zoom la multiplica, y la
 //   luz es la de estudio del producto.
 // - Modo vista: la camara sale del anchor de la foto y el centro del cartel cae en su
-//   (x, y) con setViewOffset. Sin orbita; el zoom de este modo es CSS, fuera del canvas.
+//   (x, y); desde 2.6 (D81) por la posicion de la camara, fuera del eje, y no con setViewOffset.
+//   Sin orbita; el zoom de este modo es CSS, fuera del canvas.
 // Version 2.0: el typeface suspende en el Suspense del canvas del core, que muestra la
 // pantalla de carga; si falta, la escena sigue sin texto. Desde 2.2 (D55) el reflejo sale del
 // entorno de estudio que genera el core: en modo cartel a intensidad plena y en modo vista
 // escalado por la luz ambiente de la foto, que sigue mandando, con la fuente especular en la
 // direccion de la key de la foto (2.3, D61). En modo
 // cartel la key proyecta sombra de mapa sobre el propio cartel: el relieve sobre la cara, el
-// panel sobre el poste. En modo vista no proyecta: la foto tiene su propia luz.
+// panel sobre el poste. Desde 2.5 (D76) en modo vista tambien proyecta, con la direccion de la
+// key de la foto, sobre el receptor de solo sombra de SignBoard; y ambiente y key llevan el
+// tinte de la foto alrededor del anclaje (D77).
 
 type SignSceneProps = {
   placement: SignPlacement
@@ -65,6 +70,9 @@ type SignSceneProps = {
   // Montaje del panel (version 2.4, D68). null en letters.
   mount: Mount | null
   structureColor: string
+  // Tinte de la foto elegida alrededor del anclaje (version 2.5, D77), luminancia 1. null en
+  // modo cartel o mientras la foto no cargo.
+  tint: [number, number, number] | null
 }
 
 type ViewerCameraProps = {
@@ -73,7 +81,7 @@ type ViewerCameraProps = {
   // el totem, cuyo origen es el piso, a media altura.
   center: Vec3
   photo: ClientPhoto | null
-  // Modo vista con totem: el anclaje de piso de la foto, que da distancia y corrimiento.
+  // Modo vista con totem: el anclaje de piso de la foto, que da la escala y el punto de apoyo.
   ground: PhotoGroundAnchor | null
   signZoom: number
   reducedMotion: boolean
@@ -89,25 +97,23 @@ function ViewerCamera({ volume, center, photo, ground, signZoom, reducedMotion }
   const size = useThree((state) => state.size)
   const aspect = size.width / size.height
 
-  // Modo vista: angulos y fov salen del anchor, que describe la camara. Distancia y
-  // corrimiento salen del anchor o, con totem, del anclaje de piso; el punto que cae en
-  // (x, y) es el origen: el centro del cartel o el apoyo de la base. Se recalcula con el
-  // tamano del canvas porque el corrimiento va en pixeles.
+  // Modo vista (version 2.6, D81): orientacion y fov salen del anchor, que describe la camara, y la
+  // camara se ubica para que el origen caiga en (x, y) fuera del eje: el centro del cartel, o con
+  // totem el apoyo de la base, con la escala del anclaje de piso. Sin corrimiento de la vista. Se
+  // recalcula con el aspecto del canvas.
   useLayoutEffect(() => {
     const camera = cameraRef.current
     if (camera === null || photo === null) {
       return
     }
     const { anchor } = photo
-    const placement = ground ?? anchor
-    const distance = photoCameraDistance(placement.metersToWidth, anchor.fovDeg, aspect)
+    const pose = photoCameraPose(ground ?? anchor, { yawDeg: anchor.cameraYawDeg, pitchDeg: anchor.cameraPitchDeg }, anchor.fovDeg, aspect)
     camera.fov = anchor.fovDeg
-    camera.position.set(...orbitPosition(anchor.cameraYawDeg, anchor.cameraPitchDeg, distance))
-    camera.lookAt(0, 0, 0)
-    const [offsetX, offsetY] = lensShift(placement.x, placement.y, size.width, size.height)
-    camera.setViewOffset(size.width, size.height, offsetX, offsetY, size.width, size.height)
+    camera.clearViewOffset()
+    camera.position.set(...pose.position)
+    camera.lookAt(...pose.target)
     camera.updateProjectionMatrix()
-  }, [photo, ground, aspect, size.width, size.height])
+  }, [photo, ground, aspect])
 
   // Modo cartel al entrar: de frente, apenas por encima. Posicion y distancia las pone el
   // primer frame, que conoce el target. Depende solo de si hay foto: cambiar el cartel o el
@@ -184,6 +190,7 @@ export function SignScene({
   totem,
   mount,
   structureColor,
+  tint,
 }: SignSceneProps) {
   // En modo vista la luz viene de la foto: cada foto dice de donde le pega el sol, para que
   // el volumen del cartel case con ella. En modo cartel es la luz de estudio del producto.
@@ -201,6 +208,12 @@ export function SignScene({
     [light],
   )
   const { width, height } = placement.box
+  // La key tambien va en la capa de atenuacion (version 2.6, D79): three solo cuenta las luces de
+  // las capas que dibuja la camara, y los receptores de la sombra se dibujan solos en esa capa.
+  const keyRef = useRef<DirectionalLight>(null)
+  useLayoutEffect(() => {
+    keyRef.current?.layers.enable(ATTENUATION_LAYER)
+  }, [])
 
   // Contorno real del texto con el typeface: encuadra las letras y escala el relieve.
   const bounds = useMemo(() => (typeface === null ? null : textBounds(typeface, text)), [typeface, text])
@@ -216,7 +229,13 @@ export function SignScene({
     return { volume: { width, height, depth: SET.sign.thickness }, center: [0, 0, 0] }
   }, [letters, totem, bounds, width, height, letterDepth])
   const ground = totem && photo !== null ? (photo.anchorGround ?? null) : null
-  const shadowReach = studioShadowReach(frame.volume, frame.center)
+  // La camara de sombra cubre el cartel en modo cartel y, en modo vista, tambien el receptor de
+  // la sombra proyectada (version 2.5, D76).
+  const shadowReach = studioShadowReach(photo === null ? frame.volume : photoShadowVolume(frame.volume, totem && letters === null), frame.center)
+  // Modo vista: ambiente y key se tinen con el color de la foto (D77). Modo cartel: blanco.
+  // El entorno de estudio es la parte del ambiente que refleja: en vista lleva el mismo tinte.
+  const lightTint = useMemo(() => tintedLightColor(photo === null ? null : tint), [photo, tint])
+  const lightColor = useMemo(() => new Color(...lightTint), [lightTint])
   const relief = useMemo(() => {
     if (typeface === null || letters !== null || bounds === null) {
       return null
@@ -236,11 +255,13 @@ export function SignScene({
         reducedMotion={reducedMotion}
       />
 
-      <ambientLight intensity={light.ambient} />
+      <ambientLight intensity={light.ambient} color={lightColor} />
       <directionalLight
+        ref={keyRef}
         position={keyPosition}
         intensity={light.keyIntensity}
-        castShadow={photo === null}
+        color={lightColor}
+        castShadow
         shadow-mapSize={[STUDIO_SHADOW.mapSize, STUDIO_SHADOW.mapSize]}
         shadow-bias={STUDIO_SHADOW.bias}
         shadow-normalBias={STUDIO_SHADOW.normalBias}
@@ -255,6 +276,7 @@ export function SignScene({
       <StudioEnvironment
         intensity={photo === null ? 1 : light.ambient}
         highlight={photo === null ? null : studioHighlight}
+        color={lightTint}
       />
 
       <SignBoard
@@ -272,7 +294,7 @@ export function SignScene({
         structureColor={structureColor}
         signMode={photo === null}
         mount={mount}
-        haloAmbient={photo === null ? null : photo.light.ambient}
+        photoLight={photo === null ? null : photo.light}
         textBounds={letters === null ? null : bounds}
       />
     </>

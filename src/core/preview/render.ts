@@ -29,3 +29,9 @@ export const RENDER = {
 // La 0 es la de siempre: una malla en esta capa se sigue dibujando normal.
 export const BLOOM_LAYER = 10
 
+
+// Capa de los receptores de sombra (SPEC 12 y 18, version 2.6, D79). La vertical la pone en las
+// mallas que reciben la sombra como atenuacion, y en la luz que la proyecta, porque three solo
+// cuenta las luces de las capas que dibuja la camara. Una malla solo en esta capa no entra al
+// pase principal: la dibuja CoverageToneMapping en su target y la compone como atenuacion.
+export const ATTENUATION_LAYER = 11

@@ -1,5 +1,5 @@
 import { useLoader } from '@react-three/fiber'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { FileLoader } from 'three'
 import type { FontData } from 'three/examples/jsm/loaders/FontLoader.js'
 import { AssetBoundary } from '../../core/preview/AssetBoundary'
@@ -11,6 +11,7 @@ import {
   layoutLetters,
   scenePalette,
   signPlacement,
+  tintRect,
   totemStructureColor,
   type ScenePalette,
   type SignPlacement,
@@ -20,6 +21,7 @@ import { createTypeface, disposeGlyphGeometries, glyphAdvance, TYPEFACE_SRC, typ
 import { disposeHaloGeometry } from './scene/haloGeometry'
 import { disposeSupportShadow } from './scene/supportShadow'
 import { disposeFinishTextures } from '../../core/preview/finishTextures'
+import { photoTint, type Tint } from '../../core/preview/photoTint'
 import type { SignVisual } from './visuals'
 
 // Las capas del viewer (SPEC 12, version 1.12): la foto, solo en modo vista, y el canvas
@@ -53,6 +55,8 @@ type StageSceneProps = {
   photo: ClientPhoto | null
   reducedMotion: boolean
   signZoom: number
+  // Tinte de la foto elegida (version 2.5, D77), o null mientras no se midio.
+  tint: Tint | null
 }
 
 // La escena con el typeface ya resuelto, o null si no cargo: el cartel se dibuja sin texto.
@@ -68,6 +72,7 @@ function StageScene({
   photo,
   reducedMotion,
   signZoom,
+  tint,
   typeface,
 }: StageSceneProps & { typeface: Typeface | null }) {
   const letterHeightMeters = selection.letterHeight * visual.lengthToMeters
@@ -101,6 +106,7 @@ function StageScene({
       totem={visual.totem}
       mount={visual.mount}
       structureColor={structureColor}
+      tint={tint}
     />
   )
 }
@@ -116,6 +122,46 @@ function TypefaceScene(props: StageSceneProps) {
   })
   const typeface = useMemo(() => createTypeface(data as unknown as FontData), [data])
   return <StageScene {...props} typeface={typeface} />
+}
+
+// Lado mayor de la copia reducida de la foto que se mide: el tinte es un promedio y no necesita
+// la foto entera.
+const TINT_SAMPLE_PX = 256
+
+// Casado de tono (version 2.5, D77): el tinte de cada foto se mide una vez, cuando la foto carga,
+// en el rectangulo fijo alrededor de su anchor. No depende del cartel, asi que un slider no lo
+// cambia. Si la foto no se puede leer, no hay tinte y la luz queda blanca.
+function usePhotoTints(photo: ClientPhoto | null): Tint | null {
+  const [tints, setTints] = useState<Record<string, Tint>>({})
+  const id = photo?.id ?? null
+  const known = id === null ? undefined : tints[id]
+  useEffect(() => {
+    if (photo === null || known !== undefined) {
+      return
+    }
+    let active = true
+    const image = new Image()
+    image.onload = () => {
+      const scale = Math.min(1, TINT_SAMPLE_PX / Math.max(image.naturalWidth, image.naturalHeight))
+      const width = Math.max(1, Math.round(image.naturalWidth * scale))
+      const height = Math.max(1, Math.round(image.naturalHeight * scale))
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const context = canvas.getContext('2d', { willReadFrequently: true })
+      if (context === null || !active) {
+        return
+      }
+      context.drawImage(image, 0, 0, width, height)
+      const tint = photoTint(context.getImageData(0, 0, width, height).data, width, height, tintRect(photo.anchor.x, photo.anchor.y))
+      setTints((current) => ({ ...current, [photo.id]: tint }))
+    }
+    image.src = photo.src
+    return () => {
+      active = false
+    }
+  }, [photo, known])
+  return known ?? null
 }
 
 export function PhotoStage({
@@ -144,7 +190,8 @@ export function PhotoStage({
     [],
   )
 
-  const scene: StageSceneProps = { selection, visual, palette, structureColor, photo, reducedMotion, signZoom }
+  const tint = usePhotoTints(photo)
+  const scene: StageSceneProps = { selection, visual, palette, structureColor, photo, reducedMotion, signZoom, tint }
 
   return (
     <div

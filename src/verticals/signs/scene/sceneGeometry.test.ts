@@ -1,4 +1,4 @@
-import { Color } from 'three'
+import { Color, PerspectiveCamera, Vector3 } from 'three'
 import { describe, expect, it } from 'vitest'
 import { getClient, listClientSlugs } from '../../../clients'
 import { defaultSelection } from '../../../core/clientConfig'
@@ -22,10 +22,19 @@ import {
   haloPeak,
   haloProfile,
   lettersContour,
+  HALO_LETTERS_BAND,
+  SHADOW_RECEIVER,
+  TINT,
+  floorReceiver,
+  photoShadowOpacity,
+  photoShadowVolume,
+  tintRect,
+  tintedLightColor,
+  wallReceiver,
   panelEdgeRadius,
   standoffPositions,
   wallGap,
-  lensShift,
+  photoCameraPose,
   orbitPosition,
   photoCameraDistance,
   signFrameDistance,
@@ -337,6 +346,66 @@ describe('contorno del halo en letters', () => {
   })
 })
 
+describe('halo de letters (version 2.5, D75)', () => {
+  it('la banda de letters es una fraccion del alto de letra entre 0,5 y 1,0, mas ancha que la del panel', () => {
+    expect(HALO_LETTERS_BAND).toBeGreaterThanOrEqual(0.5)
+    expect(HALO_LETTERS_BAND).toBeLessThanOrEqual(1)
+    expect(HALO_LETTERS_BAND).toBeGreaterThan(HALO.bandRatio)
+  })
+})
+
+describe('sombra proyectada en vista (version 2.5, D76)', () => {
+  const box = { width: 2.4, height: 0.9 }
+
+  it('el receptor de pared va detras del halo y mide el contorno mas el margen', () => {
+    const wall = wallReceiver(box, 'standoff')
+    expect(wall.z).toBeLessThan(haloBox({ box }, 'standoff').z)
+    expect(wall.size).toEqual([box.width + 2 * SHADOW_RECEIVER.margin, box.height + 2 * SHADOW_RECEIVER.margin])
+    expect(wallReceiver(box, 'flush').z).toBeGreaterThan(wall.z)
+  })
+
+  it('el receptor de piso cubre el totem mas el margen de piso', () => {
+    const volume = totemLayout(box).volume
+    expect(floorReceiver(volume).size).toEqual([volume.width + 2 * SHADOW_RECEIVER.floorMargin, volume.depth + 2 * SHADOW_RECEIVER.floorMargin])
+    expect(SHADOW_RECEIVER.floorMargin).toBeGreaterThan(SHADOW_RECEIVER.margin)
+  })
+
+  it('la camara de sombra de vista cubre el receptor', () => {
+    const volume = { width: 2.4, height: 0.9, depth: SET.sign.thickness }
+    const wall = photoShadowVolume(volume, false)
+    expect(wall.width).toBeCloseTo(volume.width + 2 * SHADOW_RECEIVER.margin, 10)
+    expect(wall.depth).toBeGreaterThan(volume.depth + 2 * STANDOFF.wallGap)
+    const floor = photoShadowVolume(volume, true)
+    expect(floor.depth).toBeCloseTo(volume.depth + 2 * SHADOW_RECEIVER.floorMargin, 10)
+  })
+
+  it('a mas ambiente, menos sombra; sin key, nada', () => {
+    const day = { ambient: 0.9, keyIntensity: 1.4, keyAzimuthDeg: -25, keyElevationDeg: 35 }
+    expect(photoShadowOpacity(day)).toBeGreaterThan(photoShadowOpacity({ ...day, ambient: 1.4 }))
+    expect(photoShadowOpacity(day)).toBeLessThanOrEqual(SHADOW_RECEIVER.maxOpacity)
+    expect(photoShadowOpacity({ ...day, keyIntensity: 0 })).toBe(0)
+    expect(photoShadowOpacity({ ...day, keyIntensity: 0, ambient: 0 })).toBe(0)
+  })
+})
+
+describe('casado de tono (version 2.5, D77)', () => {
+  it('el rectangulo esta centrado en el anchor y no depende del cartel', () => {
+    const rect = tintRect(0.5, 0.38)
+    expect(rect.left + rect.width / 2).toBeCloseTo(0.5, 10)
+    expect(rect.top + rect.height / 2).toBeCloseTo(0.38, 10)
+    expect([rect.width, rect.height]).toEqual([TINT.rectWidth, TINT.rectHeight])
+  })
+
+  it('sin tinte la luz es blanca, y con tinte mezcla segun la fuerza', () => {
+    expect(tintedLightColor(null)).toEqual([1, 1, 1])
+    const tint: [number, number, number] = [1.3, 0.95, 0.6]
+    const mixed = tintedLightColor(tint)
+    mixed.forEach((value, index) => {
+      expect(value).toBeCloseTo(1 - TINT.strength + TINT.strength * tint[index], 10)
+    })
+  })
+})
+
 describe('separadores del standoff', () => {
   it('cuatro, uno por esquina, metidos hacia adentro y entre el panel y la pared', () => {
     const box = { width: 2.4, height: 0.9 }
@@ -458,12 +527,27 @@ describe('camara del viewer', () => {
     expect(orbitPosition(0, 0, 3)).toEqual([0, 0, 3])
   })
 
-  it('lensShift lleva el centro del cartel a (x, y) de la foto', () => {
-    expect(lensShift(0.5, 0.5, 800, 450)).toEqual([0, 0])
-    const [ox, oy] = lensShift(0.25, 0.2, 800, 450)
-    // El target proyecta en el centro de la vista completa: W/2 - ox tiene que dar x por W.
-    expect(400 - ox).toBeCloseTo(0.25 * 800, 10)
-    expect(225 - oy).toBeCloseTo(0.2 * 450, 10)
+  // Version 2.6, D81: la camara de vista mira con los angulos del anchor y el anclaje cae en (x, y).
+  it('photoCameraPose deja el anclaje en (x, y) de la foto, con cualquier yaw y pitch', () => {
+    for (const [x, y, yaw, pitch] of [[0.23, 0.925, 0, 0], [0.501, 0.2, 0, 0], [0.7, 0.4, 20, -8], [0.3, 0.6, -35, 10]]) {
+      const aspect = 16 / 9
+      const pose = photoCameraPose({ x, y, metersToWidth: 0.13 }, { yawDeg: yaw, pitchDeg: pitch }, 40, aspect)
+      const camera = new PerspectiveCamera(40, aspect, 0.05, 200)
+      camera.position.set(...pose.position)
+      camera.lookAt(...pose.target)
+      camera.updateMatrixWorld()
+      const ndc = new Vector3(0, 0, 0).project(camera)
+      expect((ndc.x + 1) / 2).toBeCloseTo(x, 9)
+      expect((1 - ndc.y) / 2).toBeCloseTo(y, 9)
+    }
+  })
+
+  it('con pitch 0 mira horizontal y la altura sale de los datos: 1,84 m en el totem de northline', () => {
+    const pose = photoCameraPose({ x: 0.23, y: 0.925, metersToWidth: 0.13 }, { yawDeg: 0, pitchDeg: 0 }, 40, 16 / 9)
+    expect(pose.target[1]).toBeCloseTo(pose.position[1], 12)
+    expect(pose.position[1]).toBeCloseTo(1.84, 2)
+    const norte = photoCameraPose({ x: 0.25, y: 0.9, metersToWidth: 0.11 }, { yawDeg: 0, pitchDeg: 0 }, 40, 16 / 9)
+    expect(norte.position[1]).toBeCloseTo(2.04, 1)
   })
 
   it('el zoom del modo cartel va de 1 a 0,55 de la base y no aleja nunca', () => {

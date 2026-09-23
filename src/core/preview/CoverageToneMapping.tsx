@@ -1,7 +1,8 @@
+import { EffectComposerContext } from '@react-three/postprocessing'
 import { BlendFunction, Effect, type SelectiveBloomEffect } from 'postprocessing'
-import { Uniform } from 'three'
-import { useEffect, useMemo } from 'react'
-import { RENDER } from './render'
+import { use, useEffect, useMemo } from 'react'
+import { Color, Uniform, WebGLRenderTarget, type Camera, type Scene, type WebGLRenderer } from 'three'
+import { ATTENUATION_LAYER, RENDER } from './render'
 
 // Tone mapping AgX sobre un buffer transparente (SPEC 12, version 2.4, TAREA_025). El canvas va
 // transparente y el composer mezcla en luz lineal: un pixel que cubre la foto a medias llega
@@ -18,10 +19,17 @@ import { RENDER } from './render'
 // por alpha, lineal en alpha, que es lo que el navegador espera de un canvas premultiplicado.
 // Entre los dos, una rampa suave sobre el alpha del resplandor. Un pixel opaco da lo mismo por
 // los dos caminos. En modo vista no hay bloom (D64) y todo pixel parcial es cobertura.
+// Desde la version 2.6 (D79) este pase tambien compone la sombra de vista, que es atenuacion y no
+// luz: los receptores estan en ATTENUATION_LAYER, fuera del pase principal, y este efecto los
+// dibuja en un target propio antes de cada cuadro. Su alpha s es cuanto tapa la sombra. La salida
+// lleva el color de la luz mapeada sola y alpha 1 - (1 - s)(1 - a): sobre la foto queda
+// C_luz + (1 - s)(1 - a) foto. Mezclada antes del tone mapping, la sombra desaparecia bajo el halo.
 // La salida vuelve a luz lineal: la codificacion sRGB la sigue haciendo el ultimo pase.
 
 const FRAGMENT = /* glsl */ `
 #include <tonemapping_pars_fragment>
+
+uniform sampler2D attenuationMap;
 
 vec3 displayOf(const in vec3 color) {
   return sRGBTransferOETF(vec4(AgXToneMapping(color), 1.0)).rgb;
@@ -41,9 +49,70 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
   float light = 0.0;
 #endif
   vec3 display = mix(alpha * displayOf(straight), displayOf(inputColor.rgb), light);
-  outputColor = vec4(sRGBTransferEOTF(vec4(display, 1.0)).rgb, inputColor.a);
+  float shade = clamp(texture2D(attenuationMap, uv).a, 0.0, 1.0);
+  outputColor = vec4(sRGBTransferEOTF(vec4(display, 1.0)).rgb, 1.0 - (1.0 - shade) * (1.0 - alpha));
 }
 `
+
+// El efecto con su target de atenuacion. update corre antes de cada cuadro del composer.
+class CoverageToneMappingEffect extends Effect {
+  private readonly attenuation = new WebGLRenderTarget(1, 1)
+  private readonly clearColor = new Color()
+  private readonly scene: Scene
+  private readonly camera: Camera
+
+  constructor(scene: Scene, camera: Camera, glow: SelectiveBloomEffect | null) {
+    const defines = new Map([['GLOW_ALPHA', RENDER.coverage.glowAlpha.toFixed(4)]])
+    const uniforms = new Map<string, Uniform>([['attenuationMap', new Uniform(null)]])
+    if (glow !== null) {
+      defines.set('GLOW', '1')
+      uniforms.set('glowMap', new Uniform(glow.texture))
+      uniforms.set('glowIntensity', new Uniform(glow.intensity))
+    }
+    super('CoverageToneMapping', FRAGMENT, { blendFunction: BlendFunction.SRC, defines, uniforms })
+    this.scene = scene
+    this.camera = camera
+    const map = this.uniforms.get('attenuationMap')
+    if (map !== undefined) {
+      map.value = this.attenuation.texture
+    }
+  }
+
+  // Dibuja solo la capa de atenuacion, sobre transparente. La camara vuelve a sus capas. Los mapas
+  // de sombra no se vuelven a dibujar: three dibuja en ellos solo lo que esta en las capas de la
+  // camara, y con la camara en esta capa los dejaria vacios. Se usan los del pase principal, que
+  // ya corrio en este cuadro.
+  override update(renderer: WebGLRenderer): void {
+    const mask = this.camera.layers.mask
+    const background = this.scene.background
+    const clearAlpha = renderer.getClearAlpha()
+    const autoUpdate = renderer.shadowMap.autoUpdate
+    const needsUpdate = renderer.shadowMap.needsUpdate
+    renderer.getClearColor(this.clearColor)
+    this.camera.layers.set(ATTENUATION_LAYER)
+    this.scene.background = null
+    renderer.shadowMap.autoUpdate = false
+    renderer.shadowMap.needsUpdate = false
+    renderer.setRenderTarget(this.attenuation)
+    renderer.setClearColor(0x000000, 0)
+    renderer.clear()
+    renderer.render(this.scene, this.camera)
+    renderer.shadowMap.autoUpdate = autoUpdate
+    renderer.shadowMap.needsUpdate = needsUpdate
+    renderer.setClearColor(this.clearColor, clearAlpha)
+    this.scene.background = background
+    this.camera.layers.mask = mask
+  }
+
+  override setSize(width: number, height: number): void {
+    this.attenuation.setSize(width, height)
+  }
+
+  override dispose(): void {
+    super.dispose()
+    this.attenuation.dispose()
+  }
+}
 
 type CoverageToneMappingProps = {
   // El bloom montado antes en el mismo composer, o null si esta apagado.
@@ -51,16 +120,8 @@ type CoverageToneMappingProps = {
 }
 
 export function CoverageToneMapping({ glow }: CoverageToneMappingProps) {
-  const effect = useMemo(() => {
-    const defines = new Map([['GLOW_ALPHA', RENDER.coverage.glowAlpha.toFixed(4)]])
-    const uniforms = new Map<string, Uniform>()
-    if (glow !== null) {
-      defines.set('GLOW', '1')
-      uniforms.set('glowMap', new Uniform(glow.texture))
-      uniforms.set('glowIntensity', new Uniform(glow.intensity))
-    }
-    return new Effect('CoverageToneMapping', FRAGMENT, { blendFunction: BlendFunction.SRC, defines, uniforms })
-  }, [glow])
+  const { scene, camera } = use(EffectComposerContext)
+  const effect = useMemo(() => new CoverageToneMappingEffect(scene, camera, glow), [scene, camera, glow])
 
   useEffect(
     () => () => {

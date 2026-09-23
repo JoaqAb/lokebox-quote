@@ -133,6 +133,11 @@ export function haloProfile(t: number): number {
   return 1 - x * x * (3 - 2 * x)
 }
 
+// Banda del halo en letters (version 2.5, D75), en fraccion del alto de letra. Con 0,3 subia 52
+// niveles en 5 px contra la foto y se leia como una placa blanca con borde. Elegida por medicion
+// entre 0,5 y 1,0 para una pendiente media de 5 niveles por px como maximo.
+export const HALO_LETTERS_BAND = 0.8
+
 export function haloPeak(ambient: number): number {
   const light = (1 - ambient) / (1 - HALO.darkAmbient)
   return HALO.maxOpacity * Math.min(1, Math.max(0, light))
@@ -185,6 +190,72 @@ export function haloCellOutward(kind: HaloCellKind): [number, number] {
   const x = kind === 'left' || kind === 'topLeft' || kind === 'bottomLeft' ? -1 : kind === 'right' || kind === 'topRight' || kind === 'bottomRight' ? 1 : 0
   const y = kind === 'top' || kind === 'topLeft' || kind === 'topRight' ? 1 : kind === 'bottom' || kind === 'bottomLeft' || kind === 'bottomRight' ? -1 : 0
   return [x, y]
+}
+
+// Sombra proyectada del modo vista (SPEC 12, version 2.5, D76): la key de la foto proyecta sobre
+// un receptor de solo sombra, un plano en la pared detras del cartel, o en el totem un plano de
+// piso en el apoyo de la base. El receptor es la caja del cartel mas un margen; en el piso el
+// margen es mayor porque la sombra de un totem de 2 m con el sol a 35 grados mide casi 3 m.
+// La opacidad sale de la luz de la foto: la sombra es lo que la key tapa, asi que pesa la key
+// contra el ambiente, y a mas ambiente, menos sombra. gap lo deja apenas detras del halo.
+export const SHADOW_RECEIVER = {
+  margin: 0.5,
+  floorMargin: 3,
+  gap: 0.002,
+  maxOpacity: 0.6,
+} as const
+
+export function photoShadowOpacity(light: PhotoLight): number {
+  const total = light.keyIntensity + light.ambient
+  return total <= 0 ? 0 : (SHADOW_RECEIVER.maxOpacity * light.keyIntensity) / total
+}
+
+// El receptor de pared: detras del halo, del tamano del contorno mas el margen por lado.
+export function wallReceiver(box: SignBox, mount: Mount | null): { z: number; size: [number, number] } {
+  return {
+    z: -SET.sign.thickness / 2 - wallGap(mount) - HALO.gap - SHADOW_RECEIVER.gap,
+    size: [box.width + 2 * SHADOW_RECEIVER.margin, box.height + 2 * SHADOW_RECEIVER.margin],
+  }
+}
+
+// El receptor de piso del totem: horizontal en el origen, que es el apoyo de la base, con el
+// ancho y la profundidad del totem mas el margen de piso por lado.
+export function floorReceiver(volume: SignVolume): { size: [number, number] } {
+  return { size: [volume.width + 2 * SHADOW_RECEIVER.floorMargin, volume.depth + 2 * SHADOW_RECEIVER.floorMargin] }
+}
+
+// La caja que tiene que cubrir la camara de sombra en modo vista: la del cartel mas lo que el
+// receptor se extiende. Pared: el margen en ancho y alto, y la separacion hasta la pared en
+// profundidad. Piso: el margen de piso en ancho y profundidad.
+export function photoShadowVolume(volume: SignVolume, totem: boolean): SignVolume {
+  if (totem) {
+    return { ...volume, width: volume.width + 2 * SHADOW_RECEIVER.floorMargin, depth: volume.depth + 2 * SHADOW_RECEIVER.floorMargin }
+  }
+  return {
+    width: volume.width + 2 * SHADOW_RECEIVER.margin,
+    height: volume.height + 2 * SHADOW_RECEIVER.margin,
+    depth: volume.depth + 2 * (STANDOFF.wallGap + HALO.gap + SHADOW_RECEIVER.gap),
+  }
+}
+
+// Casado de tono (SPEC 12, version 2.5, D77): la luz del modo vista se tine con la crominancia de
+// la foto alrededor del anclaje. El rectangulo esta centrado en el (x, y) del anchor, en fraccion
+// de la foto, y no depende del cartel: mover un slider no cambia el tono. strength es cuanto del
+// tinte entra; el resto queda blanco.
+export const TINT = { rectWidth: 0.3, rectHeight: 0.3, strength: 1 } as const
+
+export function tintRect(x: number, y: number): { left: number; top: number; width: number; height: number } {
+  return { left: x - TINT.rectWidth / 2, top: y - TINT.rectHeight / 2, width: TINT.rectWidth, height: TINT.rectHeight }
+}
+
+// Color de la luz: blanco mezclado con el tinte. Como el tinte tiene luminancia 1, la mezcla
+// tambien, y la intensidad la sigue poniendo el light de la foto.
+export function tintedLightColor(tint: [number, number, number] | null): [number, number, number] {
+  if (tint === null) {
+    return [1, 1, 1]
+  }
+  const k = TINT.strength
+  return [1 - k + k * tint[0], 1 - k + k * tint[1], 1 - k + k * tint[2]]
 }
 
 // Sombra de apoyo: ancha y baja, justo debajo del cartel, para que no flote sobre la foto.
@@ -613,10 +684,39 @@ export function orbitPosition(yawDeg: number, pitchDeg: number, distance: number
   ]
 }
 
-// Corrimiento de la vista (lens shift) para que el centro del cartel caiga en (x, y) de la
-// foto. Es el offset de setViewOffset, en pixeles del canvas.
-export function lensShift(x: number, y: number, width: number, height: number): [number, number] {
-  return [(0.5 - x) * width, (0.5 - y) * height]
+// Camara del modo vista (SPEC 12, version 2.6, D81). Toma la orientacion y el fov del anchor, con
+// cameraPitchDeg 0 como mirada horizontal, y se ubica de modo que el anclaje, el origen de la
+// escena, caiga en (x, y) de la foto fuera del eje, sin corrimiento de la vista: a la profundidad
+// en la que un metro ocupa metersToWidth del ancho. La altura de la camara sale de esos datos. El
+// yaw y el pitch conservan su sentido de siempre: la mirada es la de una camara ubicada en
+// (yaw, pitch) alrededor del cartel mirando hacia el. Corrige la del 14/09, que miraba al origen y
+// lo corria con un lens shift: con pitch 0 la camara del totem quedaba a la altura del piso.
+export type PhotoPoint = { x: number; y: number; metersToWidth: number }
+
+export function photoCameraPose(
+  point: PhotoPoint,
+  angles: { yawDeg: number; pitchDeg: number },
+  fovDeg: number,
+  aspect: number,
+): { position: Vec3; target: Vec3 } {
+  const depth = photoCameraDistance(point.metersToWidth, fovDeg, aspect)
+  const [ox, oy, oz] = orbitPosition(angles.yawDeg, angles.pitchDeg, 1)
+  const forward: Vec3 = [-ox, -oy, -oz]
+  // Ejes de la camara con el up del mundo, igual que lookAt.
+  const flat = Math.hypot(forward[0], forward[2])
+  const right: Vec3 = flat === 0 ? [1, 0, 0] : [-forward[2] / flat, 0, forward[0] / flat]
+  const up: Vec3 = [
+    right[1] * forward[2] - right[2] * forward[1],
+    right[2] * forward[0] - right[0] * forward[2],
+    right[0] * forward[1] - right[1] * forward[0],
+  ]
+  const t = tanHalf(fovDeg)
+  const across = (2 * point.x - 1) * t * aspect * depth
+  const along = (1 - 2 * point.y) * t * depth
+  // De la camara al anclaje: la profundidad sobre el eje mas el corrimiento en el cuadro.
+  const offset: Vec3 = [0, 1, 2].map((i) => right[i] * across + up[i] * along + forward[i] * depth) as Vec3
+  const position: Vec3 = [-offset[0], -offset[1], -offset[2]]
+  return { position, target: [position[0] + forward[0], position[1] + forward[1], position[2] + forward[2]] }
 }
 
 // El control de zoom va de min a max. En modo cartel lo traduce a un multiplicador de la

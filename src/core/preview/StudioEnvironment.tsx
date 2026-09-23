@@ -1,5 +1,6 @@
 import { Environment, Lightformer } from '@react-three/drei'
 import { memo, useMemo } from 'react'
+import { Color } from 'three'
 import { STUDIO_RIG, studioSources, type StudioHighlight } from './studioRig'
 
 // Entorno de estudio del preview (SPEC 12 y 18, version 2.2 y 2.3, D55 y D61), igual para
@@ -13,9 +14,14 @@ import { STUDIO_RIG, studioSources, type StudioHighlight } from './studioRig'
 type StudioEnvironmentProps = {
   intensity: number
   highlight: StudioHighlight | null
+  // Color de las fuentes, en luz lineal (version 2.5, D77): la vertical pasa el tinte de la foto
+  // en modo vista y blanco en su modo de estudio. El rig no cambia de forma ni de intensidad.
+  color: [number, number, number]
 }
 
-export const StudioEnvironment = memo(function StudioEnvironment({ intensity, highlight }: StudioEnvironmentProps) {
+export const StudioEnvironment = memo(function StudioEnvironment({ intensity, highlight, color }: StudioEnvironmentProps) {
+  const [red, green, blue] = color
+  const tint = useMemo(() => new Color(red, green, blue), [red, green, blue])
   const azimuth = highlight?.azimuthDeg ?? null
   const elevation = highlight?.elevationDeg ?? null
   const sources = useMemo(
@@ -32,6 +38,7 @@ export const StudioEnvironment = memo(function StudioEnvironment({ intensity, hi
           position={source.position}
           scale={source.scale}
           intensity={source.intensity}
+          color={tint}
         />
       ))}
     </Environment>

@@ -1,8 +1,17 @@
 import { useFrame } from '@react-three/fiber'
-import { useEffect, useMemo, useRef } from 'react'
-import { Color, CylinderGeometry, DoubleSide, type Group, type Mesh, type MeshBasicMaterial, type PointLight } from 'three'
-import { BLOOM_LAYER } from '../../../core/preview/render'
-import type { MaterialVisual, Mount } from '../../../core/types'
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
+import {
+  Color,
+  CylinderGeometry,
+  DoubleSide,
+  type Group,
+  type Mesh,
+  type MeshBasicMaterial,
+  type PointLight,
+  type ShadowMaterial,
+} from 'three'
+import { ATTENUATION_LAYER, BLOOM_LAYER } from '../../../core/preview/render'
+import type { MaterialVisual, Mount, PhotoLight } from '../../../core/types'
 import { haloCellGeometry } from './haloGeometry'
 import { SignText3D, type LetterPart } from './SignText3D'
 import {
@@ -26,6 +35,7 @@ import {
   SETTLE_EPSILON,
   SIGN_TEXT,
   SUPPORT_SHADOW,
+  TOTEM_SHADOW,
   TOTEM_STRUCTURE_METALNESS,
   TOTEM_STRUCTURE_ROUGHNESS,
   UNIT_BOX,
@@ -36,6 +46,10 @@ import {
   haloCells,
   haloMargin,
   haloPeak,
+  HALO_LETTERS_BAND,
+  floorReceiver,
+  photoShadowOpacity,
+  wallReceiver,
   lettersContour,
   lampPosition,
   lightingParams,
@@ -121,8 +135,9 @@ type SignBoardProps = {
   signMode: boolean
   // Montaje del panel (version 2.4, D68): con standoff van los separadores y la pared se aleja.
   mount: Mount | null
-  // Luz ambiente de la foto elegida, que da el pico del halo (D65). null en modo cartel.
-  haloAmbient: number | null
+  // Luz de la foto elegida (version 2.5): su ambiente da el pico del halo (D65) y la sombra
+  // proyectada pesa la key contra el ambiente (D76). null en modo cartel.
+  photoLight: PhotoLight | null
   // Modo letters: el contorno de la tinta, que rodea el halo. null en modo area.
   textBounds: TextBounds | null
 }
@@ -159,7 +174,7 @@ export function SignBoard({
   structureColor,
   signMode,
   mount,
-  haloAmbient,
+  photoLight,
   textBounds,
 }: SignBoardProps) {
   const signRef = useRef<Mesh>(null)
@@ -173,6 +188,16 @@ export function SignBoard({
   const lampRef = useRef<PointLight>(null)
   const shadowRef = useRef<Mesh>(null)
   const standoffRefs = useRef<(Mesh | null)[]>([])
+  const wallRef = useRef<Mesh>(null)
+  const floorRef = useRef<Mesh>(null)
+  const wallMaterialRef = useRef<ShadowMaterial>(null)
+  const floorMaterialRef = useRef<ShadowMaterial>(null)
+  // Los receptores van solo en la capa de atenuacion del core (version 2.6, D79): la sombra es
+  // atenuacion y no pasa por el tone mapping.
+  useLayoutEffect(() => {
+    wallRef.current?.layers.set(ATTENUATION_LAYER)
+    floorRef.current?.layers.set(ATTENUATION_LAYER)
+  }, [])
   // Estado amortiguado del material, compartido por todas las caras de todas las cajas.
   const look = useRef({
     color: new Color(),
@@ -283,7 +308,10 @@ export function SignBoard({
     state.face = move(state.face, face.faceEmissiveIntensity)
     state.edge = move(state.edge, lighting.edgeEmissiveIntensity)
     state.shade = move(state.shade, face.faceShade)
-    state.haloOpacity = move(state.haloOpacity, lighting.haloOpacity * (haloAmbient === null ? 0 : haloPeak(haloAmbient)))
+    // El totem es exento y no tiene halo en vista (version 2.6, D80): no hay pared a la distancia
+    // de montaje, y su halo caia sobre el vidrio de la vidriera.
+    const haloTarget = photoLight === null || totem ? 0 : haloPeak(photoLight.ambient)
+    state.haloOpacity = move(state.haloOpacity, lighting.haloOpacity * haloTarget)
 
     // Medidas de cada superficie, para repetir los mapas por metro.
     const sizes: Record<keyof Surfaces, SurfaceSize> = {
@@ -331,12 +359,13 @@ export function SignBoard({
     }
 
     // El halo sigue al tamano amortiguado del cartel, no al objetivo: asi no se adelanta.
-    // En letters el halo rodea la tinta, con la banda del alto de letra.
-    const contour =
-      letters !== null && textBounds !== null
-        ? lettersContour(textBounds, state.height)
-        : { box: { width: state.width, height: state.height }, center: [0, 0] }
-    const cells = haloCells({ box: contour.box }, haloMargin({ box: { width: state.width, height: state.height } }))
+    // En letters el halo rodea la tinta, con su propia banda en fraccion del alto de letra (D75).
+    const lettersMode = letters !== null && textBounds !== null
+    const contour = lettersMode
+      ? lettersContour(textBounds, state.height)
+      : { box: { width: state.width, height: state.height }, center: [0, 0] }
+    const band = lettersMode ? state.height * HALO_LETTERS_BAND : haloMargin({ box: { width: state.width, height: state.height } })
+    const cells = haloCells({ box: contour.box }, band)
     const haloZ = haloBox(placement, mount).z
     const haloVisible = state.haloOpacity > VISIBLE_EPSILON
     cells.forEach((cell, index) => {
@@ -351,6 +380,28 @@ export function SignBoard({
       haloMaterial.color.copy(state.color).multiplyScalar(HALO.radiance)
       haloMaterial.opacity = state.haloOpacity
     })
+
+    // Receptores de la sombra proyectada, solo en modo vista (version 2.5, D76): la pared detras
+    // del contorno en fachada y letters, el piso bajo la base en el totem.
+    const wall = wallRef.current
+    const floor = floorRef.current
+    const shadowOpacity = photoLight === null ? 0 : photoShadowOpacity(photoLight)
+    if (wall !== null && floor !== null) {
+      wall.visible = shadowOpacity > 0 && !totem
+      floor.visible = shadowOpacity > 0 && totem
+      const receiver = wallReceiver(contour.box, mount)
+      wall.position.set(contour.center[0], contour.center[1], receiver.z)
+      wall.scale.set(receiver.size[0], receiver.size[1], 1)
+      if (totem) {
+        const [floorWidth, floorDepth] = floorReceiver(totemLayout({ width: state.width, height: state.height }).volume).size
+        floor.scale.set(floorWidth, floorDepth, 1)
+      }
+      for (const material of [wallMaterialRef.current, floorMaterialRef.current]) {
+        if (material !== null) {
+          material.opacity = shadowOpacity
+        }
+      }
+    }
 
     // Una sola luz dinamica, siempre montada: apagarla es bajar su intensidad a 0.
     // Montarla y desmontarla por modo recompila los shaders de toda la escena.
@@ -462,8 +513,18 @@ export function SignBoard({
           </mesh>
         ))}
 
+        <mesh ref={wallRef} visible={false} receiveShadow>
+          <planeGeometry args={UNIT_PLANE} />
+          <shadowMaterial ref={wallMaterialRef} transparent opacity={0} depthWrite={false} />
+        </mesh>
+
         <pointLight ref={lampRef} />
       </group>
+
+      <mesh ref={floorRef} visible={false} rotation={[-Math.PI / 2, 0, 0]} position={[0, TOTEM_SHADOW.lift / 2, 0]} receiveShadow>
+        <planeGeometry args={UNIT_PLANE} />
+        <shadowMaterial ref={floorMaterialRef} transparent opacity={0} depthWrite={false} />
+      </mesh>
 
       <mesh ref={postRef} visible={false} castShadow receiveShadow>
         <boxGeometry args={UNIT_BOX} />
