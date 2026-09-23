@@ -1,24 +1,24 @@
 # STATE
 
-17/09/2026
+23/09/2026
 
 ## Bloque actual
 
-Bloque 8 cerrado. El listado del Project Catalog quedo enviado el 17/09 y esta en Under Review, con la revision de Upwork a hasta 5 dias habiles: categoria Development & IT > Web Application Programming, un solo nivel de entrega de USD 250, video de portada mas las seis imagenes de `validacion/venta/subir/`, 4 requisitos, 4 project steps y 5 FAQ (D37). El enlace a la demo y `quote-northline.pdf` se agregan editando el proyecto una vez aprobado (D38). Se borraron las filas de prueba de `public.leads` y `public.visits`, con las tablas y la columna `lines` intactas: el conteo arranca de cero el 18/09 (D41). Codigo sin cambios desde TAREA_021: 237 pruebas en verde y los mismos bundles.
+Bloque 10, Quote premium, abierto con SPEC 2.0 (D44 a D48). TAREA_023 esta abierta y frenada en el Bloom. Con el codigo en 10d469e, el preview monta el canvas del core con N8AO, ToneMapping AgX y SMAA, sombras de mapa en modo cartel, perfiles high y medium, y pantalla de carga con progreso real. texts tiene 47 claves. 244 tests en verde. Primera carga: 632 kB transferidos, primer frame en 4,1 s con slow 4G, 60 fps en orbita.
 
 ## Ultimo cerrado
 
-TAREA_022, docs del cierre del bloque 8: D37 a D43, CATALOG_LISTING.md como registro de lo enviado, y el bloque 9 en EXECUTION. Ultimo de codigo: TAREA_021, commit 3def20d.
+TAREA_022, docs del cierre del bloque 8. Ultimo commit de codigo: 10d469e, de TAREA_023.
 
 ## Proximo
 
-Bloque 9 del viernes 18, salida comercial, sin tareas de codigo salvo arreglos bloqueantes: portfolio item en el perfil de Upwork con el video, las capturas y el enlace a la demo; planilla plantilla de precios para el cliente; lista de cartelerias de Tucuman con WhatsApp mas la plantilla del mensaje de salida en frio; y, cuando el listado salga de Under Review, agregar el enlace a la demo y `quote-northline.pdf`. Cierra con el DONE de SPEC 17 punto por punto.
+Decidir el Bloom de TAREA_023 (detalle en su tarea), despues TAREA_024 del bloque 10. Para TAREA_025: revisar la sombra de apoyo con CanvasTexture.
+Bloque 9, Canal C, sigue pendiente: portfolio de Upwork, planilla de precios, lista de Tucuman y el enlace a la demo cuando el listado salga de Under Review.
 
 ## Bloqueos
 
-Ninguno bloqueante.
-Pendiente D18: el contraste del texto sobre `.q-on` cuando entre la identidad que se esta cerrando en el otro frente, donde el mango con texto blanco no pasa.
-Pendiente, despues del viernes: etapa 2 de SPEC 6.2, `gated`, `internal` y `?view=owner` (D30).
+Bloom de TAREA_023, espera decision. Pendiente D18: el contraste del texto sobre `.q-on` cuando entre la identidad nueva.
+Pendiente D30: etapa 2 de SPEC 6.2, `gated`, `internal` y `?view=owner`.
 
 ## Comando para retomar
 

@@ -347,3 +347,9 @@
 - 23/09/2026: D46, dos perfiles de calidad, high y medium, elegidos una vez al montar por capacidad del dispositivo (puntero grueso, deviceMemory, hardwareConcurrency). Sin medicion de fps y sin cambio en caliente.
 - 23/09/2026: D47, pantalla de carga del preview con progreso real de useProgress, logo y colores del cliente. texts pasa de 46 a 47 claves con loadingLabel.
 - 23/09/2026: D48, el criterio 2 de DONE de SPEC 17 pasa a "Resiste una comparacion lado a lado con un configurador comercial de referencia". Motivo: es el objetivo del bloque 10. Reemplaza a "parece un producto de mas valor que su precio".
+- 23/09/2026: TAREA_023, el canvas usa shadows "percentage" (PCFShadowMap) y no "soft". Motivo: en three 0.185 PCFSoftShadowMap esta deprecado, avisa por consola y cae a PCFShadowMap, que ya filtra suave con shadow.radius.
+- 23/09/2026: TAREA_023, el Bloom sale del pipeline hasta que se decida. Motivo: medido, ningun umbral cumple que none y front no brillen y back si. Los brillos del acrilico en front pasan 12 y los cantos del panel en back no llegan a 4.
+- 23/09/2026: TAREA_023, el typeface y el HDRI suspenden en el Suspense del canvas del core y pasan por el LoadingManager. Sale el sondeo HEAD del HDRI: montarlo despues del sondeo volvia a suspender la escena en medio de la sesion. El limite de error sigue.
+- 23/09/2026: TAREA_023, postprocessing, @react-three/postprocessing y n8ao van al chunk three-vendor, y el limite de aviso del build sube a 1400 kB como alarma de regresion, no como tope de SPEC.
+- 23/09/2026: TAREA_023, perfil medium con puntero grueso, 4 GB de memoria o menos, o 4 nucleos o menos. Lo que el navegador no informa no baja el perfil.
+- 23/09/2026: TAREA_023, la matriz premium de capturas corre con la GPU del equipo. Motivo: con el pipeline, swiftshader dibuja de 1 a 4 cuadros por segundo a 1440 y las capturas vencen.

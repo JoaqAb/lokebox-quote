@@ -38,7 +38,7 @@ Fecha de DONE: viernes 18/09/2026.
 - Deploy estático en Vercel. Dominio quote.lokebox.com.
 - Versiones fijadas en package.json. React ~19.2.8 y three ~0.185.1 por compatibilidad con R3F y con @types/three.
 - Assets del preview (desde 2.0, D44): se deroga la lista cerrada de 1.9 y 1.14. Los assets 3D son archivos servidos desde `public/` y descargados en runtime, no entran al bundle de JavaScript. Qué tipos de asset se permiten lo dice la sección 12. El HDRI y el typeface siguen siendo opcionales en runtime: si faltan, el preview funciona sin reflejo o sin texto.
-- Presupuesto de primera carga (desde 2.0, D44): la primera carga de `/d/<slug>` puede llegar a 8 MB de assets 3D, siempre detrás de la pantalla de carga con progreso real de la sección 12. El peso medido se anota acá al cerrar cada tarea que lo cambie.
+- Presupuesto de primera carga (desde 2.0, D44): la primera carga de `/d/<slug>` puede llegar a 8 MB de assets 3D, siempre detrás de la pantalla de carga con progreso real de la sección 12. El peso medido se anota acá al cerrar cada tarea que lo cambie. Medido en TAREA_023: 632 kB transferidos en total, de los que 79 kB son assets 3D (HDRI y typeface).
 - Presupuesto de bundle (desde 1.17, reducido en 2.0): se mantienen los tres grupos de chunks, `three-vendor` (three, @react-three/fiber, @react-three/drei y desde 2.0 postprocessing y @react-three/postprocessing), `react-vendor` (react, react-dom y scheduler) y los chunks de app. Desde 2.0 se derogan los topes de 1000 kB de `three-vendor` y de 500 kB de app (D44). Sigue el de `react-vendor`, por debajo de 250 kB sin comprimir. El build avisa si un chunk pasa el límite de aviso.
 - Carga por ruta (desde 1.17): `/d/:slug` y `/d/:slug/quote` se cargan con `React.lazy`, para que `/` no descargue el vendor 3D. La regla de no lazy loading es del preview dentro de la página del cotizador, no de la ruta: el preview es el producto y no puede aparecer después que su panel, y sigue llegando junto con él porque la ruta entera es un chunk. Sin prefetch de la ruta de demo.
 
@@ -489,8 +489,8 @@ Pipeline de render (desde 2.0, D45):
 
 - Un solo `EffectComposer`, en este orden: N8AO, Bloom, ToneMapping AgX y SMAA. El renderer va con `antialias` apagado, porque el AA lo hace SMAA, y sin tone mapping propio, para no aplicarlo dos veces.
 - N8AO conservador, en metros de escena: se lee en el encuentro del cartel con su apoyo y en los cantos, no como contorno.
-- Bloom con umbral alto sobre la luminancia lineal, calibrado para que solo lo dispare el emisivo de `back`. En `none` y `front` el cartel no brilla, y se verifica midiendo.
-- Sombras suaves de mapa: el canvas va con sombras suaves y la key del modo cartel proyecta. La sombra de apoyo con `CanvasTexture` se conserva.
+- Bloom con umbral alto sobre la luminancia lineal, calibrado para que solo lo dispare el emisivo de `back`. En `none` y `front` el cartel no brilla, y se verifica midiendo. Pendiente de decisión desde TAREA_023 y hoy no se monta: medido, ningún umbral lo cumple, porque los brillos especulares del acrílico en `front` pasan 12 de luminancia lineal y los cantos de `back` quedan por debajo de 4.
+- Sombras suaves de mapa: el canvas va con `PCFShadowMap` y radio de filtro en la luz, y la key del modo cartel proyecta. `PCFSoftShadowMap` está deprecado en three 0.185 y cae a `PCFShadowMap` con un aviso por consola. La sombra de apoyo con `CanvasTexture` se conserva.
 - En modo vista el canvas sigue transparente sobre la foto: el composer respeta el alpha y el tone mapping no toca la foto, que es una capa HTML debajo del canvas.
 
 Perfiles de calidad (desde 2.0, D46). Se elige uno al montar el preview, por capacidad del dispositivo: puntero grueso, `navigator.deviceMemory` y `hardwareConcurrency`. No se mide fps y no se cambia de perfil en caliente.
