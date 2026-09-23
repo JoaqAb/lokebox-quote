@@ -2,7 +2,13 @@
 
 Bloque 10, Quote premium. Segunda de cinco.
 
-Prerrequisito: docs/STATE.md, CLAUDE.md, SPEC 3, 10, 12, 16, 17 y 18 (version 2.1).
+Prerrequisito: docs/STATE.md, CLAUDE.md, SPEC 3, 10, 12, 16, 17 y 18 (version 2.2).
+
+Revision del 23/09 (SPEC 2.2, D55 a D59): la ejecucion freno por el primer frame del HDRI 1k en
+slow 4G y porque acrilico y PVC seguian dando el mismo pixel (`validacion/premium/024/mediciones.md`).
+Canal B resolvio: el HDRI descargado sale y entra un entorno de estudio generado (D55), el
+criterio 3 pasa a mediana (D56), la luminancia depende del material (D57), el criterio 6 se
+parte (D58) y el reemplazo del halo queda para Canal B (D59). La apertura 16a5826 no se reescribe.
 
 ## Contexto
 
@@ -34,16 +40,23 @@ y baja 25 en modo cartel. Medicion en `validacion/premium/024/transmision/medici
   transmision descartada con el motivo y los dos numeros.
 - SPEC 10: `materials[].visual` con los parametros fisicos y `finish` (D52).
 - SPEC 18: generadores de mapas y capa de bloom en `src/core/preview/`.
-- SPEC 3: peso medido de la primera carga con el HDRI que quede. Se escribe al cierre.
+- SPEC 3: peso medido de la primera carga sin HDRI descargado (D55). Se escribe al cierre.
 - DECISIONES: D49 a D54.
 
-### 2. HDRI
+### 2. Entorno de estudio (D55, reemplaza al HDRI)
 
-Reemplaza a `studio-small-08-256.hdr`. Se prueban el 1k y el 2k oficiales de Poly Haven
-(Studio Small 08, CC0) y queda el menor que no se distinga del mayor en captura sobre
-aluminio y acrilico. El HDRI nunca se ve de fondo: su resolucion solo importa para el
-reflejo. Se anotan los dos pesos y cual quedo. Pesos de archivo medidos al bajarlos:
-1k 1.508.872 bytes, 2k 5.930.381 bytes.
+- Salen `studio-small-08-1k.hdr` y `studio-small-08-2k.hdr` de `public/assets/quote/hdri/` y la
+  referencia al archivo. Sale tambien el 256, que queda sin uso.
+- El entorno se genera en runtime con `Environment` y `Lightformer` de drei, en
+  `src/core/preview/StudioEnvironment.tsx`, con constantes nombradas en `src/core/preview/render.ts`.
+  Se renderiza una vez al montar, nunca de fondo, solo para reflejo.
+- Rig de contraste: fuentes brillantes y acotadas contra un entorno oscuro. Las fuentes van
+  donde su reflejo cae en la cara en la vista frontal del modo cartel, detras de la camara.
+- En modo vista la intensidad del rig escala con `light.ambient` de la foto elegida.
+- La pantalla de carga no cambia. Si el progreso queda en un parpadeo, se reporta; no se le
+  pone un minimo (D47).
+- Si con el rig el acrilico no se separa del PVC, se frena con la medicion. El HDRI 1k queda
+  como segunda opcion y entonces vuelve el freno del primer frame, que decide Canal B.
 
 ### 3. Materiales
 
@@ -58,7 +71,7 @@ Contrato de `materials[].visual` (SPEC 10): `color`, `finish`, `metalness`, `rou
   direccion sigue el contorno.
 - Acrilico opal, `polished`: roughness de base baja, clearcoat alto y clearcoatRoughness
   baja. Sin transmission, sin thickness y sin ior (D54). En none y front se separa del PVC
-  por reflejo del HDRI, no por transparencia.
+  por reflejo del entorno de estudio, no por transparencia.
 
 Mapas (D53): roughness y normal por acabado, con ruido determinista, generados como datos
 puros con tests (`src/core/preview/finishMaps.ts`) y convertidos a textura en
@@ -74,7 +87,7 @@ amortiguan con el damp del cartel, como hoy color, metalness y roughness.
 
 La cara enciende por emision pareja en toda la superficie, con la intensidad de los cantos
 por `translucency`, en los dos modos. Esa cara entra a la seleccion del bloom. Las tres
-comparaciones de luminancia de SPEC 12 tienen que seguir cumpliendo.
+comparaciones de luminancia de SPEC 12, por material desde 2.2 (D57), tienen que cumplir.
 
 ### 5. Bloom selectivo
 
@@ -96,28 +109,39 @@ sacado con el codigo de 10d469e; despues en `validacion/premium/024/despues/`.
 
 1. G1 a G6 de EXECUTION.
 2. Capturas antes y despues en `validacion/premium/024/`, con el material en el nombre.
-3. Separacion de materiales en la region del cartel, modo cartel de frente y modo vista,
-   para los tres pares: diferencia media mayor a 12 niveles y mas del 50 por ciento de los
-   pixeles con diferencia mayor a 8. Medido tambien el antes.
+3. Separacion de materiales (D56): mediana de la diferencia absoluta mayor a 10 niveles,
+   sobre la mascara de la cara erosionada, sin la sombra de apoyo. Los tres pares, en modo
+   cartel de frente y en modo vista de dia, los dos clientes. Medido tambien el antes con la
+   misma metrica. Dato, no criterio: acrilico contra PVC a 60 grados, con el cuadro cartel60
+   del barrido de bloom.
 4. Bloom: con el efecto montado, none y front no cambian ni un pixel contra el mismo cuadro
    sin bloom, en los dos clientes, los tres tipos y los tres materiales. En back cambian los
    pixeles del emisor y su entorno inmediato.
-5. Las tres comparaciones de luminancia de SPEC 12 siguen cumpliendo.
-6. Modo vista: la foto fuera del cartel sigue identica a la foto sola, diferencia 0.
+5. Luminancia de SPEC 12 por material (D57). Los tres materiales: la cara crece de none a
+   front, y el anillo crece de front a back en modo vista. PVC y chapa: la cara baja de front
+   a back. Acrilico: la cara sube de front a back y su desviacion estandar baja. En modo
+   cartel la mascara excluye la sombra de apoyo.
+6. Modo vista (D58).
+   - 6a: en none y front, la foto fuera del cartel queda identica a la foto sola, diferencia 0.
+   - 6b: en back el derrame vive dentro de la banda del halo, 0,12 del alto del cartel por
+     lado, cae a 0 en su borde y no tiene borde duro. Fuera de esa banda, diferencia 0.
+   El halo de CanvasTexture no se toca. Si el bloom lo vuelve redundante, se anota con
+   captura para Canal B (D59).
 7. Peso de la primera carga y primer frame con slow 4G medidos de nuevo, dentro de 8 MB. Si
    el primer frame pasa de 6 s en slow 4G, se frena antes de seguir sumando assets.
 8. `src/core` sin imports de `src/verticals` ni de `src/clients`.
 9. Tests: solo cambian por el contrato nuevo de `materials[].visual`, mas los nuevos de los
    generadores de mapas.
 
-Frenar y reportar, sin parchear, si acrilico contra PVC no llega al umbral del criterio 3 con
-opal (sin subir el clearcoat a ojo), si un acabado parece necesitar un mapa fotografico, o si
-el primer frame en slow 4G pasa de 6 s.
+Frenar y reportar, sin parchear, si el entorno generado no separa acrilico de PVC en el
+criterio 3 (sin subir el clearcoat a ojo), si un acabado parece necesitar un mapa fotografico,
+o si el primer frame en slow 4G pasa de 6 s.
 
 ## Commits
 
-1. docs: cierre de TAREA_023, apertura de TAREA_024, SPEC 2.1.
-2. feat: HDRI, materiales PBR y bloom selectivo.
-3. docs: cierre de TAREA_024.
+1. docs: cierre de TAREA_023, apertura de TAREA_024, SPEC 2.1. Hecho en 16a5826.
+2. docs: revision de TAREA_024, SPEC 2.2 y D55 a D59.
+3. feat: entorno de estudio, materiales PBR y bloom selectivo.
+4. docs: cierre de TAREA_024.
 
 Despues de los tres, push.
