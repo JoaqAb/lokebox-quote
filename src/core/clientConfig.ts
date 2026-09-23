@@ -8,6 +8,7 @@ import type {
   LightingMode,
   LightingOption,
   MaterialOption,
+  MaterialVisual,
   PhotoGroundAnchor,
   PriceDisplay,
   PriceRules,
@@ -19,6 +20,7 @@ import type {
   SignSelection,
   SignTypeOption,
 } from './types'
+import { FINISHES, isFinish } from './preview/finishMaps'
 
 // Validacion de la forma del JSON de cliente en runtime, sin librerias.
 // Si algo falta o no cierra, se lanza con un mensaje que dice que falta y en que cliente.
@@ -213,6 +215,35 @@ function readTypes(options: Raw, slug: string): SignTypeOption[] {
   return types
 }
 
+// Parametro fisico de un material: numero entre 0 y 1 (SPEC 10, version 2.1).
+function readUnit(parent: Raw, key: string, slug: string, path: string): number {
+  const value = readNumber(parent, key, slug, path)
+  if (value < 0 || value > 1) {
+    fail(slug, `${path} vale ${String(value)} y tiene que estar entre 0 y 1.`)
+  }
+  return value
+}
+
+function readMaterialVisual(visual: Raw, slug: string, path: string): MaterialVisual {
+  const finish = readString(visual, 'finish', slug, `${path}.finish`)
+  if (!isFinish(finish)) {
+    fail(slug, `${path}.finish "${finish}" no es un acabado valido: los acabados son ${FINISHES.join(', ')}.`)
+  }
+  const unit = (key: Exclude<keyof MaterialVisual, 'color' | 'finish'>) => readUnit(visual, key, slug, `${path}.${key}`)
+  return {
+    color: readString(visual, 'color', slug, `${path}.color`),
+    finish,
+    metalness: unit('metalness'),
+    roughness: unit('roughness'),
+    specularIntensity: unit('specularIntensity'),
+    clearcoat: unit('clearcoat'),
+    clearcoatRoughness: unit('clearcoatRoughness'),
+    anisotropy: unit('anisotropy'),
+    normalScale: unit('normalScale'),
+    translucency: unit('translucency'),
+  }
+}
+
 function readMaterials(options: Raw, slug: string): MaterialOption[] {
   const rawList = readArray(options, 'materials', slug, 'options.materials')
   requireNotEmpty(rawList, slug, 'options.materials')
@@ -225,11 +256,7 @@ function readMaterials(options: Raw, slug: string): MaterialOption[] {
       label: readString(raw, 'label', slug, `${path}.label`),
       pricePerArea: readNumber(raw, 'pricePerArea', slug, `${path}.pricePerArea`),
       pricePerLetterHeight: readOptionalPrice(raw, 'pricePerLetterHeight', slug, `${path}.pricePerLetterHeight`),
-      visual: {
-        color: readString(visual, 'color', slug, `${path}.visual.color`),
-        metalness: readNumber(visual, 'metalness', slug, `${path}.visual.metalness`),
-        roughness: readNumber(visual, 'roughness', slug, `${path}.visual.roughness`),
-      },
+      visual: readMaterialVisual(visual, slug, `${path}.visual`),
     }
   })
   requireUniqueIds(

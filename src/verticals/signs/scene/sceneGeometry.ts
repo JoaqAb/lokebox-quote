@@ -214,6 +214,9 @@ export type LightingParams = {
   lampDistance: number
   // Cuanto se oscurece el color de la cara frontal: 0 la deja en el color del material.
   faceShade: number
+  // Si los emisores entran al bloom (SPEC 12, version 2.1, D50). Solo en back: en front los
+  // cantos emiten poco y no son la fuente de luz del cartel.
+  emitters: boolean
 }
 
 export const LIGHTING: Record<'none' | 'front' | 'back', LightingParams> = {
@@ -225,6 +228,7 @@ export const LIGHTING: Record<'none' | 'front' | 'back', LightingParams> = {
     lampDecay: 2,
     lampDistance: 8,
     faceShade: 0,
+    emitters: false,
   },
   front: {
     faceEmissiveIntensity: 0.7,
@@ -234,6 +238,7 @@ export const LIGHTING: Record<'none' | 'front' | 'back', LightingParams> = {
     lampDecay: 2,
     lampDistance: 8,
     faceShade: 0,
+    emitters: false,
   },
   back: {
     faceEmissiveIntensity: 0.3,
@@ -243,6 +248,7 @@ export const LIGHTING: Record<'none' | 'front' | 'back', LightingParams> = {
     lampDecay: 1,
     lampDistance: 16,
     faceShade: 0,
+    emitters: true,
   },
 }
 
@@ -262,6 +268,22 @@ export function lightingParams(mode: string): LightingParams {
 // resplandor detras; con la cara emisiva, back y front no se distinguen de frente.
 // Los cantos y la cara trasera emiten igual que en modo vista.
 export const SIGN_MODE_BACK_FACE = { faceEmissiveIntensity: 0, faceShade: 0.12 } as const
+
+// Cara con translucency (SPEC 12, version 2.1): el acrilico opal deja pasar la luz de back y
+// su cara enciende pareja, con la emision de los cantos por su translucency, en los dos
+// modos, y sin oscurecerse. Una cara opaca, translucency 0, queda como diga el modo.
+export function translucentFace(
+  params: LightingParams,
+  translucency: number,
+): { faceEmissiveIntensity: number; faceShade: number } {
+  if (!params.emitters || translucency <= 0) {
+    return { faceEmissiveIntensity: params.faceEmissiveIntensity, faceShade: params.faceShade }
+  }
+  return {
+    faceEmissiveIntensity: Math.max(params.faceEmissiveIntensity, params.edgeEmissiveIntensity * translucency),
+    faceShade: 0,
+  }
+}
 
 export function signModeLightingParams(mode: string): LightingParams {
   const params = { ...lightingParams(mode), haloOpacity: 0 }
@@ -404,12 +426,13 @@ function tanHalf(fovDeg: number): number {
 // conjunto de letras con su profundidad. Nunca una letra sola.
 export type SignVolume = SignBox & { depth: number }
 
-// Luz de estudio del modo cartel (SPEC 12, version 1.13): el HDRI mas una key. Es del
-// producto y no de un cliente, por eso no va al JSON. Sin ambiente: el relleno lo da el
-// HDRI. Mismo formato que el light de una foto, asi la escena tiene un solo camino.
+// Luz de estudio del modo cartel (SPEC 12, version 1.13): el entorno de estudio mas una key.
+// Es del producto y no de un cliente, por eso no va al JSON. Sin ambiente: el relleno lo da
+// el entorno de estudio del core. Mismo formato que el light de una foto, asi la escena tiene
+// un solo camino.
 export const SIGN_STUDIO_LIGHT: PhotoLight = {
   ambient: 0,
-  keyIntensity: 3,
+  keyIntensity: 0.3,
   keyAzimuthDeg: -30,
   keyElevationDeg: 40,
 }

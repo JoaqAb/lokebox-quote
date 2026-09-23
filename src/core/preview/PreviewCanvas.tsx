@@ -12,7 +12,7 @@ import { RenderPipeline } from './RenderPipeline'
 // - alpha: en modo vista el canvas va transparente sobre la foto, que es una capa HTML debajo.
 // - shadows "percentage": PCFShadowMap. En three 0.185 PCFSoftShadowMap esta deprecado, avisa
 //   por consola y cae a PCFShadowMap, que ya filtra suave con el radio de cada luz.
-// - Un solo Suspense envuelve la escena y el pipeline: los assets que suspenden (HDRI,
+// - Un solo Suspense envuelve la escena y el pipeline: los assets que suspenden (el
 //   typeface) pasan por el LoadingManager de three, que es lo que lee la pantalla de carga.
 
 type PreviewCanvasProps = {

@@ -88,10 +88,25 @@ export type SignTypeOption = {
   pricing: PricingMode
 }
 
+// Acabado del material: elige el generador de mapas (SPEC 10, version 2.1, D52).
+export type Finish = 'foam' | 'brushed' | 'polished'
+
+// Parametros fisicos del material (SPEC 10, version 2.1, D52). Son del cliente y van al
+// JSON; finish elige el generador de mapas, que es del codigo (src/core/preview/finishMaps).
+// Todo numerico va entre 0 y 1. Sin transmission, thickness ni ior: la transmision esta
+// descartada (D54).
 export type MaterialVisual = {
   color: string
+  finish: Finish
   metalness: number
   roughness: number
+  specularIntensity: number
+  clearcoat: number
+  clearcoatRoughness: number
+  anisotropy: number
+  normalScale: number
+  // Cuanto de la luz de back deja pasar la cara: 0 es opaca, el acrilico opal enciende.
+  translucency: number
 }
 
 export type MaterialOption = {

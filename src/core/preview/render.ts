@@ -9,4 +9,17 @@ export const RENDER = {
     distanceFalloff: 1,
     intensity: 1.2,
   },
+  // Bloom selectivo (version 2.1, D50): sin umbral de luminancia. Brilla lo que la vertical
+  // puso en BLOOM_LAYER y nada mas; intensidad y radio dicen cuanto y hasta donde.
+  bloom: {
+    intensity: 0.9,
+    radius: 0.6,
+    levels: 6,
+  },
 } as const
+
+// Capa de three de los emisores (SPEC 12 y 18, version 2.1). La vertical la habilita en las
+// mallas que emiten, igual que decide cuales proyectan sombra; el core no sabe cuales son.
+// La 0 es la de siempre: una malla en esta capa se sigue dibujando normal.
+export const BLOOM_LAYER = 10
+

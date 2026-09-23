@@ -19,6 +19,8 @@ import { hasWebGL } from './scene/webgl'
 import { createTypeface, disposeGlyphGeometries, glyphAdvance, TYPEFACE_SRC, type Typeface } from './scene/typeface'
 import { disposeHaloGeometry } from './scene/haloGeometry'
 import { disposeSupportShadow } from './scene/supportShadow'
+import { disposePanelParts } from './scene/surfaceParts'
+import { disposeFinishTextures } from '../../core/preview/finishTextures'
 import type { SignVisual } from './visuals'
 
 // Las capas del viewer (SPEC 12, version 1.12): la foto, solo en modo vista, y el canvas
@@ -129,12 +131,14 @@ export function PhotoStage({
   const palette = useMemo(() => scenePalette(theme), [theme])
   const structureColor = useMemo(() => totemStructureColor(theme), [theme])
 
-  // Las CanvasTexture y las geometrias del halo y de las letras viven mientras vive la
-  // escena: se liberan aca.
+  // Las CanvasTexture, los mapas de los acabados y las geometrias del panel, del halo y de las
+  // letras viven mientras vive la escena: se liberan aca.
   useEffect(
     () => () => {
       disposeGlyphGeometries()
+      disposePanelParts()
       disposeSupportShadow()
+      disposeFinishTextures()
       disposeHaloGeometry()
     },
     [],

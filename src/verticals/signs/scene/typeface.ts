@@ -2,6 +2,7 @@ import type { BufferGeometry } from 'three'
 import { Font, type FontData } from 'three/examples/jsm/loaders/FontLoader.js'
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
 import { layoutLetters, type TextBounds } from './sceneGeometry'
+import { disposeSurfaceParts, splitSurface, type SurfaceParts } from './surfaceParts'
 
 // El typeface del texto 3D del cartel (SPEC 12, version 1.14): Archivo Black subsetado a
 // A a Z, 0 a 9 y espacio. Puro de React: la carga por red la hace el preview.
@@ -154,7 +155,24 @@ export function glyphGeometry(typeface: Typeface, char: string): BufferGeometry 
   return cache.get(char) ?? null
 }
 
+// Cara y cascara de cada caracter (version 2.1), sobre los atributos de su geometria.
+const partsCache = new Map<string, SurfaceParts | null>()
+
+export function glyphParts(typeface: Typeface, char: string): SurfaceParts | null {
+  if (!partsCache.has(char)) {
+    const geometry = glyphGeometry(typeface, char)
+    partsCache.set(char, geometry === null ? null : splitSurface(geometry, TEXT_FACE.front))
+  }
+  return partsCache.get(char) ?? null
+}
+
 export function disposeGlyphGeometries(): void {
+  for (const parts of partsCache.values()) {
+    if (parts !== null) {
+      disposeSurfaceParts(parts)
+    }
+  }
+  partsCache.clear()
   for (const geometry of cache.values()) {
     geometry?.dispose()
   }

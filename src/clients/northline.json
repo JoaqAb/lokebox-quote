@@ -49,9 +49,9 @@
       { "id": "d6", "label": "6 in", "factor": 1.4, "visual": { "depthMeters": 0.1524 } }
     ],
     "materials": [
-      { "id": "pvc", "label": "PVC", "pricePerArea": 15, "pricePerLetterHeight": 40, "visual": { "color": "#E8E8E4", "metalness": 0, "roughness": 0.8 } },
-      { "id": "aluminum", "label": "Aluminum", "pricePerArea": 25, "pricePerLetterHeight": 70, "visual": { "color": "#B8BDC4", "metalness": 0.9, "roughness": 0.35 } },
-      { "id": "acrylic", "label": "Acrylic", "pricePerArea": 35, "pricePerLetterHeight": 95, "visual": { "color": "#F2F5F7", "metalness": 0.1, "roughness": 0.15 } }
+      { "id": "pvc", "label": "PVC", "pricePerArea": 15, "pricePerLetterHeight": 40, "visual": { "color": "#E8E8E4", "finish": "foam", "metalness": 0, "roughness": 0.9, "specularIntensity": 0.3, "clearcoat": 0, "clearcoatRoughness": 0, "anisotropy": 0, "normalScale": 0.3, "translucency": 0 } },
+      { "id": "aluminum", "label": "Aluminum", "pricePerArea": 25, "pricePerLetterHeight": 70, "visual": { "color": "#B8BDC4", "finish": "brushed", "metalness": 1, "roughness": 0.4, "specularIntensity": 1, "clearcoat": 0, "clearcoatRoughness": 0, "anisotropy": 0.8, "normalScale": 0.15, "translucency": 0 } },
+      { "id": "acrylic", "label": "Acrylic", "pricePerArea": 35, "pricePerLetterHeight": 95, "visual": { "color": "#F2F5F7", "finish": "polished", "metalness": 0, "roughness": 0.2, "specularIntensity": 1, "clearcoat": 1, "clearcoatRoughness": 0.05, "anisotropy": 0, "normalScale": 0.1, "translucency": 0.4 } }
     ],
     "lighting": [
       { "id": "none", "label": "None", "pricePerArea": 0, "pricePerLetter": 0, "visual": { "mode": "none" } },

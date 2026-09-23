@@ -2,14 +2,20 @@
 // para que Canal B vea el preview y la landing. Levanta el dev server, abre chromium con Playwright, bloquea Supabase y baja el
 // server al terminar. Se corre con `npm run capturas`. No hace builds ni toca dist/.
 // Con `npm run capturas -- premium <carpeta>` (TAREA_023) saca en cambio la matriz de
-// comparacion del bloque 10: por cliente, los tres tipos, en modo cartel y en las dos fotos,
-// con las tres luces. Escribe solo en esa carpeta y no toca el resto de validacion/.
+// comparacion del bloque 10: por cliente, los tres tipos, los tres materiales (desde TAREA_024),
+// en modo cartel y en las dos fotos, con las tres luces. Escribe solo en esa carpeta y no toca
+// el resto de validacion/.
+// Desde TAREA_024 la matriz suma, con luz none y front, el cuadro cartel60: modo cartel girado 60
+// grados. Con `premium <carpeta> sinbloom` la misma matriz sale con el dev server sin bloom
+// (VITE_QUOTE_BLOOM=off), la referencia del criterio de bloom. cartel60 sale tambien con
+// luz front: la mascara de la cara es lo que cambia de none a front.
 import { spawn } from 'node:child_process'
 import { mkdir, readFile, rm, stat } from 'node:fs/promises'
 import { chromium } from 'playwright'
 
 const ROOT = new URL('..', import.meta.url)
 const PREMIUM = process.argv[2] === 'premium'
+const NO_BLOOM = PREMIUM && process.argv[4] === 'sinbloom'
 const OUT = PREMIUM ? new URL(`${process.argv[3] ?? ''}/`.replace(/\/+$/, '/'), ROOT) : new URL('validacion/', ROOT)
 if (PREMIUM && process.argv[3] === undefined) {
   throw new Error('uso: npm run capturas -- premium <carpeta>')
@@ -38,6 +44,7 @@ function startServer() {
     cwd: ROOT,
     detached: true,
     stdio: 'ignore',
+    env: NO_BLOOM ? { ...process.env, VITE_QUOTE_BLOOM: 'off' } : process.env,
   })
   return server
 }
@@ -85,6 +92,7 @@ async function labelsOf(slug) {
     night: byId(config.photos, 'front-night'),
     back: byId(config.options.lighting, 'back'),
     lights: ['none', 'front', 'back'].map((id) => ({ id, label: byId(config.options.lighting, id) })),
+    materials: config.options.materials.map((item) => ({ id: item.id, label: item.label })),
   }
 }
 
@@ -199,8 +207,9 @@ async function captureClient(browser, slug) {
   return files
 }
 
-// Matriz del bloque 10: tipo, luz y vista. Los nombres son estables entre corridas para
-// comparar antes y despues archivo por archivo.
+// Matriz del bloque 10: tipo, material, luz y vista. Los nombres son estables entre corridas
+// para comparar antes y despues archivo por archivo. El material va en el nombre desde
+// TAREA_024: es lo que hay que poder comparar entre acabados.
 async function capturePremium(browser, slug) {
   const labels = await labelsOf(slug)
   const views = [
@@ -212,15 +221,38 @@ async function capturePremium(browser, slug) {
   const page = await openPage(browser, slug, DESKTOP)
   for (const type of ['facade', 'letters', 'totem']) {
     await choose(page, labels[type])
-    for (const light of labels.lights) {
-      await choose(page, light.label)
-      for (const view of views) {
-        await choose(page, view.label)
-        const name = `${slug}-${type}-${light.id}-${view.id}.png`
-        await captureFrame(page, name)
-        files.push(name)
+    for (const material of labels.materials) {
+      await choose(page, material.label)
+      for (const light of labels.lights) {
+        await choose(page, light.label)
+        for (const view of views) {
+          await choose(page, view.label)
+          const name = `${slug}-${type}-${material.id}-${light.id}-${view.id}.png`
+          await captureFrame(page, name)
+          files.push(name)
+          if (view.id === 'cartel' && light.id !== 'back') {
+            await rotate(page, 60)
+            const turned = `${slug}-${type}-${material.id}-${light.id}-cartel60.png`
+            await captureFrame(page, turned)
+            files.push(turned)
+          }
+        }
       }
     }
+  }
+  // La foto sola de cada vista, con el canvas oculto: la referencia para medir que la foto
+  // fuera del cartel no cambia (TAREA_024). Es una capa HTML y no depende del cartel.
+  for (const view of views.slice(1)) {
+    await choose(page, view.label)
+    await page.locator('canvas').evaluate((canvas) => {
+      canvas.style.visibility = 'hidden'
+    })
+    const name = `${slug}-foto-${view.id}.png`
+    await captureFrame(page, name)
+    files.push(name)
+    await page.locator('canvas').evaluate((canvas) => {
+      canvas.style.visibility = ''
+    })
   }
   await page.close()
   return files

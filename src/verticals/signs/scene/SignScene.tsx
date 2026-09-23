@@ -4,7 +4,7 @@ import { useLayoutEffect, useMemo, useRef } from 'react'
 import { MathUtils, Vector3, type PerspectiveCamera as PerspectiveCameraImpl } from 'three'
 import type { ClientPhoto, MaterialVisual, PhotoGroundAnchor } from '../../../core/types'
 import { SignBoard } from './SignBoard'
-import { StudioEnvironment } from './StudioEnvironment'
+import { StudioEnvironment } from '../../../core/preview/StudioEnvironment'
 import {
   SET,
   SIGN_STUDIO_LIGHT,
@@ -36,13 +36,13 @@ import { glyphAdvance, textBounds, type Typeface } from './typeface'
 //   luz es la de estudio del producto.
 // - Modo vista: la camara sale del anchor de la foto y el centro del cartel cae en su
 //   (x, y) con setViewOffset. Sin orbita; el zoom de este modo es CSS, fuera del canvas.
-// Version 2.0: el HDRI y el typeface suspenden en el Suspense del canvas del core, que muestra
-// la pantalla de carga; si alguno falta, la escena sigue sin reflejo o sin texto. En modo
+// Version 2.0: el typeface suspende en el Suspense del canvas del core, que muestra la
+// pantalla de carga; si falta, la escena sigue sin texto. Desde 2.2 (D55) el reflejo sale del
+// entorno de estudio que genera el core: en modo cartel a intensidad plena y en modo vista
+// escalado por la luz ambiente de la foto, que sigue mandando, con la fuente especular en la
+// direccion de la key de la foto (2.3, D61). En modo
 // cartel la key proyecta sombra de mapa sobre el propio cartel: el relieve sobre la cara, el
 // panel sobre el poste. En modo vista no proyecta: la foto tiene su propia luz.
-
-// Ruta del paquete de assets de TAREA_011 (Poly Haven, Studio Small 08, CC0).
-export const HDRI_SRC = '/assets/quote/hdri/studio-small-08-256.hdr'
 
 type SignSceneProps = {
   placement: SignPlacement
@@ -191,6 +191,12 @@ export function SignScene({
     const r = 10
     return [r * Math.sin(az) * Math.cos(el), r * Math.sin(el), r * Math.cos(az) * Math.cos(el)]
   }, [light])
+  // Modo vista: la fuente especular del estudio sale de la key de la foto (D61), asi el
+  // brillo cae donde esta el sol de esa foto y el dato viene del JSON.
+  const studioHighlight = useMemo(
+    () => ({ azimuthDeg: light.keyAzimuthDeg, elevationDeg: light.keyElevationDeg }),
+    [light],
+  )
   const { width, height } = placement.box
 
   // Contorno real del texto con el typeface: encuadra las letras y escala el relieve.
@@ -243,7 +249,10 @@ export function SignScene({
         shadow-camera-near={STUDIO_SHADOW.near}
         shadow-camera-far={STUDIO_SHADOW.far}
       />
-      <StudioEnvironment src={HDRI_SRC} />
+      <StudioEnvironment
+        intensity={photo === null ? 1 : light.ambient}
+        highlight={photo === null ? null : studioHighlight}
+      />
 
       <SignBoard
         placement={placement}

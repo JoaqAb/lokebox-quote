@@ -62,6 +62,21 @@ describe('validateClientConfig', () => {
     expect(() => validateClientConfig(broken)).toThrow(/options.materials/)
   })
 
+  it('falla si un material trae un finish que no existe, nombrandolo', () => {
+    const broken = structuredClone(northline) as unknown as { options: { materials: { visual: { finish: string } }[] } }
+    broken.options.materials[0].visual.finish = 'glossy'
+    expect(() => validateClientConfig(broken)).toThrow(/options.materials\[0\].visual.finish "glossy"/)
+  })
+
+  it('falla si falta un parametro fisico o sale de 0 a 1', () => {
+    const missing = structuredClone(northline)
+    delete (missing.options.materials[2].visual as Partial<(typeof missing.options.materials)[number]['visual']>).clearcoat
+    expect(() => validateClientConfig(missing)).toThrow(/options.materials\[2\].visual.clearcoat/)
+    const outside = structuredClone(northline)
+    outside.options.materials[1].visual.anisotropy = 1.5
+    expect(() => validateClientConfig(outside)).toThrow(/visual.anisotropy vale 1.5/)
+  })
+
   it('falla si hay ids repetidos', () => {
     const broken = structuredClone(northline)
     broken.options.materials[1].id = 'pvc'

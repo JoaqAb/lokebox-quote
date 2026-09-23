@@ -1,16 +1,20 @@
 import { useFrame } from '@react-three/fiber'
-import { useMemo, useRef } from 'react'
-import {
-  Color,
-  type Group,
-  type Mesh,
-  type MeshBasicMaterial,
-  type MeshStandardMaterial,
-  type PointLight,
-} from 'three'
+import { useEffect, useMemo, useRef } from 'react'
+import { Color, type Group, type Mesh, type MeshBasicMaterial, type PointLight } from 'three'
+import { BLOOM_LAYER } from '../../../core/preview/render'
 import type { MaterialVisual } from '../../../core/types'
 import { haloCellGeometry } from './haloGeometry'
-import { SignText3D } from './SignText3D'
+import { SignText3D, type LetterPart } from './SignText3D'
+import {
+  applyFinish,
+  disposeSurface,
+  letterSurface,
+  panelSurface,
+  repeatSurface,
+  type Surface,
+  type SurfaceSize,
+} from './surfaceMaterials'
+import { panelParts } from './surfaceParts'
 import { supportShadowTexture } from './supportShadow'
 import {
   DAMP_LAMBDA,
@@ -31,11 +35,12 @@ import {
   signModeLightingParams,
   supportShadowBox,
   totemLayout,
+  translucentFace,
   type HaloCellKind,
   type LetterBox,
   type SignPlacement,
 } from './sceneGeometry'
-import { TEXT_FACE, type Typeface } from './typeface'
+import type { Typeface } from './typeface'
 
 // El conjunto entero: cartel, texto 3D, halo, sombra de apoyo y la unica luz dinamica, con
 // un solo useFrame. Repartirlos los deja desincronizados durante las transiciones de medida.
@@ -47,15 +52,16 @@ import { TEXT_FACE, type Typeface } from './typeface'
 // El panel lleva seis materiales, uno por cara, en el orden de BoxGeometry: +x, -x, +y,
 // -y, frente, atras. Cada letra lleva tres, en el orden de TEXT_FACE. Asi en back emiten
 // los cantos y la cara trasera, y la cara frontal emite poco en modo vista y nada en modo
-// cartel (SPEC 12, version 1.14). En modo letters el panel se oculta y se dibuja una letra
+// cartel (SPEC 12, version 1.14), salvo una cara translucida, el acrilico opal, que enciende.
+// Desde la version 2.1 son MeshPhysicalMaterial con los parametros fisicos del visual y los
+// mapas de su acabado (surfaceMaterials), y panel y letras son dos mallas cada uno, la cara
+// y la cascara, para que el bloom tome solo lo que emite: en back la cascara y, si es
+// translucida, la cara. La seleccion es la capa BLOOM_LAYER del core. En modo letters el panel se oculta y se dibuja una letra
 // corporea por caracter; placement.box es el contorno de la palabra, y halo, sombra y
 // lampara lo siguen igual que al panel. En modo area el texto va en relieve sobre la cara,
 // con el color del texto y sin emision: es parte de la cara.
 // Sombras de mapa (SPEC 12, version 2.0): panel, letras, relieve, poste y base proyectan y
 // reciben; halo y sombra de apoyo no, porque son luz y sombra pintadas.
-
-const PANEL_FACES = { count: 6, front: 4 }
-const LETTER_FACES = { count: 3, front: TEXT_FACE.front }
 
 const HALO_KINDS: HaloCellKind[] = [
   'center',
@@ -101,7 +107,22 @@ type SignBoardProps = {
   signMode: boolean
 }
 
-type FaceMaterial = { material: MeshStandardMaterial; front: boolean; relief: boolean }
+type Surfaces = { panel: Surface; letter: Surface; relief: Surface }
+
+// Parametros fisicos que se amortiguan con el cartel. El acabado y sus mapas cambian de golpe.
+const DAMPED = ['metalness', 'roughness', 'specularIntensity', 'clearcoat', 'clearcoatRoughness', 'anisotropy', 'normalScale'] as const
+type Damped = Record<(typeof DAMPED)[number], number>
+
+function setBloom(mesh: Mesh | null, on: boolean): void {
+  if (mesh === null) {
+    return
+  }
+  if (on) {
+    mesh.layers.enable(BLOOM_LAYER)
+  } else {
+    mesh.layers.disable(BLOOM_LAYER)
+  }
+}
 
 export function SignBoard({
   placement,
@@ -119,10 +140,11 @@ export function SignBoard({
   signMode,
 }: SignBoardProps) {
   const signRef = useRef<Mesh>(null)
+  const shellRef = useRef<Mesh>(null)
   const panelGroupRef = useRef<Group>(null)
   const postRef = useRef<Mesh>(null)
   const baseRef = useRef<Mesh>(null)
-  const faceMaterialsRef = useRef(new Map<string, FaceMaterial>())
+  const letterMeshesRef = useRef(new Map<string, { part: LetterPart; mesh: Mesh }>())
   const haloMeshesRef = useRef<(Mesh | null)[]>([])
   const haloMaterialsRef = useRef<(MeshBasicMaterial | null)[]>([])
   const lampRef = useRef<PointLight>(null)
@@ -130,8 +152,7 @@ export function SignBoard({
   // Estado amortiguado del material, compartido por todas las caras de todas las cajas.
   const look = useRef({
     color: new Color(),
-    metalness: 0,
-    roughness: 1,
+    physical: { metalness: 0, roughness: 1, specularIntensity: 1, clearcoat: 0, clearcoatRoughness: 0, anisotropy: 0, normalScale: 0 } as Damped,
     face: 0,
     edge: 0,
     shade: 0,
@@ -140,38 +161,44 @@ export function SignBoard({
   })
   const targetColor = useMemo(() => new Color(material.color), [material.color])
   const reliefColor = useMemo(() => new Color(textColor), [textColor])
+  const parts = panelParts()
+  // Los materiales de las tres superficies viven lo que vive el cartel.
+  const surfaces = useMemo(
+    (): Surfaces => ({ panel: panelSurface(), letter: letterSurface(), relief: letterSurface() }),
+    [],
+  )
+  useEffect(
+    () => () => {
+      disposeSurface(surfaces.panel)
+      disposeSurface(surfaces.letter)
+      disposeSurface(surfaces.relief)
+    },
+    [surfaces],
+  )
 
-  function faceMaterials(owner: string, faces: { count: number; front: number }, isRelief: boolean) {
-    return Array.from({ length: faces.count }, (_unused, index) => {
-      const key = `${owner}-${String(index)}`
-      return (
-        <meshStandardMaterial
-          key={key}
-          attach={`material-${String(index)}`}
-          ref={(instance) => {
-            if (instance === null) {
-              faceMaterialsRef.current.delete(key)
-            } else {
-              faceMaterialsRef.current.set(key, { material: instance, front: index === faces.front, relief: isRelief })
-            }
-          }}
-        />
-      )
-    })
+  function onLetterMesh(key: string, part: LetterPart, mesh: Mesh | null): void {
+    const id = `${key}-${part}`
+    if (mesh === null) {
+      letterMeshesRef.current.delete(id)
+    } else {
+      letterMeshesRef.current.set(id, { part, mesh })
+    }
   }
 
   useFrame((_state, delta) => {
     const sign = signRef.current
+    const shell = shellRef.current
     const lamp = lampRef.current
     const shadow = shadowRef.current
     const panelGroup = panelGroupRef.current
     const post = postRef.current
     const base = baseRef.current
-    if (sign === null || lamp === null || shadow === null || panelGroup === null || post === null || base === null) {
+    if (sign === null || shell === null || lamp === null || shadow === null || panelGroup === null || post === null || base === null) {
       return
     }
 
     const lighting = signMode ? signModeLightingParams(lightingMode) : lightingParams(lightingMode)
+    const face = translucentFace(lighting, material.translucency)
     const lampTarget = lampPosition(lightingMode, placement)
     const state = look.current
 
@@ -185,33 +212,63 @@ export function SignBoard({
     sign.scale.y = move(sign.scale.y, placement.box.height)
     sign.scale.z = SET.sign.thickness
     sign.visible = letters === null
+    shell.scale.copy(sign.scale)
+    shell.visible = sign.visible
 
     if (instant) {
       state.color.copy(targetColor)
     } else {
       approachColor(state.color, targetColor, delta)
     }
-    state.metalness = move(state.metalness, material.metalness)
-    state.roughness = move(state.roughness, material.roughness)
-    state.face = move(state.face, lighting.faceEmissiveIntensity)
+    for (const key of DAMPED) {
+      state.physical[key] = move(state.physical[key], material[key])
+    }
+    state.face = move(state.face, face.faceEmissiveIntensity)
     state.edge = move(state.edge, lighting.edgeEmissiveIntensity)
-    state.shade = move(state.shade, lighting.faceShade)
+    state.shade = move(state.shade, face.faceShade)
     state.haloOpacity = move(state.haloOpacity, lighting.haloOpacity)
 
-    for (const { material: face, front, relief: isRelief } of faceMaterialsRef.current.values()) {
-      face.metalness = state.metalness
-      face.roughness = state.roughness
-      if (isRelief) {
-        face.color.copy(reliefColor)
-        face.emissiveIntensity = 0
-        continue
-      }
-      face.color.copy(state.color)
-      if (front) {
-        face.color.multiplyScalar(1 - state.shade)
-      }
-      face.emissive.copy(state.color)
-      face.emissiveIntensity = front ? state.face : state.edge
+    // Medidas de cada superficie, para repetir los mapas por metro.
+    const sizes: Record<keyof Surfaces, SurfaceSize> = {
+      panel: { width: sign.scale.x, height: sign.scale.y, depth: SET.sign.thickness },
+      letter: { width: placement.box.height, height: placement.box.height, depth: letterDepth },
+      relief: { width: relief?.scale ?? 0, height: relief?.scale ?? 0, depth: SIGN_TEXT.reliefDepth },
+    }
+    for (const kind of ['panel', 'letter', 'relief'] as const) {
+      const surface = surfaces[kind]
+      applyFinish(surface, material.finish)
+      repeatSurface(surface, sizes[kind])
+      surface.materials.forEach((physical, index) => {
+        physical.metalness = state.physical.metalness
+        physical.roughness = state.physical.roughness
+        physical.specularIntensity = state.physical.specularIntensity
+        physical.clearcoat = state.physical.clearcoat
+        physical.clearcoatRoughness = state.physical.clearcoatRoughness
+        physical.anisotropy = state.physical.anisotropy
+        physical.normalScale.setScalar(state.physical.normalScale)
+        // El relieve es parte de la cara: color del texto y sin emision.
+        if (kind === 'relief') {
+          physical.color.copy(reliefColor)
+          physical.emissiveIntensity = 0
+          return
+        }
+        const front = surface.slots[index].front
+        physical.color.copy(state.color)
+        if (front) {
+          physical.color.multiplyScalar(1 - state.shade)
+        }
+        physical.emissive.copy(state.color)
+        physical.emissiveIntensity = front ? state.face : state.edge
+      })
+    }
+
+    // Seleccion del bloom: en back la cascara, y la cara si es translucida. El relieve nunca.
+    const bloomShell = lighting.emitters
+    const bloomFace = lighting.emitters && material.translucency > 0
+    setBloom(shell, bloomShell)
+    setBloom(sign, bloomFace)
+    for (const { part, mesh } of letterMeshesRef.current.values()) {
+      setBloom(mesh, part === 'shell' ? bloomShell : bloomFace)
     }
 
     // El halo sigue al tamano amortiguado del cartel, no al objetivo: asi no se adelanta.
@@ -274,10 +331,8 @@ export function SignBoard({
   return (
     <group>
       <group ref={panelGroupRef}>
-        <mesh ref={signRef} scale={UNIT_BOX} castShadow receiveShadow>
-          <boxGeometry args={UNIT_BOX} />
-          {faceMaterials('panel', PANEL_FACES, false)}
-        </mesh>
+        <mesh ref={signRef} scale={UNIT_BOX} geometry={parts.face} material={surfaces.panel.materials} castShadow receiveShadow />
+        <mesh ref={shellRef} scale={UNIT_BOX} geometry={parts.shell} material={surfaces.panel.materials} castShadow receiveShadow />
 
         {typeface !== null && letters !== null ? (
           <SignText3D
@@ -287,7 +342,8 @@ export function SignBoard({
             depth={letterDepth}
             position={[0, 0, 0]}
             owner="letter"
-            materials={(owner) => faceMaterials(owner, LETTER_FACES, false)}
+            materials={surfaces.letter.materials}
+            onMesh={onLetterMesh}
           />
         ) : null}
 
@@ -299,7 +355,7 @@ export function SignBoard({
             depth={SIGN_TEXT.reliefDepth}
             position={[relief.x, relief.y, SET.sign.thickness / 2 + SIGN_TEXT.reliefDepth / 2]}
             owner="relief"
-            materials={(owner) => faceMaterials(owner, LETTER_FACES, true)}
+            materials={surfaces.relief.materials}
           />
         ) : null}
 
