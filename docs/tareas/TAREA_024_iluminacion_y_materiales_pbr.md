@@ -10,6 +10,13 @@ Canal B resolvio: el HDRI descargado sale y entra un entorno de estudio generado
 criterio 3 pasa a mediana (D56), la luminancia depende del material (D57), el criterio 6 se
 parte (D58) y el reemplazo del halo queda para Canal B (D59). La apertura 16a5826 no se reescribe.
 
+Segunda revision del 23/09 (SPEC 2.3, D60 a D62): con el rig generado, modo cartel dio 18 de 18
+de frente pero de 0 a 1,7 a 60 grados, y modo vista 6 de 18 (`validacion/premium/024/mediciones-rig.md`).
+Canal B resolvio: el rig reparte las fuentes alrededor del eje vertical y el criterio 3 se mide
+en modo cartel de frente y a 60 grados (D60); modo vista sale del criterio 3 y se mide por
+contraste interno de la cara, con la fuente especular derivada de la key de la foto (D61); el
+HDRI descargado no vuelve (D62). El codigo del entorno generado se conserva.
+
 ## Contexto
 
 Objetivo: que elegir material cambie el pixel de forma evidente. Hoy casi no lo hace: esta
@@ -55,8 +62,11 @@ y baja 25 en modo cartel. Medicion en `validacion/premium/024/transmision/medici
 - En modo vista la intensidad del rig escala con `light.ambient` de la foto elegida.
 - La pantalla de carga no cambia. Si el progreso queda en un parpadeo, se reporta; no se le
   pone un minimo (D47).
-- Si con el rig el acrilico no se separa del PVC, se frena con la medicion. El HDRI 1k queda
-  como segunda opcion y entonces vuelve el freno del primer frame, que decide Canal B.
+- El rig reparte las fuentes alrededor del eje vertical, como un estudio con varios softboxes,
+  para que la separacion siga al girar el cartel (D60).
+- En modo vista la fuente especular sale de la foto: su direccion deriva de `keyAzimuthDeg` y
+  `keyElevationDeg` del `light` de la foto elegida, y la intensidad escala con `light.ambient` (D61).
+- El HDRI descargado no vuelve como segunda opcion (D62).
 
 ### 3. Materiales
 
@@ -109,11 +119,14 @@ sacado con el codigo de 10d469e; despues en `validacion/premium/024/despues/`.
 
 1. G1 a G6 de EXECUTION.
 2. Capturas antes y despues en `validacion/premium/024/`, con el material en el nombre.
-3. Separacion de materiales (D56): mediana de la diferencia absoluta mayor a 10 niveles,
-   sobre la mascara de la cara erosionada, sin la sombra de apoyo. Los tres pares, en modo
-   cartel de frente y en modo vista de dia, los dos clientes. Medido tambien el antes con la
-   misma metrica. Dato, no criterio: acrilico contra PVC a 60 grados, con el cuadro cartel60
-   del barrido de bloom.
+3. Separacion de materiales en modo cartel (D56, D60): mediana de la diferencia absoluta sobre
+   la mascara de la cara erosionada, sin la sombra de apoyo. Mascara: los pixeles que cambian
+   de none a front. Los tres pares, los dos clientes. De frente, mayor a 10 niveles; a 60
+   grados, con el cuadro cartel60, mayor a 6. Medido tambien el antes con la misma metrica.
+3b. Modo vista (D61): p95 menos p50 de la luminancia dentro de la mascara de la cara, por
+   material. En vista de dia, los dos clientes, el acrilico supera al PVC en mas de 8 niveles.
+   La chapa queda como dato. Si el brillo no sale sin mover la luminancia media de la cara mas
+   de 10 niveles respecto de la de hoy, vista queda como dato medido y la tarea sigue.
 4. Bloom: con el efecto montado, none y front no cambian ni un pixel contra el mismo cuadro
    sin bloom, en los dos clientes, los tres tipos y los tres materiales. En back cambian los
    pixeles del emisor y su entorno inmediato.
@@ -133,14 +146,14 @@ sacado con el codigo de 10d469e; despues en `validacion/premium/024/despues/`.
 9. Tests: solo cambian por el contrato nuevo de `materials[].visual`, mas los nuevos de los
    generadores de mapas.
 
-Frenar y reportar, sin parchear, si el entorno generado no separa acrilico de PVC en el
-criterio 3 (sin subir el clearcoat a ojo), si un acabado parece necesitar un mapa fotografico,
-o si el primer frame en slow 4G pasa de 6 s.
+Frenar y reportar, sin parchear, solo si un acabado parece necesitar un mapa fotografico
+descargado o si el primer frame en slow 4G pasa de 6 s (segunda revision, D60 a D62).
 
 ## Commits
 
 1. docs: cierre de TAREA_023, apertura de TAREA_024, SPEC 2.1. Hecho en 16a5826.
-2. docs: revision de TAREA_024, SPEC 2.2 y D55 a D59.
+2. docs: revision de TAREA_024, SPEC 2.2 y D55 a D59. Hecho en 0f2ee30.
+2b. docs: segunda revision de TAREA_024, SPEC 2.3 y D60 a D62.
 3. feat: entorno de estudio, materiales PBR y bloom selectivo.
 4. docs: cierre de TAREA_024.
 
