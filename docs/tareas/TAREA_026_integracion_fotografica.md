@@ -95,3 +95,16 @@ primer frame pasa de 6 s.
 3. docs: cierre de TAREA_026.
 
 Despues de los tres, push.
+
+## Freno (23/09/2026)
+
+Estado: frenada por la condicion de freno de la sombra. Codigo sin commitear en el arbol de trabajo;
+mediciones en `validacion/premium/026/mediciones.md`.
+
+La sombra sola compone exacta por CoverageToneMapping. En back, donde el halo cae sobre la sombra,
+el pixel mezcla dos coberturas de distinto color y el tone mapping de la mezcla sale mas claro que
+la suma de las capas: la sombra desaparece dentro de la banda y queda un escalon en su borde
+(northline fachada de dia, abajo: none -92 a -98, back 2, 7, 20, 27). Para Canal B, ademas: el
+totem de noche no cumple la pendiente de 5 con la banda fija y el pico de D65; la sombra de piso del
+totem no se ve con la camara de SPEC 12 (decision del 14/09); el tono baja 34 por ciento en
+northline y 28 en norte.
