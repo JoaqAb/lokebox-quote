@@ -414,6 +414,28 @@ export const SIGN_STUDIO_LIGHT: PhotoLight = {
   keyElevationDeg: 40,
 }
 
+// Sombra de mapa de la key del modo cartel (SPEC 12, version 2.0). La key esta a 10 m del
+// origen, asi near y far cubren cualquier cartel del rango. normalBias evita el acne en el
+// relieve de 3 mm, que proyecta sobre la misma cara que lo recibe. radius es el ancho del
+// filtro suave de PCFShadowMap, en texels.
+export const STUDIO_SHADOW = {
+  mapSize: 2048,
+  bias: -0.0002,
+  normalBias: 0.004,
+  radius: 4,
+  near: 0.5,
+  far: 30,
+  margin: 0.25,
+} as const
+
+// Medio lado de la camara ortografica de la sombra: la media diagonal de la caja de encuadre
+// mas lo que su centro se aparta del origen, que es adonde apunta la key, y un margen.
+// Con eso la caja entra entera desde cualquier direccion de la luz.
+export function studioShadowReach(volume: SignVolume, center: Vec3): number {
+  const halfDiagonal = Math.hypot(volume.width, volume.height, volume.depth) / 2
+  return halfDiagonal + Math.hypot(...center) + STUDIO_SHADOW.margin
+}
+
 // Color de la sombra de apoyo (SPEC 12, version 1.16), en los dos modos. Es del producto y no
 // del cliente: una sombra oscurece siempre y no tiene color de marca. Derivada de una paleta
 // clara no tenia garantia de quedar por debajo del fondo que tuviera detras, y sobre el

@@ -50,6 +50,10 @@ function QuoteScreen({ config }: QuoteScreenProps) {
   const [searchParams] = useSearchParams()
 
   const brandName = config.brand.name
+  const loading = useMemo(
+    () => ({ logo: config.brand.logo, brandName: config.brand.name, label: config.texts.loadingLabel }),
+    [config],
+  )
   useEffect(() => {
     document.title = brandName
   }, [brandName])
@@ -113,7 +117,13 @@ function QuoteScreen({ config }: QuoteScreenProps) {
         // El modo de calibracion es de desarrollo: import.meta.env.DEV vale false en el
         // build de produccion, asi que esta rama y su modulo quedan fuera del bundle.
         import.meta.env.DEV && searchParams.get('calibrate') === '1' ? (
-          <CalibrationPreview selection={selection} visual={visual} theme={theme} photos={config.photos} />
+          <CalibrationPreview
+            selection={selection}
+            visual={visual}
+            theme={theme}
+            photos={config.photos}
+            loading={loading}
+          />
         ) : (
           <SignPreview
             selection={selection}
@@ -122,6 +132,7 @@ function QuoteScreen({ config }: QuoteScreenProps) {
             photos={config.photos}
             zoomLabel={config.texts.previewZoomLabel}
             signOnlyLabel={config.texts.viewSignOnly}
+            loading={loading}
           />
         )
       }

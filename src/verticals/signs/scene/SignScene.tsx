@@ -9,6 +9,7 @@ import {
   SET,
   SIGN_STUDIO_LIGHT,
   SIGN_VIEW,
+  STUDIO_SHADOW,
   approach,
   fitTextOnPanel,
   layoutLetters,
@@ -18,6 +19,7 @@ import {
   orbitPosition,
   photoCameraDistance,
   signFrameDistance,
+  studioShadowReach,
   type LetterBox,
   type ScenePalette,
   type SignPlacement,
@@ -34,11 +36,12 @@ import { glyphAdvance, textBounds, type Typeface } from './typeface'
 //   luz es la de estudio del producto.
 // - Modo vista: la camara sale del anchor de la foto y el centro del cartel cae en su
 //   (x, y) con setViewOffset. Sin orbita; el zoom de este modo es CSS, fuera del canvas.
-// Sin Suspense y sin loaders: el HDRI entra con su propio fallback y el typeface lo carga el
-// preview por fetch; mientras no esta, el cartel se dibuja sin texto.
+// Version 2.0: el HDRI y el typeface suspenden en el Suspense del canvas del core, que muestra
+// la pantalla de carga; si alguno falta, la escena sigue sin reflejo o sin texto. En modo
+// cartel la key proyecta sombra de mapa sobre el propio cartel: el relieve sobre la cara, el
+// panel sobre el poste. En modo vista no proyecta: la foto tiene su propia luz.
 
-// Misma ruta que sondea PhotoStage: una sola fuente de verdad. Es la ruta del paquete de
-// assets de TAREA_011 (Poly Haven, Studio Small 08, CC0).
+// Ruta del paquete de assets de TAREA_011 (Poly Haven, Studio Small 08, CC0).
 export const HDRI_SRC = '/assets/quote/hdri/studio-small-08-256.hdr'
 
 type SignSceneProps = {
@@ -51,7 +54,6 @@ type SignSceneProps = {
   photo: ClientPhoto | null
   // Multiplicador de la distancia del modo cartel, entre SIGN_VIEW.nearFactor y 1.
   signZoom: number
-  hdriReady: boolean
   reducedMotion: boolean
   // Modo letters: las letras en alto de mayuscula 1, null en modo area.
   letters: LetterBox[] | null
@@ -173,7 +175,6 @@ export function SignScene({
   palette,
   photo,
   signZoom,
-  hdriReady,
   reducedMotion,
   letters,
   letterDepth,
@@ -206,6 +207,7 @@ export function SignScene({
     return { volume: { width, height, depth: SET.sign.thickness }, center: [0, 0, 0] }
   }, [letters, totem, bounds, width, height, letterDepth])
   const ground = totem && photo !== null ? (photo.anchorGround ?? null) : null
+  const shadowReach = studioShadowReach(frame.volume, frame.center)
   const relief = useMemo(() => {
     if (typeface === null || letters !== null || bounds === null) {
       return null
@@ -226,8 +228,22 @@ export function SignScene({
       />
 
       <ambientLight intensity={light.ambient} />
-      <directionalLight position={keyPosition} intensity={light.keyIntensity} />
-      {hdriReady ? <StudioEnvironment src={HDRI_SRC} /> : null}
+      <directionalLight
+        position={keyPosition}
+        intensity={light.keyIntensity}
+        castShadow={photo === null}
+        shadow-mapSize={[STUDIO_SHADOW.mapSize, STUDIO_SHADOW.mapSize]}
+        shadow-bias={STUDIO_SHADOW.bias}
+        shadow-normalBias={STUDIO_SHADOW.normalBias}
+        shadow-radius={STUDIO_SHADOW.radius}
+        shadow-camera-left={-shadowReach}
+        shadow-camera-right={shadowReach}
+        shadow-camera-top={shadowReach}
+        shadow-camera-bottom={-shadowReach}
+        shadow-camera-near={STUDIO_SHADOW.near}
+        shadow-camera-far={STUDIO_SHADOW.far}
+      />
+      <StudioEnvironment src={HDRI_SRC} />
 
       <SignBoard
         placement={placement}

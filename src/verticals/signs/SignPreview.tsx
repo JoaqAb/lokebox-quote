@@ -1,6 +1,7 @@
 import { useReducedMotion } from 'framer-motion'
 import { useState } from 'react'
 import type { ClientPhoto, SignSelection } from '../../core/types'
+import type { LoadingBrand } from '../../core/ui/LoadingScreen'
 import { PhotoStage } from './PhotoStage'
 import { signZoomFactor } from './scene/sceneGeometry'
 import type { SignVisual } from './visuals'
@@ -28,9 +29,11 @@ type SignPreviewProps = {
   photos: ClientPhoto[]
   zoomLabel: string
   signOnlyLabel: string
+  // Logo y texto de la pantalla de carga del core (SPEC 18).
+  loading: LoadingBrand
 }
 
-export function SignPreview({ selection, visual, theme, photos, zoomLabel, signOnlyLabel }: SignPreviewProps) {
+export function SignPreview({ selection, visual, theme, photos, zoomLabel, signOnlyLabel, loading }: SignPreviewProps) {
   const reducedMotion = useReducedMotion() === true
   const [view, setView] = useState<View>({ kind: 'sign' })
   const [zoom, setZoom] = useState(ZOOM.min)
@@ -61,6 +64,7 @@ export function SignPreview({ selection, visual, theme, photos, zoomLabel, signO
           reducedMotion={reducedMotion}
           cssZoom={zoom}
           signZoom={signZoomFactor(zoom, ZOOM)}
+          loading={loading}
         />
       </div>
 

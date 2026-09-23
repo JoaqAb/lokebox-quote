@@ -1,12 +1,19 @@
 // Set de capturas de validacion (TAREA_018, landing desde TAREA_013): 21 PNG en validacion/
 // para que Canal B vea el preview y la landing. Levanta el dev server, abre chromium con Playwright, bloquea Supabase y baja el
 // server al terminar. Se corre con `npm run capturas`. No hace builds ni toca dist/.
+// Con `npm run capturas -- premium <carpeta>` (TAREA_023) saca en cambio la matriz de
+// comparacion del bloque 10: por cliente, los tres tipos, en modo cartel y en las dos fotos,
+// con las tres luces. Escribe solo en esa carpeta y no toca el resto de validacion/.
 import { spawn } from 'node:child_process'
 import { mkdir, readFile, rm, stat } from 'node:fs/promises'
 import { chromium } from 'playwright'
 
 const ROOT = new URL('..', import.meta.url)
-const OUT = new URL('validacion/', ROOT)
+const PREMIUM = process.argv[2] === 'premium'
+const OUT = PREMIUM ? new URL(`${process.argv[3] ?? ''}/`.replace(/\/+$/, '/'), ROOT) : new URL('validacion/', ROOT)
+if (PREMIUM && process.argv[3] === undefined) {
+  throw new Error('uso: npm run capturas -- premium <carpeta>')
+}
 const PORT = 5288
 const BASE = `http://localhost:${String(PORT)}`
 const SLUGS = ['northline', 'norte']
@@ -20,6 +27,9 @@ const MOBILE = { width: 390, height: 844 }
 const LANDING_WIDTHS = [390, 768, 1440]
 // La misma configuracion de navegador que las capturas de G3 de TAREA_017.
 const LAUNCH = { args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] }
+// La matriz premium va con la GPU del equipo (ANGLE sobre OpenGL): con el pipeline de render de
+// TAREA_023, swiftshader dibuja entre 1 y 4 cuadros por segundo a 1440 y las capturas vencen.
+const GPU_LAUNCH = { args: ['--use-angle=gl', '--enable-gpu', '--ignore-gpu-blocklist'] }
 
 const counters = { aborted: 0, supabaseCompleted: 0 }
 
@@ -74,6 +84,7 @@ async function labelsOf(slug) {
     front: byId(config.photos, 'front-day'),
     night: byId(config.photos, 'front-night'),
     back: byId(config.options.lighting, 'back'),
+    lights: ['none', 'front', 'back'].map((id) => ({ id, label: byId(config.options.lighting, id) })),
   }
 }
 
@@ -93,6 +104,8 @@ async function openPath(browser, path, viewport) {
     }
   })
   await page.goto(`${BASE}${path}`, { waitUntil: 'networkidle' })
+  // Si el preview tiene pantalla de carga, se espera a que la escena dibuje su primer frame.
+  await page.waitForFunction(() => document.querySelector('[aria-busy="true"]') === null)
   await page.waitForTimeout(SETTLE_MS)
   return page
 }
@@ -186,6 +199,33 @@ async function captureClient(browser, slug) {
   return files
 }
 
+// Matriz del bloque 10: tipo, luz y vista. Los nombres son estables entre corridas para
+// comparar antes y despues archivo por archivo.
+async function capturePremium(browser, slug) {
+  const labels = await labelsOf(slug)
+  const views = [
+    { id: 'cartel', label: labels.signOnly },
+    { id: 'vista-day', label: labels.front },
+    { id: 'vista-night', label: labels.night },
+  ]
+  const files = []
+  const page = await openPage(browser, slug, DESKTOP)
+  for (const type of ['facade', 'letters', 'totem']) {
+    await choose(page, labels[type])
+    for (const light of labels.lights) {
+      await choose(page, light.label)
+      for (const view of views) {
+        await choose(page, view.label)
+        const name = `${slug}-${type}-${light.id}-${view.id}.png`
+        await captureFrame(page, name)
+        files.push(name)
+      }
+    }
+  }
+  await page.close()
+  return files
+}
+
 async function captureLanding(browser) {
   const files = []
   for (const width of LANDING_WIDTHS) {
@@ -204,17 +244,19 @@ try {
   await rm(OUT, { recursive: true, force: true })
   await mkdir(OUT, { recursive: true })
   await waitForServer()
-  browser = await chromium.launch(LAUNCH)
+  browser = await chromium.launch(PREMIUM ? GPU_LAUNCH : LAUNCH)
   const files = []
   for (const slug of SLUGS) {
-    files.push(...(await captureClient(browser, slug)))
+    files.push(...(await (PREMIUM ? capturePremium(browser, slug) : captureClient(browser, slug))))
   }
-  files.push(...(await captureLanding(browser)))
+  if (!PREMIUM) {
+    files.push(...(await captureLanding(browser)))
+  }
   for (const name of files) {
     const { size } = await stat(new URL(name, OUT))
     console.log(`${name} ${String(size)} bytes`)
   }
-  console.log(`${String(files.length)} archivos en validacion/`)
+  console.log(`${String(files.length)} archivos en ${OUT.pathname}`)
   console.log(`requests a supabase.co abortadas: ${String(counters.aborted)}, completadas: ${String(counters.supabaseCompleted)}`)
 } finally {
   if (browser !== null) {

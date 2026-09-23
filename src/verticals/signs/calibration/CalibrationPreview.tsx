@@ -1,5 +1,6 @@
 import { useState, type MouseEvent } from 'react'
 import type { ClientPhoto, PhotoAnchor, SignSelection } from '../../../core/types'
+import type { LoadingBrand } from '../../../core/ui/LoadingScreen'
 import { PhotoStage } from '../PhotoStage'
 import type { SignVisual } from '../visuals'
 
@@ -15,6 +16,7 @@ type CalibrationPreviewProps = {
   visual: SignVisual
   theme: Record<string, string>
   photos: ClientPhoto[]
+  loading: LoadingBrand
 }
 
 type Pointer = { x: number; y: number }
@@ -31,7 +33,7 @@ function round(value: number, decimals: number): number {
   return Math.round(value * factor) / factor
 }
 
-export function CalibrationPreview({ selection, visual, theme, photos }: CalibrationPreviewProps) {
+export function CalibrationPreview({ selection, visual, theme, photos, loading }: CalibrationPreviewProps) {
   const [photoId, setPhotoId] = useState(photos[0].id)
   const [anchors, setAnchors] = useState<Record<string, PhotoAnchor>>(() =>
     Object.fromEntries(photos.map((item) => [item.id, item.anchor])),
@@ -86,6 +88,7 @@ export function CalibrationPreview({ selection, visual, theme, photos }: Calibra
           reducedMotion
           cssZoom={1}
           signZoom={1}
+          loading={loading}
         />
         {pointer === null ? null : (
           <div className="pointer-events-none absolute inset-0">

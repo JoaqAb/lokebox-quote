@@ -34,7 +34,14 @@ export function SignText3D({ typeface, letters, height, depth, position, materia
         }
         const key = `${owner}-${letter.char}-${String(index)}`
         return (
-          <mesh key={key} geometry={geometry} position={[letter.x * height, 0, 0]} scale={[height, height, depth]}>
+          <mesh
+            key={key}
+            geometry={geometry}
+            position={[letter.x * height, 0, 0]}
+            scale={[height, height, depth]}
+            castShadow
+            receiveShadow
+          >
             {materials(key)}
           </mesh>
         )

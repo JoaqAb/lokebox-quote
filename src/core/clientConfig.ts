@@ -487,7 +487,7 @@ function readText(texts: Raw, key: keyof ClientTexts, slug: string): string {
 }
 
 // Las dos plantillas sin precio del modo hidden (SPEC 10). Son las unicas claves de texto
-// opcionales, y por eso no entran a las 46 requeridas.
+// opcionales, y por eso no entran a las 47 requeridas.
 const HIDDEN_TEMPLATE_KEYS = ['whatsappMessageHidden', 'whatsappMessageHiddenLetters'] as const
 
 function readOptionalText(texts: Raw, key: keyof ClientTexts, slug: string): string | undefined {
@@ -522,6 +522,7 @@ function readTexts(raw: Raw, slug: string): ClientTexts {
     depthLabel: readText(texts, 'depthLabel', slug),
     previewZoomLabel: readText(texts, 'previewZoomLabel', slug),
     viewSignOnly: readText(texts, 'viewSignOnly', slug),
+    loadingLabel: readText(texts, 'loadingLabel', slug),
     priceLabel: readText(texts, 'priceLabel', slug),
     priceRangeNote: readText(texts, 'priceRangeNote', slug),
     disclaimer: readText(texts, 'disclaimer', slug),
@@ -552,7 +553,7 @@ function readTexts(raw: Raw, slug: string): ClientTexts {
     whatsappMessage: readText(texts, 'whatsappMessage', slug),
     whatsappMessageLetters: readText(texts, 'whatsappMessageLetters', slug),
     // Spread condicional y no la clave en undefined: un cliente que no usa hidden tiene
-    // exactamente las 46 claves de SPEC 10, y Object.keys(texts) lo sigue diciendo.
+    // exactamente las 47 claves de SPEC 10, y Object.keys(texts) lo sigue diciendo.
     ...optionalTexts(texts, slug),
   }
 }

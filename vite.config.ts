@@ -2,11 +2,12 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vitest/config'
 
-// Presupuesto de bundle de SPEC 3 (version 1.17): tres grupos de chunks, la app por debajo
-// de 500 kB sumada, react-vendor por debajo de 250 kB y el vendor 3D por debajo de 1000 kB.
-// No es silenciar la advertencia: el vendor pesa lo que pesa y no se puede partir,
-// pero la app queda medible aparte y cualquier regresion vuelve a avisar.
-const VENDOR_3D = ['three', '@react-three/fiber', '@react-three/drei']
+// Presupuesto de bundle de SPEC 3: tres grupos de chunks. Desde la version 2.0 (D44) solo
+// sigue el tope de react-vendor, 250 kB; los de la app y el vendor 3D se derogaron. El vendor
+// 3D suma el pipeline de render: postprocessing, su envoltorio de R3F y n8ao, el AO que este
+// trae como dependencia. El limite de aviso queda por encima de lo que pesa hoy, como alarma
+// de regresion y no como tope de SPEC.
+const VENDOR_3D = ['three', '@react-three/fiber', '@react-three/drei', 'postprocessing', '@react-three/postprocessing', 'n8ao']
 // React va en su propio chunk. Sin este grupo, rolldown metia react, react-dom y scheduler
 // dentro de three-vendor como dependencias de fiber y drei, y cualquier ruta que usara React
 // precargaba el vendor 3D entero: / lo bajaba sin dibujar nada en 3D, y el presupuesto de
@@ -16,7 +17,7 @@ const VENDOR_REACT = ['react', 'react-dom', 'scheduler']
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 1400,
     rollupOptions: {
       output: {
         // Forma de funcion: el bundler de Vite 8 no acepta el objeto de Rollup.

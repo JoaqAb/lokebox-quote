@@ -51,6 +51,8 @@ import { TEXT_FACE, type Typeface } from './typeface'
 // corporea por caracter; placement.box es el contorno de la palabra, y halo, sombra y
 // lampara lo siguen igual que al panel. En modo area el texto va en relieve sobre la cara,
 // con el color del texto y sin emision: es parte de la cara.
+// Sombras de mapa (SPEC 12, version 2.0): panel, letras, relieve, poste y base proyectan y
+// reciben; halo y sombra de apoyo no, porque son luz y sombra pintadas.
 
 const PANEL_FACES = { count: 6, front: 4 }
 const LETTER_FACES = { count: 3, front: TEXT_FACE.front }
@@ -272,7 +274,7 @@ export function SignBoard({
   return (
     <group>
       <group ref={panelGroupRef}>
-        <mesh ref={signRef} scale={UNIT_BOX}>
+        <mesh ref={signRef} scale={UNIT_BOX} castShadow receiveShadow>
           <boxGeometry args={UNIT_BOX} />
           {faceMaterials('panel', PANEL_FACES, false)}
         </mesh>
@@ -326,11 +328,11 @@ export function SignBoard({
         <pointLight ref={lampRef} />
       </group>
 
-      <mesh ref={postRef} visible={false}>
+      <mesh ref={postRef} visible={false} castShadow receiveShadow>
         <boxGeometry args={UNIT_BOX} />
         <meshStandardMaterial color={structureColor} metalness={TOTEM_STRUCTURE_METALNESS} roughness={TOTEM_STRUCTURE_ROUGHNESS} />
       </mesh>
-      <mesh ref={baseRef} visible={false}>
+      <mesh ref={baseRef} visible={false} castShadow receiveShadow>
         <boxGeometry args={UNIT_BOX} />
         <meshStandardMaterial color={structureColor} metalness={TOTEM_STRUCTURE_METALNESS} roughness={TOTEM_STRUCTURE_ROUGHNESS} />
       </mesh>

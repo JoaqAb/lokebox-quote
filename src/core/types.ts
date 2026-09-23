@@ -197,6 +197,7 @@ export type ClientTexts = {
   depthLabel: string
   previewZoomLabel: string
   viewSignOnly: string
+  loadingLabel: string
   priceLabel: string
   priceRangeNote: string
   disclaimer: string
@@ -228,7 +229,7 @@ export type ClientTexts = {
   whatsappMessageLetters: string
   // Plantillas sin precio del modo hidden (SPEC 10). Opcionales en la forma y exigidas
   // por validacion condicional cuando el modo es hidden y el cta incluye WhatsApp, igual
-  // que anchorGround con el tipo totem. No entran a las 46 claves requeridas.
+  // que anchorGround con el tipo totem. No entran a las 47 claves requeridas.
   whatsappMessageHidden?: string
   whatsappMessageHiddenLetters?: string
 }

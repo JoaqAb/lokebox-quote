@@ -231,7 +231,7 @@ const CLAVES_DE_LA_HOJA = [
 
 describe('claves de texto de los dos clientes', () => {
   // 13.16
-  it('los dos JSON tienen las mismas 46 claves, ninguna vacia', () => {
+  it('los dos JSON tienen las mismas 47 claves, ninguna vacia', () => {
     const juegos = listClientSlugs().map((slug) => {
       const texts = clientOrFail(slug).texts
       for (const [key, value] of Object.entries(texts)) {
@@ -239,7 +239,7 @@ describe('claves de texto de los dos clientes', () => {
       }
       return Object.keys(texts).sort()
     })
-    expect(juegos[0]).toHaveLength(46)
+    expect(juegos[0]).toHaveLength(47)
     for (const juego of juegos) {
       expect(juego).toEqual(juegos[0])
     }
@@ -351,6 +351,14 @@ describe('validateClientConfig: camara del anchor', () => {
     expect(clientOrFail('northline').texts.viewSignOnly).toBe('The sign')
     expect(clientOrFail('norte').texts.viewSignOnly).toBe('Solo el cartel')
   })
+
+  it('loadingLabel sale del JSON en los dos idiomas y es requerida', () => {
+    expect(clientOrFail('northline').texts.loadingLabel).toBe('Preparing your sign')
+    expect(clientOrFail('norte').texts.loadingLabel).toBe('Preparando tu cartel')
+    const broken = structuredClone(northline) as { texts: Record<string, string> }
+    delete broken.texts.loadingLabel
+    expect(() => validateClientConfig(broken)).toThrow(/loadingLabel/)
+  })
 })
 
 // northline tiene cta "both", asi que en hidden la validacion exige las dos plantillas sin
@@ -435,7 +443,7 @@ describe('validateClientConfig: plantillas de WhatsApp sin precio', () => {
     expect(validateClientConfig(hidden('form')).texts.whatsappMessageHidden).toBeUndefined()
   })
 
-  it('fuera de hidden no hacen falta, y las 46 claves requeridas no cambian', () => {
+  it('fuera de hidden no hacen falta, y las 47 claves requeridas no cambian', () => {
     const raw = structuredClone(northline) as Record<string, unknown>
     expect(validateClientConfig(raw).texts.whatsappMessageHidden).toBeUndefined()
   })
