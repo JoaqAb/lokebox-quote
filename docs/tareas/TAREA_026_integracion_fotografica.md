@@ -149,3 +149,43 @@ vereda, o una fuga del cartel en contra de la fachada visible en captura, o si e
 de 6 s.
 
 Commits: docs de D79 a D82 y SPEC 2.6; codigo; cierre. Despues, push de todo.
+
+## Resultado (23/09/2026)
+
+Estado: entregada. Codigo en 202caa2. Mediciones en `validacion/premium/026/` (`medir.py`,
+`medir_rev.py`, `comp/medir_comp.py`, `quad/medir_quad.py`, `c4.txt` a `c9.txt`, `carga.txt`),
+capturas en `despues/` (220) y sondas en `sonda-halo/`, `totem/`, `sintinte/`, `comp/`.
+
+Camara de vista (D81), altura sobre el anclaje: totem northline 1,83 m y norte 2,04 m (dia y
+noche); fachada northline 1,68 m por debajo del centro del cartel, norte 1,51 m de dia y 1,57 m de
+noche.
+
+1. G1 a G6: build sin avisos, tsc sin errores, lint limpio, 288 tests en verde, sin rayas largas.
+2. Capturas: si, 220 en `despues/` con el recorrido de 025.
+3. Composicion (D79): si. Sobre gris 128 el cuadro back con sombra coincide con la formula aplicada
+   a halo y sombra medidos por separado con error maximo de 1,3 a 2,0 niveles (p99 0,5), en tres
+   casos. En northline fachada de dia, abajo, back con receptor queda de 40 a 55 niveles debajo de
+   back sin receptor: la sombra se conserva bajo el halo.
+4. Halo en facade y letters: contra la foto 24 de 24 (pendiente, pico de dia 30 o menos, de noche
+   45 o mas, 0 px fuera de la banda). Forma sobre negro con D71: 21 de 24. Fallan las letras de norte
+   de dia en el lado derecho, donde la franja central entra por los brazos de la E (inferido).
+5. Totem en vista: sin halo, 0 px de luz fuera del totem en 12 de 12. De dia la vereda a la derecha
+   de la base se oscurece 25,9 niveles en northline y 29,0 en norte, 6 de 6. La cara superior de la
+   base se ve (camara a 1,8 y 2,0 m, base de 0,08 m). De noche menos sombra que de dia, 6 de 6.
+6. Anclaje: facade y letters a 0,5 px o menos en las cuatro fotos; totem a 0,4 px en x (poste). La
+   proyeccion exacta del anclaje va con test.
+7. Sin regresion: sombra de facade y letters del lado opuesto a la key y de noche menos que de dia,
+   12 de 12; 6a con D78, 36 de 36; luminancia con D66, D72 y D80, todo; criterio 3 de 024, 36 de
+   36; modo cartel, 106 de 108 a 1 nivel o menos, y los 2 de back en cartel60 con 16 y 11, los
+   mismos valores de ruido del arrastre de la corrida anterior.
+8. Tono: la distancia a*b* baja 32 por ciento en northline y 27 en norte. El tinte mueve la
+   luminancia de la cara 0,6 niveles como maximo, medido con la camara nueva con y sin tinte. Contra
+   las capturas de 025 la cara se mueve hasta 48 niveles en chapa y acrilico, por la camara de D81:
+   la mirada llega desde otra altura y refleja otra zona del estudio.
+9. Primer frame en slow 4G: 3,9 s, 569 kB.
+10. Si: `src/core` sin imports de `src/verticals` ni de `src/clients`.
+11. Tests: photoTint con tests propios; el resto cambia por la banda de letters, el receptor, el
+    tinte, la camara de vista (sale lensShift) y el totem sin halo. 259 en 024, 288 ahora.
+
+Regla del quad en vista (quad/medicion.txt, antes de D81): queda. HALO_LETTERS_BAND: 0,8.
+Decisiones de ejecucion en DECISIONES (23/09/2026, TAREA_026).

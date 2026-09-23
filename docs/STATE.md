@@ -4,15 +4,15 @@
 
 ## Bloque actual
 
-Bloque 10, Quote premium, con SPEC 2.6 (D70 a D82). TAREA_026 retomada tras el freno: capa de atenuacion para la sombra de vista (D79), totem sin halo en vista (D80) y camara de vista fuera del eje (D81). Codigo en curso en el arbol.
+Bloque 10, Quote premium, con SPEC 2.6 (D70 a D82). TAREA_026 entregada con codigo en 202caa2: sombra de vista como atenuacion en el core, totem sin halo en vista, camara de vista fuera del eje, banda del halo de letras en 0,8 y casado de tono con la foto. 288 tests en verde. Primer frame en slow 4G 3,9 s.
 
 ## Ultimo cerrado
 
-TAREA_025, detalle del objeto y halo, aceptada por Canal B (D70). Codigo en 2360566.
+TAREA_025, detalle del objeto y halo (D70). Codigo en 2360566.
 
 ## Proximo
 
-Terminar TAREA_026 con los criterios de la revision (docs/tareas/TAREA_026_integracion_fotografica.md).
+Canal B acepta o no TAREA_026: forma del halo 21 de 24 por las letras de norte de dia, y la luminancia de chapa y acrilico en vista movida por la camara de D81. Bloque 10 tiene una tarea mas.
 Bloque 9, Canal C, sigue pendiente: portfolio de Upwork, planilla de precios, lista de Tucuman y el enlace a la demo cuando el listado salga de Under Review.
 
 ## Bloqueos

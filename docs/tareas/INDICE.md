@@ -37,3 +37,4 @@ ejecutaron, que es el orden del historial: TAREA_013 se ejecuto despues de TAREA
 | TAREA_023 | Pipeline de render, perfiles de calidad y pantalla de carga | cerrada | 10d469e |
 | TAREA_024 | Iluminacion y materiales PBR | cerrada | a0ee0d1 |
 | TAREA_025 | Detalle del objeto y halo | cerrada | 2360566 |
+| TAREA_026 | Integracion fotografica | entregada | 202caa2 |
