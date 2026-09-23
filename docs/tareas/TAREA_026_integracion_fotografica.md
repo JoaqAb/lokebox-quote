@@ -108,3 +108,44 @@ la suma de las capas: la sombra desaparece dentro de la banda y queda un escalon
 totem de noche no cumple la pendiente de 5 con la banda fija y el pico de D65; la sombra de piso del
 totem no se ve con la camara de SPEC 12 (decision del 14/09); el tono baja 34 por ciento en
 northline y 28 en norte.
+
+## Revision (23/09/2026, SPEC 2.6, D79 a D82)
+
+Canal B resuelve el freno. Sigue sobre el arbol de trabajo, sin descartar lo hecho.
+
+- Capa de atenuacion (D79): `src/core/preview/RenderPipeline.tsx`, `src/core/preview/CoverageToneMapping.tsx`
+  y la constante de capa junto a la del bloom en `src/core/preview/render.ts`. Los receptores de
+  sombra pasan a esa capa y salen del pase principal.
+- Totem sin halo en vista (D80): `src/verticals/signs/scene/SignBoard.tsx`.
+- Camara de vista (D81): donde se arma hoy con el anchor (`SignScene.tsx`), con la geometria pura
+  en `sceneGeometry.ts` y sus tests.
+
+Criterios, que reemplazan a los de arriba donde se pisan:
+
+1. G1 a G6.
+2. Capturas en `validacion/premium/026/`, con el recorrido de 025.
+3. Composicion: en la sonda, sobre fondo gris medio, el cuadro back con sombra coincide a 2 niveles o
+   menos con la formula de D79 aplicada a halo y sombra medidos por separado. En northline fachada
+   de dia la franja de abajo conserva la sombra bajo el halo.
+4. Halo, en los 24 cuadros back de vista de facade y letters: pendiente contra la foto de 5 niveles
+   por px o menos; pico de dia 30 o menos y de noche 45 o mas; fuera de la banda, diferencia 0;
+   forma sobre negro (D71), 24 de 24.
+5. Totem en vista: sin halo en los 12 cuadros; de dia la vereda del lado opuesto a la key se
+   oscurece 15 niveles o mas en 6 de 6; la cara superior de la base se ve; de noche, menos sombra
+   que de dia.
+6. Anclaje: con la camara nueva, el apoyo del totem y el centro de facade y letters caen en su
+   (x, y) de la foto a 1 px o menos, en las cuatro fotos.
+7. Sombra de facade y letters, 6a (D78), luminancia con D66, D72 y D80, criterio 3 de 024 y modo
+   cartel igual a 025: sin regresion.
+8. Tono: la distancia a*b* baja 25 por ciento o mas en cada cliente, y la luminancia de la cara se
+   mueve 5 niveles o menos.
+9. Primer frame en slow 4G de 6 s o menos.
+10. `src/core` sin imports de `src/verticals` ni de `src/clients`.
+11. Tests en verde. Cambian solo por la capa de atenuacion, la camara de vista, el halo del totem y lo
+    que ya cambio en esta tarea.
+
+Frenar y reportar solo si con la camara de D81 alguna foto deja el apoyo del totem fuera de la
+vereda, o una fuga del cartel en contra de la fachada visible en captura, o si el primer frame pasa
+de 6 s.
+
+Commits: docs de D79 a D82 y SPEC 2.6; codigo; cierre. Despues, push de todo.
