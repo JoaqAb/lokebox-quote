@@ -102,3 +102,50 @@ limpia, o si el primer frame pasa de 6 s.
 3. docs: cierre de TAREA_025.
 
 Despues de los tres, push.
+
+## Resultado (23/09/2026)
+
+Estado: entregada, con los criterios 4 (en parte), 5 y 7 para Canal B. Codigo en 2360566.
+Mediciones en `validacion/premium/025/` (`medir.py`, `canto.py`, `sonda.mjs`, `c3.txt` a
+`c7.txt`, `c4-forma.txt`, `sombra/medicion.txt`, `triangulos.txt`, `carga.txt`), capturas en
+`despues/` y `sinbloom/`, 220 cuadros por corrida.
+
+Causa del borde duro del halo, medida con `sonda.mjs` (fondo negro y blanco): AgX y la
+codificacion sRGB se aplicaban al color premultiplicado del canvas transparente. La curva sobre
+color por alpha no baja con el alpha: el ultimo pixel de la malla, alpha 0,06, salia en 69
+niveles en lugar de 12, con rgb mayor que alpha, y cortaba a 0 fuera de la malla. No es el
+emisivo por encima de 1: el halo es MeshBasic con color hasta 1. Se corrige en el pipeline del
+core con `CoverageToneMapping`: la cobertura se mapea con su color derecho y vuelve a
+multiplicarse por alpha; donde el mapa del bloom tiene resplandor se mapea como antes. En modo
+cartel el cuadro cambia como mucho 1 nivel en unos mil pixeles.
+
+1. G1 a G6: build sin avisos, tsc sin errores, lint limpio, 274 tests en verde, sin rayas largas.
+2. Capturas: si, 220 en `despues/` y 220 en `sinbloom/`, con cartel60 en back.
+3. Vista sin bloom: si, 36 de 36 cuadros de back identicos con y sin `VITE_QUOTE_BLOOM=off`.
+4. 6b nuevo. Contra la foto: 0 pixeles fuera de la banda en 36 de 36; pico de dia 24 como
+   maximo, de noche 50,6 como minimo. Forma, sobre fondo negro (la diferencia contra la foto
+   suma los bordes de la foto dentro de la banda, una viga o una ventana): 28 de 36. Fallan 3 de
+   fachada de dia en northline, salto 3,0 contra 2,9 permitido, por el escalonado de 8 bits con
+   un pico de 32 niveles en 22 px; y 5 de letras de norte, banda de 5 a 6 px, donde las muestras
+   de los lados caen en los huecos de la E (inferido).
+5. Luminancia con D66: cara front mayor que none 42 de 42, opacos 28 de 28, anillo en vista 24
+   de 24, anillo del acrilico en el techo 2 de 2, acrilico en modo cartel 4 de 4. No en acrilico
+   en vista, 8 de 8: sin bloom (D64) la cara de back queda debajo de front (215 contra 218 de dia
+   en northline) y su desviacion sube. Con translucency 1 la media pasa (224,5 contra 218,4) pero
+   la desviacion sube mas (27,9 contra 23,6): la cara incluye el relieve, que no emite. Choque
+   entre D64 y D57 para Canal B. translucency queda en 0,4.
+6. Criterio 3 de 024: si, 36 de 36.
+7. Brillo de canto: no, 1 de 6 (fachada, cartel60, none). El canto de 4 mm mide cerca de 1 px y
+   refleja el hueco oscuro del rig entre modulos: en chapa se lee como linea oscura. Probado sin
+   commitear: radio de 20 mm, 1 de 6; tiras de canto en el rig, 1 de 6 y la cara del PVC sube 9
+   niveles, que mueve el criterio 6. Para Canal B.
+8. Sombra de apoyo: la sombra de mapa oscurece la huella 0 niveles en los 6 casos, porque en
+   modo cartel no hay receptor debajo del cartel. El quad queda. Sobre el cartel aporta poco:
+   0 px en el relieve de fachada, hasta 221 px con maximo 11 niveles en letras y totem.
+9. Primer frame en slow 4G 3,9 s, 567 kB. Cartel mas pesado: letters con 18 ochos, 29.880
+   triangulos. Panel redondeado 300 (cara 50, cascara 250), separadores 256.
+10. Si: `src/core` sin imports de `src/verticals` ni de `src/clients`.
+11. Tests: cambian por mount, la geometria nueva (panel, halo, relieve, separadores) y el
+    contorno del halo en letters. 259 a 274.
+
+Decisiones de ejecucion en DECISIONES (23/09/2026, TAREA_025).
