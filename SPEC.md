@@ -3,7 +3,7 @@
 Fuente de verdad del alcance. Si algo no está acá, no se construye.
 Este documento se edita, no se contradice. Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 
-Versión: 1.20 · 17/09/2026
+Versión: 2.0 · 23/09/2026
 
 ## 1. Objetivo
 
@@ -37,8 +37,9 @@ Fecha de DONE: viernes 18/09/2026.
 - Vitest para los tests del motor de precios.
 - Deploy estático en Vercel. Dominio quote.lokebox.com.
 - Versiones fijadas en package.json. React ~19.2.8 y three ~0.185.1 por compatibilidad con R3F y con @types/three.
-- Assets estáticos del preview, desde 1.9: las fotos de fondo del cliente (2 o 3, 16:9, WebP, unos 1600 x 900) y un único HDRI de estudio para todo el producto, CC0, entre 100 y 200 kB. Desde 1.14 suma un único typeface JSON de Archivo Black (OFL), subsetado a A a Z, 0 a 9 y espacio, techo 60 kB, para el texto 3D del cartel. No entran al bundle de JavaScript: son archivos servidos desde `public/`. El HDRI es opcional en runtime: si falta, el preview funciona sin reflejo.
-- Presupuesto de bundle (desde 1.17): tres grupos de chunks, con topes sin comprimir. `three-vendor` (solo three, @react-three/fiber y @react-three/drei) por debajo de 1000 kB; `react-vendor` (react, react-dom y scheduler) por debajo de 250 kB; y la suma de los chunks de app, todos los que no son vendor, por debajo de 500 kB. El build avisa si un chunk pasa el límite de aviso. Hasta 1.16 el chunk de vendor 3D incluía React, arrastrado como dependencia de fiber y drei, y el presupuesto de app se medía sobre un único chunk de entrada.
+- Assets del preview (desde 2.0, D44): se deroga la lista cerrada de 1.9 y 1.14. Los assets 3D son archivos servidos desde `public/` y descargados en runtime, no entran al bundle de JavaScript. Qué tipos de asset se permiten lo dice la sección 12. El HDRI y el typeface siguen siendo opcionales en runtime: si faltan, el preview funciona sin reflejo o sin texto.
+- Presupuesto de primera carga (desde 2.0, D44): la primera carga de `/d/<slug>` puede llegar a 8 MB de assets 3D, siempre detrás de la pantalla de carga con progreso real de la sección 12. El peso medido se anota acá al cerrar cada tarea que lo cambie.
+- Presupuesto de bundle (desde 1.17, reducido en 2.0): se mantienen los tres grupos de chunks, `three-vendor` (three, @react-three/fiber, @react-three/drei y desde 2.0 postprocessing y @react-three/postprocessing), `react-vendor` (react, react-dom y scheduler) y los chunks de app. Desde 2.0 se derogan los topes de 1000 kB de `three-vendor` y de 500 kB de app (D44). Sigue el de `react-vendor`, por debajo de 250 kB sin comprimir. El build avisa si un chunk pasa el límite de aviso.
 - Carga por ruta (desde 1.17): `/d/:slug` y `/d/:slug/quote` se cargan con `React.lazy`, para que `/` no descargue el vendor 3D. La regla de no lazy loading es del preview dentro de la página del cotizador, no de la ruta: el preview es el producto y no puede aparecer después que su panel, y sigue llegando junto con él porque la ruta entera es un chunk. Sin prefetch de la ruta de demo.
 
 ## 4. Arquitectura en tres capas
@@ -409,11 +410,11 @@ La forma de `leads` sigue la que usaría Lokebox para un pedido en gestación. S
 
 `photos` (desde 1.9, conteo ampliado en 1.10): una entrada por ángulo fotografiado, 2 a 4 por cliente, la primera es la que se muestra al cargar. Desde 1.15 los dos clientes de la demo traen dos fotos frontales, Front y Night, y salen las vistas en ángulo: en una foto frontal `x`, `y` y `metersToWidth` alcanzan para componer el cartel y el totem. `id` único dentro del cliente. `label` es la etiqueta visible del ángulo y vive acá y no en `texts` porque la cantidad de fotos varía por cliente y una clave fija por ángulo no existiría: es el mismo criterio de `options.types[].label` y `options.materials[].label`. `anchor` dice dónde y de qué tamaño se dibuja el cartel sobre esa foto: `x` e `y` son el centro en fracción del ancho y del alto, con origen arriba a la izquierda; `metersToWidth` es qué fracción del ancho de la foto ocupa un metro de cartel, expresado así y no como factor abstracto para poder calcularlo contra una medida conocida de la foto en vez de a ojo; `cameraYawDeg`, `cameraPitchDeg` y `fovDeg` (desde 1.12, reemplazan a `yawDeg` y `pitchDeg`) describen la cámara que tomó la foto: la cámara en perspectiva del viewer orbita alrededor del cartel con ese azimut y esa elevación, con ese campo de visión vertical, y el cartel no se rota. `cameraYawDeg` positivo pone la cámara a la derecha del frente del cartel; `cameraPitchDeg` negativo la pone por debajo del centro del cartel, que es lo normal en una foto de fachada. `fovDeg` es mayor que 0 y menor que 180. `anchorGround` (desde 1.15, opcional en la forma): el anclaje del totem en esa foto. `x` e `y` son el punto de apoyo de la base, en fracción del ancho y del alto de la foto, origen arriba a la izquierda; `metersToWidth` es la fracción del ancho de la foto que ocupa un metro medido a la distancia del totem, que está más cerca de la cámara que la fachada y por eso es mayor que el del `anchor`. La cámara (`cameraYawDeg`, `cameraPitchDeg`, `fovDeg`) sigue saliendo del `anchor`: describe la cámara y no cambia por tipo. Regla: si un cliente ofrece el tipo `totem` y alguna de sus fotos no tiene `anchorGround`, la config es inválida y la validación falla al cargar con un mensaje que nombra el slug y el id de la foto. Un totem flotando sobre la banda de la fachada es peor que un error. `light` es la luz de la escena del cartel en esa foto, para que su volumen case con ella. Solo se usa en modo vista: el modo cartel tiene su luz de estudio (sección 12).
 
-Las 46 claves de `texts` requeridas, iguales en los dos idiomas:
+Las 47 claves de `texts` requeridas, iguales en los dos idiomas:
 
-`headline`, `subheadline`, `configureTitle`, `typeLabel`, `widthLabel`, `heightLabel`, `materialLabel`, `lightingLabel`, `installationLabel`, `installationYes`, `installationNo`, `quantityLabel`, `priceLabel`, `priceRangeNote`, `disclaimer`, `ctaWhatsapp`, `ctaForm`, `formTitle`, `formName`, `formContact`, `formNote`, `formSubmit`, `formSending`, `thanksTitle`, `thanksBody`, `viewQuote`, `quoteTitle`, `quoteValidity`, `quoteDateLabel`, `quoteSelectionTitle`, `quoteBreakdownTitle`, `quotePrint`, `quoteBack`, `lineMaterial`, `lineLighting`, `lineType`, `lineInstallation`, `lineDiscount`, `poweredBy`, `whatsappMessage`, `signTextLabel`, `letterHeightLabel`, `depthLabel`, `whatsappMessageLetters`, `previewZoomLabel`, `viewSignOnly`.
+`headline`, `subheadline`, `configureTitle`, `typeLabel`, `widthLabel`, `heightLabel`, `materialLabel`, `lightingLabel`, `installationLabel`, `installationYes`, `installationNo`, `quantityLabel`, `priceLabel`, `priceRangeNote`, `disclaimer`, `ctaWhatsapp`, `ctaForm`, `formTitle`, `formName`, `formContact`, `formNote`, `formSubmit`, `formSending`, `thanksTitle`, `thanksBody`, `viewQuote`, `quoteTitle`, `quoteValidity`, `quoteDateLabel`, `quoteSelectionTitle`, `quoteBreakdownTitle`, `quotePrint`, `quoteBack`, `lineMaterial`, `lineLighting`, `lineType`, `lineInstallation`, `lineDiscount`, `poweredBy`, `whatsappMessage`, `signTextLabel`, `letterHeightLabel`, `depthLabel`, `whatsappMessageLetters`, `previewZoomLabel`, `viewSignOnly`, `loadingLabel`.
 
-`previewZoomLabel` es la etiqueta del zoom del viewer. `viewSignOnly` (desde 1.12) es la etiqueta del botón del modo cartel en el selector de vistas: EN "The sign", ES "Solo el cartel".
+`previewZoomLabel` es la etiqueta del zoom del viewer. `viewSignOnly` (desde 1.12) es la etiqueta del botón del modo cartel en el selector de vistas: EN "The sign", ES "Solo el cartel". `loadingLabel` (desde 2.0, D47) es el texto de la pantalla de carga del preview: EN "Preparing your sign", ES "Preparando tu cartel".
 
 Los números visibles se formatean con `Intl` y el locale del cliente: `8.5` en `en`, `2,5` en `es-AR`. Eso vale para las medidas (ancho y alto) en el panel, en el mensaje de WhatsApp y en la hoja de cotización, y también para el desglose y la línea de área, que además llevan la unidad y la moneda del cliente.
 
@@ -429,7 +430,7 @@ pricing?: { display?: "exact" | "range" | "gated" | "hidden" | "internal" }
 
 Sin el objeto, o con el objeto y sin `display`, vale `range`. No está en el ejemplo de arriba porque los dos clientes de la demo no lo traen. En la etapa 1 la validación acepta `exact`, `range` y `hidden`, y rechaza `gated`, `internal` y cualquier otro valor nombrándolo.
 
-Dos claves de texto condicionales, y solo dos, dependen de este objeto: `whatsappMessageHidden` y `whatsappMessageHiddenLetters`. Son las plantillas de WhatsApp sin precio, con los mismos placeholders que `whatsappMessage` y `whatsappMessageLetters` menos `{min}` y `{max}`. Son opcionales en la forma, y la validación las exige solo cuando `pricing.display` es `hidden` y el `cta` del cliente incluye WhatsApp, fallando con el nombre de la clave que falta. Mismo patrón condicional que `anchorGround` con el tipo `totem`. No entran a las 46 claves requeridas: obligarlas para todos haría editar los dos JSON de la demo, que usan `range` y nunca las renderizan. En `hidden` el mensaje no puede contener ninguna cifra de precio.
+Dos claves de texto condicionales, y solo dos, dependen de este objeto: `whatsappMessageHidden` y `whatsappMessageHiddenLetters`. Son las plantillas de WhatsApp sin precio, con los mismos placeholders que `whatsappMessage` y `whatsappMessageLetters` menos `{min}` y `{max}`. Son opcionales en la forma, y la validación las exige solo cuando `pricing.display` es `hidden` y el `cta` del cliente incluye WhatsApp, fallando con el nombre de la clave que falta. Mismo patrón condicional que `anchorGround` con el tipo `totem`. No entran a las 47 claves requeridas: obligarlas para todos haría editar los dos JSON de la demo, que usan `range` y nunca las renderizan. En `hidden` el mensaje no puede contener ninguna cifra de precio.
 
 Validación: al cargar un cliente se valida la forma en runtime. Si falta una clave o un id referenciado no existe, la app muestra un error claro en pantalla y no renderiza el cotizador a medias.
 
@@ -461,7 +462,7 @@ Zoom por modo, con el mismo control:
 - Modo cartel: multiplica la distancia derivada de la huella entre 1,0 y 0,55. Solo acercar.
 - Modo vista: transformación CSS sobre el contenedor de foto y canvas juntos, nunca un movimiento de cámara, así foto y cartel escalan juntos y no existe el desalineado.
 
-Assets permitidos, y solo estos tres, servidos desde `public/`: las fotos de fondo del cliente, un único HDRI de estudio para todo el producto y, desde 1.14, un único typeface JSON de Archivo Black (OFL) subsetado a mayúsculas A a Z, números 0 a 9 y espacio, con techo de 60 kB y un solo uso: el texto 3D del cartel. Motivo: el glifo pintado sobre una caja se leía como un azulejo y no como la letra corpórea que el producto vende. Sigue prohibido todo modelo importado, cualquier otro archivo de fuente, `Text` y `Text3D` de drei, postprocessing y sombras de mapa.
+Assets (desde 2.0, D45): se deroga la lista cerrada de tres assets y la prohibición de assets descargados en runtime. Quedan permitidos, servidos desde `public/`: las fotos de fondo del cliente, HDRI de hasta 2k, mapas PBR y typefaces, dentro del presupuesto de primera carga de la sección 3. El texto 3D del cartel sigue saliendo del typeface JSON de Archivo Black (OFL) de 1.14, porque el glifo pintado sobre una caja se leía como un azulejo y no como la letra corpórea que el producto vende. Sigue prohibido todo modelo importado y `Text` y `Text3D` de drei. Se derogan también la prohibición de postprocesado y la de sombras de mapa: las regula el pipeline de render de abajo.
 
 Permitido y acotado: texturas generadas en runtime con `CanvasTexture`, que no descargan nada y no pesan en el bundle. Desde 1.14 se usan para una sola cosa: el degradado radial que comparten la sombra de apoyo y el halo de `back`. Los glifos con `CanvasTexture` salen.
 
@@ -477,12 +478,27 @@ Texto 3D (desde 1.14): un componente único, `SignText3D`, con `TextGeometry` de
   - `front`: emisión baja en la cara más una luz puntual por delante y por arriba.
   - `back`: los cantos y la cara trasera emiten. En modo cartel (desde 1.13) la cara no emite: queda en el color del material apenas oscurecido, y no hay halo. Sale la emisión en la cara para back, porque un back-lit real tiene la cara apagada y el resplandor detrás, y con la cara emisiva back y front no se distinguen de frente. En modo vista la cara emite poco, lo justo para que el texto siga legible, y hay halo: el degradado radial detrás del cartel, con un margen de 0,12 del alto del cartel por lado, opacidad máxima 0,55, color del emisivo del material y sin borde duro.
 - Los tres modos se distinguen con luminancia medida sobre la región del cartel, con tres comparaciones (desde 1.13): la cara crece de `none` a `front`, la cara baja de `front` a `back`, y el anillo inmediato crece de `front` a `back` en modo vista. Las tres se miden en modo vista con la misma foto; las dos de la cara se miden también en modo cartel, de frente y sin girar, y desde 1.15 también en el tipo `totem`.
-- No hay escalar `dusk` ni degradación por rendimiento.
+- No hay escalar `dusk`. No hay degradación por rendimiento medido: la calidad sale de un perfil que se elige una vez al montar, por capacidad del dispositivo (D46).
 - Luz de la escena del cartel: en modo vista sale del `light` de la foto elegida, nunca de constantes del código. En modo cartel es la luz de estudio del producto, con constantes nombradas, y nunca del JSON.
 - Interfaz del componente: recibe `selection`, `visual`, `theme`, las fotos y las etiquetas. El preview no recibe la config del cliente y no busca nada por id.
 - Escala: la escena trabaja siempre en metros. Las medidas de la selección se multiplican por el factor de `visual` (1 en metros, 0.3048 en pies).
 - Colores: el color del cartel sale del `visual` del material. Ningún hexadecimal escrito en un componente de escena.
 - Si el navegador no tiene WebGL, el modo vista muestra la foto sola.
+
+Pipeline de render (desde 2.0, D45):
+
+- Un solo `EffectComposer`, en este orden: N8AO, Bloom, ToneMapping AgX y SMAA. El renderer va con `antialias` apagado, porque el AA lo hace SMAA, y sin tone mapping propio, para no aplicarlo dos veces.
+- N8AO conservador, en metros de escena: se lee en el encuentro del cartel con su apoyo y en los cantos, no como contorno.
+- Bloom con umbral alto sobre la luminancia lineal, calibrado para que solo lo dispare el emisivo de `back`. En `none` y `front` el cartel no brilla, y se verifica midiendo.
+- Sombras suaves de mapa: el canvas va con sombras suaves y la key del modo cartel proyecta. La sombra de apoyo con `CanvasTexture` se conserva.
+- En modo vista el canvas sigue transparente sobre la foto: el composer respeta el alpha y el tone mapping no toca la foto, que es una capa HTML debajo del canvas.
+
+Perfiles de calidad (desde 2.0, D46). Se elige uno al montar el preview, por capacidad del dispositivo: puntero grueso, `navigator.deviceMemory` y `hardwareConcurrency`. No se mide fps y no se cambia de perfil en caliente.
+
+- `high`: dpr entre 1 y 2, AO con muestras plenas, bloom, SMAA y sombras suaves.
+- `medium`: dpr entre 1 y 1,5, AO con la mitad de las muestras; bloom, SMAA y sombras se conservan.
+
+Pantalla de carga (desde 2.0, D47): ocupa el marco del preview sobre `--q-stage`, con el logo del cliente y `loadingLabel`, mientras el contenido del canvas está suspendido. El progreso es el real del LoadingManager de three, sin animación simulada ni mínimos artificiales. Se quita cuando la escena dibujó su primer frame, sin salto de layout.
 
 ## 13. Landing (quote.lokebox.com)
 
@@ -528,7 +544,9 @@ El cliente entrega antes de empezar: logo, colores, WhatsApp o mail, y sus regla
 
 ## 16. Fuera de alcance
 
-CRM, auth, usuarios, multi-tenant, panel de administración, permisos, integraciones, email transaccional, generación de PDF en servidor, modelos 3D importados, archivos de fuente en el 3D salvo el typeface de la sección 12, editor visual del JSON, un cuarto tipo de cartel, más de una vertical.
+CRM, auth, usuarios, multi-tenant, panel de administración, permisos, integraciones, email transaccional, generación de PDF en servidor, modelos 3D importados, editor visual del JSON, un cuarto tipo de cartel, más de una vertical.
+
+Desde 2.0 (D45) no están fuera de alcance el postprocesado, los assets descargados en runtime ni los typefaces: los regula la sección 12.
 
 Desde 1.18 también quedan fuera:
 
@@ -539,7 +557,7 @@ Desde 1.18 también quedan fuera:
 ## 17. Criterio de DONE
 
 1. Se entiende en menos de 10 segundos.
-2. Parece un producto de más valor que su precio.
+2. Resiste una comparación lado a lado con un configurador comercial de referencia (D48).
 3. El flujo completo funciona en las dos demos.
 4. Sin errores visibles.
 5. Fluido en mobile.
@@ -548,7 +566,16 @@ Desde 1.18 también quedan fuera:
 8. Desplegado en quote.lokebox.com.
 9. Listado del Project Catalog listo para publicar.
 
-## 18. Plan por días
+## 18. Capas premium
+
+Desde 2.0 (D44). El nivel visual del preview vive en core, para que las próximas verticales lo hereden sin reescribirlo.
+
+- Viven en `src/core/`: el pipeline de render y el canvas que lo monta (`src/core/preview/`), los perfiles de calidad (`src/core/preview/quality.ts`), la pantalla de carga (`src/core/ui/LoadingScreen.tsx`) y los controles del panel (`src/core/ui/controls/`).
+- No conocen la vertical. La vertical entrega su escena como contenido del canvas del core y decide qué objetos proyectan sombra y cuáles emiten. El core decide cómo se renderiza.
+- `src/core` sigue sin importar de `src/verticals` ni de `src/clients`.
+- La pantalla de carga necesita el logo del cliente y `loadingLabel`: el preview de la vertical los recibe como props, junto con las etiquetas de la sección 12.
+
+## 19. Plan por días
 
 El detalle de bloques, tareas y criterios está en docs/EXECUTION.md.
 
@@ -558,6 +585,6 @@ El detalle de bloques, tareas y criterios está en docs/EXECUTION.md.
 - Jueves 17: pulido visual, mobile, landing, video, capturas.
 - Viernes 18: listado del Catalog, planilla de precios, lista de 40 cartelerías, plantilla de mensaje.
 
-## 19. Métrica de la semana siguiente
+## 20. Métrica de la semana siguiente
 
 30 mensajes por WhatsApp. Objetivo: 5 respuestas y 1 llamada. Con eso se decide seguir, cambiar de nicho o pausar.

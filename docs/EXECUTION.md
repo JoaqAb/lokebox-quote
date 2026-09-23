@@ -27,3 +27,9 @@ Sin tareas de código salvo arreglos bloqueantes.
 - Canal C: lista de cartelerías de Tucumán con WhatsApp, y plantilla del mensaje de salida en frío.
 - Canal C, cuando el listado salga de Under Review: agregar el enlace a la demo y quote-northline.pdf editando el proyecto aprobado (D38).
 - Cierre: docs/STATE.md con el resultado del DONE de SPEC 17, punto por punto.
+
+## Bloque 10 · Quote premium
+
+Objetivo: que el configurador resista una comparacion lado a lado con un configurador comercial de referencia (D48), con ese nivel en core (SPEC 18).
+
+- TAREA_023, pipeline de render y pantalla de carga: criterios en docs/tareas/TAREA_023_pipeline_de_render_y_carga.md.
