@@ -12,15 +12,13 @@ TAREA_023, pipeline de render y pantalla de carga (D49). Codigo en 10d469e.
 
 ## Proximo
 
-Canal B acepta o no TAREA_024 por el criterio 6b y decide el halo contra el bloom (D59).
-Para TAREA_025: revisar la sombra de apoyo con CanvasTexture.
+Canal B acepta o no TAREA_024 por el criterio 6b y decide halo contra bloom (D59). Para TAREA_025: revisar la sombra de apoyo con CanvasTexture.
 Bloque 9, Canal C, sigue pendiente: portfolio de Upwork, planilla de precios, lista de Tucuman y el enlace a la demo cuando el listado salga de Under Review.
 
 ## Bloqueos
 
 TAREA_024, criterio 6b: el derrame del bloom sale de la banda del halo y el halo tiene borde duro desde antes. Detalle en la tarea.
-Pendiente D18: el contraste del texto sobre `.q-on` cuando entre la identidad nueva.
-Pendiente D30: etapa 2 de SPEC 6.2, `gated`, `internal` y `?view=owner`.
+Pendientes D18 (contraste del texto sobre `.q-on` con la identidad nueva) y D30 (etapa 2 de SPEC 6.2, `gated`, `internal` y `?view=owner`).
 
 ## Comando para retomar
 
