@@ -1,5 +1,5 @@
 import { useState, type MouseEvent } from 'react'
-import type { ClientPhoto, PhotoAnchor, SignSelection } from '../../../core/types'
+import type { ClientPhoto, PhotoAnchor, PhotoGroundAnchor, SignSelection } from '../../../core/types'
 import type { LoadingBrand } from '../../../core/ui/LoadingScreen'
 import { PhotoStage } from '../PhotoStage'
 import type { SignVisual } from '../visuals'
@@ -10,6 +10,8 @@ import type { SignVisual } from '../visuals'
 // Los rotulos son los nombres de las claves del JSON a proposito: lo que se lee en
 // pantalla se copia tal cual a photos[].anchor.
 // Usa el mismo PhotoStage que el preview, sin zoom: se calibra contra el SignBoard real.
+// Desde la version 2.7 (D85) dibuja tambien la linea de anchorGround.wallY, donde la fachada toca
+// la vereda en la columna del apoyo, y la deja ajustar con su control.
 
 type CalibrationPreviewProps = {
   selection: SignSelection
@@ -38,11 +40,15 @@ export function CalibrationPreview({ selection, visual, theme, photos, loading }
   const [anchors, setAnchors] = useState<Record<string, PhotoAnchor>>(() =>
     Object.fromEntries(photos.map((item) => [item.id, item.anchor])),
   )
+  const [grounds, setGrounds] = useState<Record<string, PhotoGroundAnchor | undefined>>(() =>
+    Object.fromEntries(photos.map((item) => [item.id, item.anchorGround])),
+  )
   const [pointer, setPointer] = useState<Pointer | null>(null)
 
   const basePhoto = photos.find((item) => item.id === photoId) ?? photos[0]
   const anchor = anchors[basePhoto.id]
-  const photo: ClientPhoto = { ...basePhoto, anchor }
+  const ground = grounds[basePhoto.id]
+  const photo: ClientPhoto = { ...basePhoto, anchor, anchorGround: ground }
 
   function updateAnchor(patch: Partial<PhotoAnchor>): void {
     setAnchors((current) => ({ ...current, [basePhoto.id]: { ...current[basePhoto.id], ...patch } }))
@@ -58,8 +64,15 @@ export function CalibrationPreview({ selection, visual, theme, photos, loading }
     }
   }
 
+  function updateWallY(wallY: number): void {
+    setGrounds((current) => {
+      const known = current[basePhoto.id]
+      return known === undefined ? current : { ...current, [basePhoto.id]: { ...known, wallY } }
+    })
+  }
+
   const json = JSON.stringify(
-    photos.map((item) => ({ id: item.id, anchor: anchors[item.id] })),
+    photos.map((item) => ({ id: item.id, anchor: anchors[item.id], anchorGround: grounds[item.id] })),
     null,
     2,
   )
@@ -100,6 +113,13 @@ export function CalibrationPreview({ selection, visual, theme, photos, loading }
           className="pointer-events-none absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[var(--q-accent)]"
           style={{ left: `${String(anchor.x * 100)}%`, top: `${String(anchor.y * 100)}%` }}
         />
+        {ground === undefined ? null : (
+          <div
+            data-calibration-wall
+            className="pointer-events-none absolute inset-x-0 h-0.5 bg-[var(--q-accent)] opacity-80"
+            style={{ top: `${String(ground.wallY * 100)}%` }}
+          />
+        )}
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -141,6 +161,25 @@ export function CalibrationPreview({ selection, visual, theme, photos, loading }
           <span className="w-14 shrink-0 text-right">{anchor[slider.key]}</span>
         </label>
       ))}
+
+      {ground === undefined ? null : (
+        <label className="flex items-center gap-3">
+          <span className="w-28 shrink-0">wallY</span>
+          <input
+            type="range"
+            data-calibration-key="wallY"
+            className="q-range h-8 min-w-0 flex-1"
+            min={0.5}
+            max={1}
+            step={0.001}
+            value={ground.wallY}
+            onChange={(event) => {
+              updateWallY(event.currentTarget.valueAsNumber)
+            }}
+          />
+          <span className="w-14 shrink-0 text-right">{ground.wallY}</span>
+        </label>
+      )}
 
       <button
         type="button"

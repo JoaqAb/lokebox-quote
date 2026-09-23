@@ -58,6 +58,8 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
 class CoverageToneMappingEffect extends Effect {
   private readonly attenuation = new WebGLRenderTarget(1, 1)
   private readonly clearColor = new Color()
+  // Target de 1 x 1 del render que redibuja los mapas de sombra con las capas de la camara.
+  private readonly shadowRefresh = new WebGLRenderTarget(1, 1)
   private readonly scene: Scene
   private readonly camera: Camera
 
@@ -78,10 +80,11 @@ class CoverageToneMappingEffect extends Effect {
     }
   }
 
-  // Dibuja solo la capa de atenuacion, sobre transparente. La camara vuelve a sus capas. Los mapas
-  // de sombra no se vuelven a dibujar: three dibuja en ellos solo lo que esta en las capas de la
-  // camara, y con la camara en esta capa los dejaria vacios. Se usan los del pase principal, que
-  // ya corrio en este cuadro.
+  // Dibuja solo la capa de atenuacion, sobre transparente. La camara vuelve a sus capas.
+  // Los mapas de sombra se dibujan antes, con las capas de la camara principal: three dibuja en
+  // ellos solo lo que esta en las capas de la camara del render, y otro pase del mismo cuadro (la
+  // seleccion del bloom, con la camara en su capa) los deja sin los objetos de la capa 0. Despues,
+  // el render de la capa de atenuacion no los vuelve a dibujar.
   override update(renderer: WebGLRenderer): void {
     const mask = this.camera.layers.mask
     const background = this.scene.background
@@ -89,8 +92,12 @@ class CoverageToneMappingEffect extends Effect {
     const autoUpdate = renderer.shadowMap.autoUpdate
     const needsUpdate = renderer.shadowMap.needsUpdate
     renderer.getClearColor(this.clearColor)
-    this.camera.layers.set(ATTENUATION_LAYER)
+    // Los mapas de sombra se redibujan con un render de la escena entera en un target de 1 x 1: three
+    // solo los dibuja dentro de un render, y asi el costo de pixeles es nulo.
     this.scene.background = null
+    renderer.setRenderTarget(this.shadowRefresh)
+    renderer.render(this.scene, this.camera)
+    this.camera.layers.set(ATTENUATION_LAYER)
     renderer.shadowMap.autoUpdate = false
     renderer.shadowMap.needsUpdate = false
     renderer.setRenderTarget(this.attenuation)
@@ -111,6 +118,7 @@ class CoverageToneMappingEffect extends Effect {
   override dispose(): void {
     super.dispose()
     this.attenuation.dispose()
+    this.shadowRefresh.dispose()
   }
 }
 

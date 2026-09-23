@@ -18,6 +18,7 @@ import {
   totemLayout,
   orbitPosition,
   photoCameraPose,
+  groundPointAt,
   photoShadowVolume,
   tintedLightColor,
   signFrameDistance,
@@ -229,6 +230,19 @@ export function SignScene({
     return { volume: { width, height, depth: SET.sign.thickness }, center: [0, 0, 0] }
   }, [letters, totem, bounds, width, height, letterDepth])
   const ground = totem && photo !== null ? (photo.anchorGround ?? null) : null
+  // Totem en vista (version 2.7, D85): donde la camara ve la linea de fachada sobre el piso, en la
+  // columna del apoyo. El receptor de piso termina ahi.
+  const canvasSize = useThree((state) => state.size)
+  const canvasAspect = canvasSize.width / canvasSize.height
+  const floorWallZ = useMemo(() => {
+    if (photo === null || ground === null) {
+      return null
+    }
+    const { anchor } = photo
+    const pose = photoCameraPose(ground, { yawDeg: anchor.cameraYawDeg, pitchDeg: anchor.cameraPitchDeg }, anchor.fovDeg, canvasAspect)
+    const point = groundPointAt(pose, anchor.fovDeg, canvasAspect, ground.x, ground.wallY)
+    return point === null ? null : point[2]
+  }, [photo, ground, canvasAspect])
   // La camara de sombra cubre el cartel en modo cartel y, en modo vista, tambien el receptor de
   // la sombra proyectada (version 2.5, D76).
   const shadowReach = studioShadowReach(photo === null ? frame.volume : photoShadowVolume(frame.volume, totem && letters === null), frame.center)
@@ -296,6 +310,7 @@ export function SignScene({
         mount={mount}
         photoLight={photo === null ? null : photo.light}
         textBounds={letters === null ? null : bounds}
+        floorWallZ={floorWallZ}
       />
     </>
   )

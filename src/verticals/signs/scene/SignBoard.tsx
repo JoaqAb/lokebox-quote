@@ -3,7 +3,12 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import {
   Color,
   CylinderGeometry,
+  DataTexture,
   DoubleSide,
+  LinearFilter,
+  NoColorSpace,
+  RGBAFormat,
+  UnsignedByteType,
   type Group,
   type Mesh,
   type MeshBasicMaterial,
@@ -13,6 +18,7 @@ import {
 import { ATTENUATION_LAYER, BLOOM_LAYER } from '../../../core/preview/render'
 import type { MaterialVisual, Mount, PhotoLight } from '../../../core/types'
 import { haloCellGeometry } from './haloGeometry'
+import { letterHaloGrid } from './letterHalo'
 import { SignText3D, type LetterPart } from './SignText3D'
 import {
   applyFinish,
@@ -63,7 +69,7 @@ import {
   type SignPlacement,
   type TextBounds,
 } from './sceneGeometry'
-import type { Typeface } from './typeface'
+import { textPolygons, type Typeface } from './typeface'
 
 // El conjunto entero: cartel, texto 3D, halo, sombra de apoyo y la unica luz dinamica, con
 // un solo useFrame. Repartirlos los deja desincronizados durante las transiciones de medida.
@@ -140,6 +146,9 @@ type SignBoardProps = {
   photoLight: PhotoLight | null
   // Modo letters: el contorno de la tinta, que rodea el halo. null en modo area.
   textBounds: TextBounds | null
+  // Totem en vista: la profundidad de la linea de fachada sobre el piso, donde termina el
+  // receptor de piso (version 2.7, D85). null sin foto o sin linea.
+  floorWallZ: number | null
 }
 
 type Surfaces = { panel: Surface; letter: Surface; relief: Surface }
@@ -176,6 +185,7 @@ export function SignBoard({
   mount,
   photoLight,
   textBounds,
+  floorWallZ,
 }: SignBoardProps) {
   const signRef = useRef<Mesh>(null)
   const shellRef = useRef<Mesh>(null)
@@ -188,6 +198,8 @@ export function SignBoard({
   const lampRef = useRef<PointLight>(null)
   const shadowRef = useRef<Mesh>(null)
   const standoffRefs = useRef<(Mesh | null)[]>([])
+  const letterHaloRef = useRef<Mesh>(null)
+  const letterHaloMaterialRef = useRef<MeshBasicMaterial>(null)
   const wallRef = useRef<Mesh>(null)
   const floorRef = useRef<Mesh>(null)
   const wallMaterialRef = useRef<ShadowMaterial>(null)
@@ -212,6 +224,39 @@ export function SignBoard({
   })
   const targetColor = useMemo(() => new Color(material.color), [material.color])
   const reliefColor = useMemo(() => new Color(textColor), [textColor])
+  // Halo de letras (version 2.7, D86): la distancia a la tinta de todo el texto, en una textura en
+  // alto de mayuscula 1. Se arma cuando cambia el texto y se libera al cambiar o al desmontar.
+  const letterHalo = useMemo(() => {
+    if (typeface === null || letters === null || letters.length === 0) {
+      return null
+    }
+    const grid = letterHaloGrid(textPolygons(typeface, letters), HALO_LETTERS_BAND)
+    const data = new Uint8Array(grid.width * grid.height * 4)
+    grid.alpha.forEach((value, index) => {
+      const level = Math.round(value * 255)
+      data.set([level, level, level, 255], index * 4)
+    })
+    const texture = new DataTexture(data, grid.width, grid.height, RGBAFormat, UnsignedByteType)
+    texture.magFilter = LinearFilter
+    texture.minFilter = LinearFilter
+    // Es un dato, no un color: sin espacio de color. alphaMap lee el canal verde.
+    texture.colorSpace = NoColorSpace
+    texture.needsUpdate = true
+    return {
+      texture,
+      size: [grid.width * grid.cell, grid.height * grid.cell] as const,
+      center: [grid.originX + (grid.width * grid.cell) / 2, grid.originY + (grid.height * grid.cell) / 2] as const,
+    }
+  }, [typeface, letters])
+  useEffect(() => {
+    // Pasar de sin textura a con textura cambia el programa del material.
+    if (letterHaloMaterialRef.current !== null) {
+      letterHaloMaterialRef.current.needsUpdate = true
+    }
+    return () => {
+      letterHalo?.texture.dispose()
+    }
+  }, [letterHalo])
   const { width: boxWidth, height: boxHeight } = placement.box
   // El panel redondeado se arma a la medida objetivo (version 2.4): el radio de los cantos va
   // en metros y no sobrevive a un scale. Se libera al cambiar de medida y al desmontar.
@@ -366,6 +411,18 @@ export function SignBoard({
       : { box: { width: state.width, height: state.height }, center: [0, 0] }
     const band = lettersMode ? state.height * HALO_LETTERS_BAND : haloMargin({ box: { width: state.width, height: state.height } })
     const cells = haloCells({ box: contour.box }, band)
+    // En letters el halo es el de la distancia a la tinta (D86) y las nueve celdas no se dibujan.
+    const letterHaloMesh = letterHaloRef.current
+    const letterHaloMaterial = letterHaloMaterialRef.current
+    if (letterHaloMesh !== null && letterHaloMaterial !== null) {
+      letterHaloMesh.visible = lettersMode && letterHalo !== null && state.haloOpacity > VISIBLE_EPSILON
+      if (letterHalo !== null) {
+        letterHaloMesh.scale.set(letterHalo.size[0] * state.height, letterHalo.size[1] * state.height, 1)
+        letterHaloMesh.position.set(letterHalo.center[0] * state.height, letterHalo.center[1] * state.height, haloBox(placement, mount).z)
+      }
+      letterHaloMaterial.color.copy(state.color).multiplyScalar(HALO.radiance)
+      letterHaloMaterial.opacity = state.haloOpacity
+    }
     const haloZ = haloBox(placement, mount).z
     const haloVisible = state.haloOpacity > VISIBLE_EPSILON
     cells.forEach((cell, index) => {
@@ -376,7 +433,7 @@ export function SignBoard({
       }
       mesh.position.set(contour.center[0] + cell.position[0], contour.center[1] + cell.position[1], haloZ)
       mesh.scale.set(cell.size[0], cell.size[1], 1)
-      mesh.visible = haloVisible
+      mesh.visible = haloVisible && !lettersMode
       haloMaterial.color.copy(state.color).multiplyScalar(HALO.radiance)
       haloMaterial.opacity = state.haloOpacity
     })
@@ -393,8 +450,10 @@ export function SignBoard({
       wall.position.set(contour.center[0], contour.center[1], receiver.z)
       wall.scale.set(receiver.size[0], receiver.size[1], 1)
       if (totem) {
-        const [floorWidth, floorDepth] = floorReceiver(totemLayout({ width: state.width, height: state.height }).volume).size
-        floor.scale.set(floorWidth, floorDepth, 1)
+        // Termina en la linea de fachada de la foto (version 2.7, D85).
+        const receiverFloor = floorReceiver(totemLayout({ width: state.width, height: state.height }).volume, floorWallZ)
+        floor.scale.set(receiverFloor.size[0], receiverFloor.size[1], 1)
+        floor.position.z = receiverFloor.centerZ
       }
       for (const material of [wallMaterialRef.current, floorMaterialRef.current]) {
         if (material !== null) {
@@ -512,6 +571,18 @@ export function SignBoard({
             />
           </mesh>
         ))}
+
+        <mesh ref={letterHaloRef} visible={false}>
+          <planeGeometry args={UNIT_PLANE} />
+          <meshBasicMaterial
+            ref={letterHaloMaterialRef}
+            alphaMap={letterHalo?.texture ?? null}
+            transparent
+            opacity={0}
+            depthWrite={false}
+            toneMapped={false}
+          />
+        </mesh>
 
         <mesh ref={wallRef} visible={false} receiveShadow>
           <planeGeometry args={UNIT_PLANE} />

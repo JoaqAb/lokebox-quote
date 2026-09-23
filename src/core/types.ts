@@ -57,6 +57,9 @@ export type PhotoGroundAnchor = {
   x: number
   y: number
   metersToWidth: number
+  // Fraccion del alto de la foto donde la fachada toca la vereda en la columna del apoyo
+  // (SPEC 10, version 2.7, D85). El receptor de piso del totem termina ahi.
+  wallY: number
 }
 
 export type PhotoLight = {

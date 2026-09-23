@@ -178,14 +178,34 @@ describe('validateClientConfig: photos', () => {
 })
 
 describe('validateClientConfig: anchorGround', () => {
-  it('las dos fotos de los dos clientes traen anchorGround, compartido entre Front y Night', () => {
+  // Version 2.7 (D85): wallY es de cada foto, porque la linea de fachada cae distinto en cada una.
+  it('las dos fotos de los dos clientes traen anchorGround, compartido entre Front y Night salvo wallY', () => {
     for (const slug of ['northline', 'norte']) {
       const [day, night] = clientOrFail(slug).photos
       expect(day.anchorGround).toBeDefined()
-      expect(night.anchorGround).toEqual(day.anchorGround)
+      expect({ ...night.anchorGround, wallY: 0 }).toEqual({ ...day.anchorGround, wallY: 0 })
       // El totem esta mas cerca de la camara que la fachada.
       expect(day.anchorGround?.metersToWidth).toBeGreaterThan(day.anchor.metersToWidth)
     }
+  })
+
+  it('wallY es obligatorio, entre 0 y 1 y por encima del apoyo', () => {
+    for (const slug of ['northline', 'norte']) {
+      for (const photo of clientOrFail(slug).photos) {
+        const ground = photo.anchorGround
+        expect(ground?.wallY).toBeGreaterThan(0)
+        expect(ground?.wallY).toBeLessThan(ground?.y ?? 0)
+      }
+    }
+    const missing = structuredClone(northline) as unknown as { photos: { anchorGround: { wallY?: number } }[] }
+    delete missing.photos[0].anchorGround.wallY
+    expect(() => validateClientConfig(missing)).toThrow(/anchorGround.wallY/)
+    const below = structuredClone(northline)
+    below.photos[1].anchorGround.wallY = 0.95
+    expect(() => validateClientConfig(below)).toThrow(/photos\[1\].anchorGround.wallY/)
+    const outside = structuredClone(northline)
+    outside.photos[0].anchorGround.wallY = -0.1
+    expect(() => validateClientConfig(outside)).toThrow(/wallY/)
   })
 
   it('falla si el cliente ofrece totem y una foto no tiene anchorGround, con slug e id de foto', () => {

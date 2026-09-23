@@ -13,6 +13,7 @@ import {
   glyphAdvance,
   glyphBounds,
   textBounds,
+  textPolygons,
 } from './typeface'
 // El mismo archivo que sirve public/ en TYPEFACE_SRC. Se escribio con JSON.stringify
 // compacto, asi su serializacion es la del archivo. Desde que el subset trae N con
@@ -151,6 +152,27 @@ describe('geometria de cada letra', () => {
     expect(groupNormalZ(relief, TEXT_FACE.front)).toBeCloseTo(1, 6)
     letter.dispose()
     relief.dispose()
+  })
+
+  // Version 2.7, D86: los contornos del halo de letras coinciden con la letra, sin el bisel.
+  it('textPolygons ubica los contornos de cada letra como su geometria, con los huecos', () => {
+    const layout = layoutLetters('HO', 1, (char) => glyphAdvance(typeface, char))
+    const polygons = textPolygons(typeface, layout.boxes)
+    // H: un contorno; O: contorno y hueco.
+    expect(polygons).toHaveLength(3)
+    const xs = polygons.flat().map(([x]) => x)
+    const ys = polygons.flat().map(([, y]) => y)
+    const bounds = textBounds(typeface, 'HO')
+    if (bounds === null) {
+      throw new Error('HO tiene que tener contorno')
+    }
+    // La geometria suma el bisel por fuera del contorno.
+    expect(Math.min(...xs)).toBeCloseTo(bounds.minX + TEXT_3D.bevelSize, 1)
+    // La O sobresale apenas de la mayuscula, arriba y abajo.
+    expect(Math.max(...ys)).toBeGreaterThanOrEqual(0.5 - 1e-6)
+    expect(Math.max(...ys)).toBeLessThan(0.53)
+    expect(Math.min(...ys)).toBeGreaterThan(-0.53)
+    expect(textPolygons(typeface, layoutLetters('   ', 1, (char) => glyphAdvance(typeface, char)).boxes)).toEqual([])
   })
 
   it('la curva usa curveSegments 4 y el bisel es chico', () => {

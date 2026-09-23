@@ -35,6 +35,7 @@ import {
   standoffPositions,
   wallGap,
   photoCameraPose,
+  groundPointAt,
   orbitPosition,
   photoCameraDistance,
   signFrameDistance,
@@ -364,10 +365,53 @@ describe('sombra proyectada en vista (version 2.5, D76)', () => {
     expect(wallReceiver(box, 'flush').z).toBeGreaterThan(wall.z)
   })
 
-  it('el receptor de piso cubre el totem mas el margen de piso', () => {
+  it('el receptor de piso cubre el totem mas el margen de piso, y sin linea de fachada llega al margen atras', () => {
     const volume = totemLayout(box).volume
-    expect(floorReceiver(volume).size).toEqual([volume.width + 2 * SHADOW_RECEIVER.floorMargin, volume.depth + 2 * SHADOW_RECEIVER.floorMargin])
+    const free = floorReceiver(volume, null)
+    expect(free.size).toEqual([volume.width + 2 * SHADOW_RECEIVER.floorMargin, volume.depth + 2 * SHADOW_RECEIVER.floorMargin])
+    expect(free.centerZ).toBeCloseTo(0, 10)
     expect(SHADOW_RECEIVER.floorMargin).toBeGreaterThan(SHADOW_RECEIVER.margin)
+  })
+
+  // Version 2.7, D85: el receptor de piso termina en la linea de fachada.
+  it('con linea de fachada el receptor termina en su profundidad, detras del apoyo', () => {
+    const volume = totemLayout(box).volume
+    const front = volume.depth / 2 + SHADOW_RECEIVER.floorMargin
+    const clipped = floorReceiver(volume, -1.2)
+    expect(clipped.centerZ + clipped.size[1] / 2).toBeCloseTo(front, 10)
+    expect(clipped.centerZ - clipped.size[1] / 2).toBeCloseTo(-1.2, 10)
+    // Una linea mas lejos que el margen no lo agranda, y una delante del apoyo lo deja en el apoyo.
+    expect(floorReceiver(volume, -9).size[1]).toBeCloseTo(2 * front, 10)
+    expect(floorReceiver(volume, 0.4).centerZ - floorReceiver(volume, 0.4).size[1] / 2).toBeCloseTo(0, 10)
+  })
+
+  it('groundPointAt devuelve el apoyo en (x, y) del anclaje y la linea de fachada detras de el', () => {
+    const ground = { x: 0.23, y: 0.925, metersToWidth: 0.13 }
+    const aspect = 16 / 9
+    const pose = photoCameraPose(ground, { yawDeg: 0, pitchDeg: 0 }, 40, aspect)
+    const origin = groundPointAt(pose, 40, aspect, ground.x, ground.y)
+    if (origin === null) {
+      throw new Error('el rayo del apoyo tiene que bajar al piso')
+    }
+    origin.forEach((value) => {
+      expect(value).toBeCloseTo(0, 9)
+    })
+    const wall = groundPointAt(pose, 40, aspect, ground.x, 0.863)
+    if (wall === null) {
+      throw new Error('el rayo de la linea de fachada tiene que bajar al piso')
+    }
+    expect(wall[2]).toBeLessThan(-1)
+    expect(wall[1]).toBe(0)
+    // Proyectado de vuelta con la misma camara, cae en (x del apoyo, wallY).
+    const camera = new PerspectiveCamera(40, aspect, 0.05, 200)
+    camera.position.set(...pose.position)
+    camera.lookAt(...pose.target)
+    camera.updateMatrixWorld()
+    const ndc = new Vector3(...wall).project(camera)
+    expect((ndc.x + 1) / 2).toBeCloseTo(ground.x, 9)
+    expect((1 - ndc.y) / 2).toBeCloseTo(0.863, 9)
+    // Por encima del horizonte el rayo no baja al piso.
+    expect(groundPointAt(pose, 40, aspect, ground.x, 0.2)).toBeNull()
   })
 
   it('la camara de sombra de vista cubre el receptor', () => {

@@ -18,7 +18,7 @@
       "label": "Front",
       "src": "/assets/quote/backgrounds/northline-front-day.webp",
       "anchor": { "x": 0.501, "y": 0.2, "metersToWidth": 0.1, "cameraYawDeg": 0, "cameraPitchDeg": 0, "fovDeg": 40 },
-      "anchorGround": { "x": 0.23, "y": 0.925, "metersToWidth": 0.13 },
+      "anchorGround": { "x": 0.23, "y": 0.925, "metersToWidth": 0.13, "wallY": 0.863 },
       "light": { "ambient": 0.9, "keyIntensity": 1.4, "keyAzimuthDeg": -25, "keyElevationDeg": 35 }
     },
     {
@@ -26,7 +26,7 @@
       "label": "Night",
       "src": "/assets/quote/backgrounds/northline-front-night.webp",
       "anchor": { "x": 0.501, "y": 0.2, "metersToWidth": 0.1, "cameraYawDeg": 0, "cameraPitchDeg": 0, "fovDeg": 40 },
-      "anchorGround": { "x": 0.23, "y": 0.925, "metersToWidth": 0.13 },
+      "anchorGround": { "x": 0.23, "y": 0.925, "metersToWidth": 0.13, "wallY": 0.862 },
       "light": { "ambient": 0.35, "keyIntensity": 0.4, "keyAzimuthDeg": 0, "keyElevationDeg": 20 }
     }
   ],

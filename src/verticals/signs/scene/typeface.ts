@@ -1,7 +1,8 @@
 import type { BufferGeometry } from 'three'
 import { Font, type FontData } from 'three/examples/jsm/loaders/FontLoader.js'
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
-import { layoutLetters, type TextBounds } from './sceneGeometry'
+import type { Polygon } from './letterHalo'
+import { layoutLetters, type LetterBox, type TextBounds } from './sceneGeometry'
 import { disposeSurfaceParts, splitSurface, type SurfaceParts } from './surfaceParts'
 
 // El typeface del texto 3D del cartel (SPEC 12, version 1.14): Archivo Black subsetado a
@@ -187,4 +188,26 @@ export function disposeGlyphGeometries(): void {
     geometry?.dispose()
   }
   cache.clear()
+}
+
+// Contornos de las letras de un texto ya compuesto, en alto de mayuscula, con el mismo origen que
+// sus geometrias: centradas en su avance y en la mayuscula (version 2.7, D86). Los usa el halo de
+// letras para medir la distancia a la tinta. Contornos y huecos van juntos: se rellenan par e impar.
+export function textPolygons(typeface: Typeface, letters: LetterBox[]): Polygon[] {
+  const size = typeface.font.data.resolution / typeface.capUnits
+  const polygons: Polygon[] = []
+  for (const letter of letters) {
+    const glyph = glyphOf(typeface, letter.char)
+    if (glyph?.o === undefined || glyph.o.length === 0) {
+      continue
+    }
+    const dx = letter.x - glyph.ha / typeface.capUnits / 2
+    for (const shape of typeface.font.generateShapes(letter.char, size)) {
+      const points = shape.extractPoints(TEXT_3D.curveSegments)
+      for (const ring of [points.shape, ...points.holes]) {
+        polygons.push(ring.map((point): [number, number] => [point.x + dx, point.y - 0.5]))
+      }
+    }
+  }
+  return polygons
 }

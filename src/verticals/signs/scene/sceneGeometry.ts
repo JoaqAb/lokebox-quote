@@ -219,9 +219,13 @@ export function wallReceiver(box: SignBox, mount: Mount | null): { z: number; si
 }
 
 // El receptor de piso del totem: horizontal en el origen, que es el apoyo de la base, con el
-// ancho y la profundidad del totem mas el margen de piso por lado.
-export function floorReceiver(volume: SignVolume): { size: [number, number] } {
-  return { size: [volume.width + 2 * SHADOW_RECEIVER.floorMargin, volume.depth + 2 * SHADOW_RECEIVER.floorMargin] }
+// ancho del totem mas el margen de piso por lado. Hacia adelante llega al margen de piso; hacia
+// atras termina en la linea de fachada (version 2.7, D85), la profundidad wallZ donde la vereda
+// toca la fachada, que es negativa porque queda detras del apoyo. Sin linea de fachada, el margen.
+export function floorReceiver(volume: SignVolume, wallZ: number | null): { size: [number, number]; centerZ: number } {
+  const front = volume.depth / 2 + SHADOW_RECEIVER.floorMargin
+  const back = wallZ === null ? -front : Math.min(0, Math.max(-front, wallZ))
+  return { size: [volume.width + 2 * SHADOW_RECEIVER.floorMargin, front - back], centerZ: (front + back) / 2 }
 }
 
 // La caja que tiene que cubrir la camara de sombra en modo vista: la del cartel mas lo que el
@@ -692,6 +696,30 @@ export function orbitPosition(yawDeg: number, pitchDeg: number, distance: number
 // (yaw, pitch) alrededor del cartel mirando hacia el. Corrige la del 14/09, que miraba al origen y
 // lo corria con un lens shift: con pitch 0 la camara del totem quedaba a la altura del piso.
 export type PhotoPoint = { x: number; y: number; metersToWidth: number }
+
+// El punto del piso (y 0) que la camara de vista ve en (x, y) de la foto: el rayo por ese punto del
+// cuadro cortado con el plano del piso. null si el rayo no baja hasta el piso. Con el anclaje de
+// piso del totem, el origen es el apoyo de la base y el piso es y 0 (version 2.7, D85).
+export function groundPointAt(pose: { position: Vec3; target: Vec3 }, fovDeg: number, aspect: number, x: number, y: number): Vec3 | null {
+  const [px, py, pz] = pose.position
+  const forward: Vec3 = [pose.target[0] - px, pose.target[1] - py, pose.target[2] - pz]
+  const flat = Math.hypot(forward[0], forward[2])
+  const right: Vec3 = flat === 0 ? [1, 0, 0] : [-forward[2] / flat, 0, forward[0] / flat]
+  const up: Vec3 = [
+    right[1] * forward[2] - right[2] * forward[1],
+    right[2] * forward[0] - right[0] * forward[2],
+    right[0] * forward[1] - right[1] * forward[0],
+  ]
+  const t = tanHalf(fovDeg)
+  const across = (2 * x - 1) * t * aspect
+  const along = (1 - 2 * y) * t
+  const ray: Vec3 = [0, 1, 2].map((i) => forward[i] + right[i] * across + up[i] * along) as Vec3
+  if (ray[1] >= 0) {
+    return null
+  }
+  const k = -py / ray[1]
+  return [px + ray[0] * k, 0, pz + ray[2] * k]
+}
 
 export function photoCameraPose(
   point: PhotoPoint,

@@ -415,13 +415,18 @@ function readGroundAnchor(entry: Raw, slug: string, path: string): PhotoGroundAn
   const x = readNumber(ground, 'x', slug, `${path}.anchorGround.x`)
   const y = readNumber(ground, 'y', slug, `${path}.anchorGround.y`)
   const metersToWidth = readNumber(ground, 'metersToWidth', slug, `${path}.anchorGround.metersToWidth`)
+  const wallY = readNumber(ground, 'wallY', slug, `${path}.anchorGround.wallY`)
   if (x < 0 || x > 1 || y < 0 || y > 1) {
     fail(slug, `${path}.anchorGround.x e y tienen que estar entre 0 y 1.`)
   }
   if (metersToWidth <= 0) {
     fail(slug, `${path}.anchorGround.metersToWidth debe ser mayor a 0.`)
   }
-  return { x, y, metersToWidth }
+  // wallY (version 2.7, D85): la linea de fachada esta por encima del apoyo, en la foto.
+  if (wallY < 0 || wallY > 1 || wallY >= y) {
+    fail(slug, `${path}.anchorGround.wallY tiene que estar entre 0 y 1 y por encima de anchorGround.y.`)
+  }
+  return { x, y, metersToWidth, wallY }
 }
 
 // Modo de visibilidad de precio (SPEC 6.2 y 10). Sin el objeto, o con el objeto y sin la
