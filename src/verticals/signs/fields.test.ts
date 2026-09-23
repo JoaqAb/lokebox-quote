@@ -191,3 +191,44 @@ describe('buildPanelFields por modo y applyFieldChange', () => {
     }
   })
 })
+
+describe('pasos del panel y swatch (version 2.8, D94)', () => {
+  it('seis pasos seguidos: tipo, texto, medidas, material, iluminacion y cantidad, en los dos modos', () => {
+    for (const slug of listClientSlugs()) {
+      const config = clientOrFail(slug)
+      for (const type of ['facade', 'letters']) {
+        const fields = buildPanelFields(config, { ...defaultSelection(config), type })
+        const steps = fields.map((field) => field.step).filter((step, index, list) => list[index - 1] !== step)
+        expect(steps).toEqual(['type', 'text', 'measures', 'material', 'lighting', 'quantity'])
+        // Los pasos no se repiten: cada uno es un tramo seguido.
+        expect(new Set(steps).size).toBe(steps.length)
+      }
+    }
+  })
+
+  it('el ultimo paso lleva el titulo de la cantidad y la instalacion va primero, como en SPEC 5.2', () => {
+    const config = clientOrFail('northline')
+    const last = buildPanelFields(config, defaultSelection(config)).filter((field) => field.step === 'quantity')
+    expect(last.map((field) => field.id)).toEqual(['installation', 'quantity'])
+    expect(last[0].stepTitleKey).toBe('quantityLabel')
+  })
+
+  it('los materiales llevan swatch con el color del JSON, y los demas choice no', () => {
+    for (const slug of listClientSlugs()) {
+      const config = clientOrFail(slug)
+      const fields = buildPanelFields(config, defaultSelection(config))
+      for (const field of fields) {
+        if (field.control.kind !== 'choice') {
+          continue
+        }
+        for (const choice of field.control.choices) {
+          if (field.id === 'materialId') {
+            expect(choice.swatch).toBe(config.options.materials.find((item) => item.id === choice.id)?.visual.color)
+          } else {
+            expect(choice.swatch).toBeUndefined()
+          }
+        }
+      }
+    }
+  })
+})

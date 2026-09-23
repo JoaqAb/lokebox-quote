@@ -137,3 +137,39 @@
     mask-image: linear-gradient(to bottom, black calc(100% - 24px), transparent 100%);
   }
 }
+
+/* Pasos del panel (D94). El numero sale de un contador de CSS y no es texto de la pagina: los
+   titulos son las etiquetas que ya existen en texts (D96). */
+.q-steps {
+  counter-reset: q-step;
+}
+
+.q-step {
+  counter-increment: q-step;
+}
+
+.q-step-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.q-step-title::before {
+  content: counter(q-step);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--q-accent);
+  color: var(--q-bg);
+}
+
+/* Swatch de una opcion (D94): el color del descriptor, con el borde del tema para que un color
+   parecido al fondo del control no se pierda. */
+.q-swatch {
+  box-shadow: 0 0 0 1px var(--q-border);
+}

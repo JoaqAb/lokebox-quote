@@ -35,6 +35,9 @@ import {
   standoffPositions,
   wallGap,
   photoCameraPose,
+  containBox,
+  zoomBy,
+  zoomFromPinch,
   groundPointAt,
   orbitPosition,
   photoCameraDistance,
@@ -691,5 +694,30 @@ describe('totem de verdad', () => {
     }
     expect(TOTEM_STRUCTURE_METALNESS).toBe(0.2)
     expect(TOTEM_STRUCTURE_ROUGHNESS).toBe(0.6)
+  })
+})
+
+describe('zona del preview (version 2.8, D91 y D92)', () => {
+  it('la caja contain entra entera y centrada, con la proporcion de la foto', () => {
+    const wide = containBox({ width: 1040, height: 848 }, 16 / 9)
+    expect(wide.width).toBe(1040)
+    expect(wide.height).toBeCloseTo(585, 10)
+    expect(wide.top).toBeCloseTo((848 - 585) / 2, 10)
+    const tall = containBox({ width: 390, height: 354 }, 16 / 9)
+    expect(tall.width).toBe(390)
+    const narrow = containBox({ width: 1200, height: 400 }, 16 / 9)
+    expect(narrow.height).toBe(400)
+    expect(narrow.left).toBeCloseTo((1200 - 400 * (16 / 9)) / 2, 10)
+    expect(containBox({ width: 0, height: 300 }, 16 / 9).width).toBe(0)
+  })
+
+  it('la rueda y el pinch acercan y alejan dentro del rango de SPEC 12', () => {
+    const range = { min: 1, max: 2.5 }
+    expect(zoomBy(1, -100, range)).toBeGreaterThan(1)
+    expect(zoomBy(1, 100, range)).toBe(1)
+    expect(zoomBy(2.4, -1000, range)).toBe(2.5)
+    expect(zoomFromPinch(1, 100, 200, range)).toBe(2)
+    expect(zoomFromPinch(2, 100, 20, range)).toBe(1)
+    expect(zoomFromPinch(1.5, 0, 50, range)).toBe(1.5)
   })
 })

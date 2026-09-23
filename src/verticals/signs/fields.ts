@@ -9,6 +9,8 @@ import type { ClientConfig, SignSelection } from '../../core/types'
 // Los descriptores dependen del tipo elegido (SPEC 4.2): el modo area muestra ancho y
 // alto, el modo letters alto de letra y profundidad, y solo los materiales con precio
 // por letra. Todas las funciones son puras, sin React.
+// Desde la version 2.8 (D94) cada descriptor declara su paso: tipo, texto, medidas, material,
+// iluminacion y cantidad, con la instalacion junto a la cantidad y en el orden de SPEC 5.2.
 
 const STEPPER_STEP = 1
 
@@ -25,6 +27,7 @@ export function buildPanelFields(config: ClientConfig, selection: SignSelection)
           {
             id: 'width',
             labelKey: 'widthLabel',
+            step: 'measures',
             control: {
               kind: 'range',
               min: options.width.min,
@@ -36,6 +39,7 @@ export function buildPanelFields(config: ClientConfig, selection: SignSelection)
           {
             id: 'height',
             labelKey: 'heightLabel',
+            step: 'measures',
             control: {
               kind: 'range',
               min: options.height.min,
@@ -49,6 +53,7 @@ export function buildPanelFields(config: ClientConfig, selection: SignSelection)
           {
             id: 'letterHeight',
             labelKey: 'letterHeightLabel',
+            step: 'measures',
             control: {
               kind: 'range',
               min: options.letterHeight.min,
@@ -60,6 +65,7 @@ export function buildPanelFields(config: ClientConfig, selection: SignSelection)
           {
             id: 'depthId',
             labelKey: 'depthLabel',
+            step: 'measures',
             control: { kind: 'choice', choices: labeledChoices(options.depths) },
           },
         ]
@@ -67,11 +73,13 @@ export function buildPanelFields(config: ClientConfig, selection: SignSelection)
     {
       id: 'type',
       labelKey: 'typeLabel',
+            step: 'type',
       control: { kind: 'choice', choices: labeledChoices(options.types) },
     },
     {
       id: 'text',
       labelKey: 'signTextLabel',
+            step: 'text',
       // Mayusculas: el typeface del texto 3D solo trae A a Z, 0 a 9 y espacio (SPEC 12).
       control: { kind: 'text', maxLength: options.signText.maxLength, uppercase: true },
     },
@@ -79,16 +87,26 @@ export function buildPanelFields(config: ClientConfig, selection: SignSelection)
     {
       id: 'materialId',
       labelKey: 'materialLabel',
-      control: { kind: 'choice', choices: labeledChoices(materialsForMode(options, mode)) },
+            step: 'material',
+      // Swatch con el color del material (version 2.8, D94): el core lo pinta sin saber que es.
+      control: {
+        kind: 'choice',
+        choices: materialsForMode(options, mode).map((item) => ({ id: item.id, label: item.label, swatch: item.visual.color })),
+      },
     },
     {
       id: 'lightingId',
       labelKey: 'lightingLabel',
+            step: 'lighting',
       control: { kind: 'choice', choices: labeledChoices(options.lighting) },
     },
     {
       id: 'installation',
       labelKey: 'installationLabel',
+            step: 'quantity',
+            // El ultimo paso es el de la cantidad (D94): lleva su titulo aunque la instalacion va
+            // primero, en el orden de SPEC 5.2.
+            stepTitleKey: 'quantityLabel',
       control: {
         kind: 'boolean',
         trueLabel: texts.installationYes,
@@ -98,6 +116,7 @@ export function buildPanelFields(config: ClientConfig, selection: SignSelection)
     {
       id: 'quantity',
       labelKey: 'quantityLabel',
+            step: 'quantity',
       control: {
         kind: 'stepper',
         min: options.quantity.min,

@@ -7,6 +7,8 @@ import { ThanksScreen } from './ThanksScreen'
 
 // Unico componente con estado del flujo del lead. No hay estado de error:
 // un insert fallido termina igual en thanks, por SPEC 7.3.
+// Desde la version 2.8 (D93) vive en el bloque fijo de precio: los botones van en una fila, y el
+// formulario y la confirmacion se abren en el mismo bloque.
 
 type LeadState = 'idle' | 'form' | 'sending' | 'thanks'
 
@@ -49,23 +51,23 @@ export function LeadSection({
 
   if (state === 'thanks') {
     return (
-      <section className="mt-8">
+      <section data-cta className="mt-3">
         <ThanksScreen texts={texts} quoteHref={quoteHref} />
       </section>
     )
   }
 
   return (
-    <section className="mt-8 flex flex-col gap-3">
+    <section data-cta className="mt-3 flex flex-col gap-2">
       {state === 'idle' ? (
-        <>
+        <div className="flex gap-2">
           {showWhatsapp ? (
             <a
               href={whatsappLink(whatsappNumber, whatsappMessage)}
               target="_blank"
               rel="noopener noreferrer"
               onClick={onWhatsappClick}
-              className={PRIMARY}
+              className={`${PRIMARY} flex-1`}
             >
               {texts.ctaWhatsapp}
             </a>
@@ -73,7 +75,7 @@ export function LeadSection({
           {showForm ? (
             <button
               type="button"
-              className={showWhatsapp ? SECONDARY : PRIMARY}
+              className={`${showWhatsapp ? SECONDARY : PRIMARY} flex-1`}
               onClick={() => {
                 setState('form')
               }}
@@ -81,7 +83,7 @@ export function LeadSection({
               {texts.ctaForm}
             </button>
           ) : null}
-        </>
+        </div>
       ) : (
         <>
           <p className="text-sm font-medium text-[var(--q-text)]">{texts.formTitle}</p>

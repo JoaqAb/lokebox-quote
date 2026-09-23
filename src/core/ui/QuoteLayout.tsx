@@ -2,55 +2,49 @@ import { useEffect, useMemo, useRef, type ReactNode } from 'react'
 import { themeFromClient } from '../theme'
 import type { ClientConfig } from '../types'
 
-// Layout de SPEC 4.1. No conoce ninguna vertical: recibe preview, panel y precio como nodos.
-// Desktop (1024 px o mas): dos columnas, preview a la izquierda con el 58% del ancho,
-// panel con scroll propio a la derecha y el bloque de precio al pie de esa columna.
-// Menos de 1024 px: una columna, preview 16/9 arriba y barra de precio fija al pie de la ventana.
-// En mobile el padding inferior del panel se deriva de la altura real de la barra, medida
-// con ResizeObserver y publicada en --q-price-h. Un valor fijo tapaba el ultimo control
-// cuando el disclaimer ocupa mas de una linea.
-// En lg la columna del preview centra el marco en vertical. El marco se queda en 16/9
-// porque la escena esta compuesta para esa relacion: estirarlo descuadra la camara, que
-// SPEC 12 fija. Centrado, el sobrante se reparte arriba y abajo en vez de caer todo al
-// pie, que era el aire muerto anotado en STATE.
-// El nombre de la marca no se repite al lado del logo: viaja en el alt de la imagen.
-// El contenedor de scroll del panel desvanece sus ultimos 24 px con .q-scroll-fade (D24),
-// que solo aplica en lg, que es donde ese contenedor es el que scrollea.
-// En el modo hidden de SPEC 6.2 no hay bloque de precio: price llega undefined, la barra no
-// se monta y el relleno inferior de mobile deja de reservar su alto. Con el relleno de la
-// barra y sin barra quedaba un hueco de 13 rem al pie del panel.
+// Layout de SPEC 4.1, version 2.8 (D90, D93, D95). No conoce ninguna vertical: recibe preview,
+// panel, precio y CTA como nodos.
+// - Header compacto en una linea: logo, titulo y subtitulo mas chico. El nombre de la marca no se
+//   repite al lado del logo: viaja en el alt de la imagen.
+// - Desktop (1024 px o mas): el preview ocupa todo el ancho menos el panel y todo el alto util
+//   (100dvh menos el header). El panel mide 400 px, con scroll propio, y deja fijos al pie el precio
+//   y el CTA.
+// - Menos de 1024 px: el preview queda arriba, sticky, con 42svh de alto, y el panel scrollea
+//   debajo. La barra fija al pie lleva precio y CTA.
+// El relleno inferior del panel en mobile se deriva de la altura real de la barra, medida con
+// ResizeObserver y publicada en --q-price-h: la barra crece si el disclaimer ocupa mas de una linea
+// o si se abre el formulario, y un valor fijo tapaba el ultimo control.
+// El contenedor de scroll del panel desvanece sus ultimos 24 px con .q-scroll-fade (D24), solo en
+// lg, que es donde ese contenedor es el que scrollea. El bloque de pie lleva .q-price-edge.
+// En el modo hidden de SPEC 6.2 no hay precio: price llega undefined y el bloque de pie lleva solo
+// el CTA.
 
 type QuoteLayoutProps = {
   config: ClientConfig
   preview: ReactNode
   panel: ReactNode
   price?: ReactNode
+  cta: ReactNode
 }
 
-// Dos cadenas completas y no una armada por concatenacion: Tailwind escanea el texto del
-// archivo y una clase partida en pedazos no se genera.
-const PANEL_PAD_WITH_BAR = 'pb-[calc(var(--q-price-h,13rem)+2rem+env(safe-area-inset-bottom))]'
-const PANEL_PAD_NO_BAR = 'pb-[calc(2rem+env(safe-area-inset-bottom))]'
-
-export function QuoteLayout({ config, preview, panel, price }: QuoteLayoutProps) {
+export function QuoteLayout({ config, preview, panel, price, cta }: QuoteLayoutProps) {
   const { brand, texts } = config
   const rootRef = useRef<HTMLDivElement>(null)
-  const priceRef = useRef<HTMLDivElement>(null)
+  const footRef = useRef<HTMLDivElement>(null)
   const themeStyle = useMemo(() => themeFromClient(config), [config])
 
   useEffect(() => {
     const root = rootRef.current
-    const priceBox = priceRef.current
-    // Sin bloque de precio no hay nada que medir: el relleno del panel ya no lo usa.
-    if (root === null || priceBox === null) {
+    const foot = footRef.current
+    if (root === null || foot === null) {
       return undefined
     }
     const observer = new ResizeObserver(() => {
-      root.style.setProperty('--q-price-h', `${String(priceBox.offsetHeight)}px`)
+      root.style.setProperty('--q-price-h', `${String(foot.offsetHeight)}px`)
     })
-    // Border box: lo que se mide con offsetHeight, y lo unico que cambia si la barra
-    // suma padding, por ejemplo el safe area de un telefono.
-    observer.observe(priceBox, { box: 'border-box' })
+    // Border box: lo que se mide con offsetHeight, y lo unico que cambia si la barra suma
+    // padding, por ejemplo el safe area de un telefono.
+    observer.observe(foot, { box: 'border-box' })
     return () => {
       observer.disconnect()
     }
@@ -62,42 +56,42 @@ export function QuoteLayout({ config, preview, panel, price }: QuoteLayoutProps)
       style={themeStyle}
       className="flex min-h-dvh flex-col bg-[var(--q-bg)] text-[var(--q-text)] lg:h-dvh lg:overflow-hidden"
     >
-      <header className="shrink-0 q-hairline border-b px-4 py-4 sm:px-6 lg:px-8">
-        <img src={brand.logo} alt={brand.name} className="h-8 w-auto" />
-        <h1 className="mt-3 text-2xl leading-tight font-semibold tracking-tight sm:text-3xl lg:text-4xl">
+      <header className="q-hairline flex shrink-0 items-center gap-3 border-b px-4 py-2.5 sm:px-6 lg:gap-4">
+        <img src={brand.logo} alt={brand.name} className="h-7 w-auto shrink-0" />
+        <h1 className="min-w-0 truncate text-base leading-tight font-semibold tracking-tight sm:text-lg md:shrink-0">
           {texts.headline}
         </h1>
-        <p className="mt-1 max-w-2xl text-sm text-[var(--q-muted)] sm:text-base">
-          {texts.subheadline}
-        </p>
+        <p className="hidden min-w-0 flex-1 truncate text-sm text-[var(--q-muted)] md:block">{texts.subheadline}</p>
       </header>
 
       <main className="flex flex-1 flex-col lg:min-h-0 lg:flex-row">
-        <div className="shrink-0 p-4 sm:p-6 lg:flex lg:min-h-0 lg:w-[58%] lg:flex-col lg:justify-center lg:p-8">
+        <div
+          data-preview-area
+          className="sticky top-0 z-10 h-[42svh] shrink-0 lg:static lg:h-auto lg:min-h-0 lg:min-w-0 lg:flex-1"
+        >
           {preview}
         </div>
 
-        <div className="flex flex-1 flex-col lg:min-h-0 lg:q-hairline lg:border-l">
-          <div
-            className={`q-scroll-fade px-4 sm:px-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:px-8 lg:pb-8 ${
-              price === undefined ? PANEL_PAD_NO_BAR : PANEL_PAD_WITH_BAR
-            }`}
-          >
+        <aside
+          data-panel
+          className="flex flex-1 flex-col lg:min-h-0 lg:w-[400px] lg:flex-none lg:shrink-0 lg:q-hairline lg:border-l"
+        >
+          <div className="q-scroll-fade px-4 pb-[calc(var(--q-price-h,12rem)+2rem+env(safe-area-inset-bottom))] sm:px-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pb-8">
             {panel}
             {config.poweredBy ? (
               <footer className="mt-10 pb-4 text-xs text-[var(--q-muted)]">{texts.poweredBy}</footer>
             ) : null}
           </div>
 
-          {price === undefined ? null : (
-            <div
-              ref={priceRef}
-              className="fixed inset-x-0 bottom-0 z-20 lg:static lg:z-auto lg:shrink-0"
-            >
-              {price}
-            </div>
-          )}
-        </div>
+          <div
+            ref={footRef}
+            data-price-foot
+            className="q-hairline q-panel q-price-edge fixed inset-x-0 bottom-0 z-20 border-t px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-6 lg:static lg:z-auto lg:shrink-0 lg:pb-4"
+          >
+            {price}
+            {cta}
+          </div>
+        </aside>
       </main>
     </div>
   )

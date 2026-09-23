@@ -747,6 +747,36 @@ export function photoCameraPose(
   return { position, target: [position[0] + forward[0], position[1] + forward[1], position[2] + forward[2]] }
 }
 
+// Zona del preview (version 2.8, D91 y D92). Tamanos en px.
+export type Size = { width: number; height: number }
+
+// La caja de una foto de proporcion aspect, entera dentro de la zona (contain) y centrada.
+export function containBox(zone: Size, aspect: number): { left: number; top: number; width: number; height: number } {
+  if (zone.width <= 0 || zone.height <= 0 || aspect <= 0) {
+    return { left: 0, top: 0, width: 0, height: 0 }
+  }
+  const width = Math.min(zone.width, zone.height * aspect)
+  const height = width / aspect
+  return { left: (zone.width - width) / 2, top: (zone.height - height) / 2, width, height }
+}
+
+// Zoom con la rueda: un paso de rueda (100 px de deltaY) cambia el zoom por el factor de
+// WHEEL_ZOOM, hacia adentro con deltaY negativo, siempre dentro del rango.
+export const WHEEL_ZOOM = 0.15
+
+export function zoomBy(current: number, deltaY: number, range: { min: number; max: number }): number {
+  const next = current * Math.exp((-deltaY / 100) * WHEEL_ZOOM)
+  return Math.min(range.max, Math.max(range.min, next))
+}
+
+// Zoom con dos dedos: el del comienzo del gesto por la razon entre las distancias, dentro del rango.
+export function zoomFromPinch(startZoom: number, startDistance: number, distance: number, range: { min: number; max: number }): number {
+  if (startDistance <= 0) {
+    return startZoom
+  }
+  return Math.min(range.max, Math.max(range.min, (startZoom * distance) / startDistance))
+}
+
 // El control de zoom va de min a max. En modo cartel lo traduce a un multiplicador de la
 // distancia derivada de la huella: min es 1 y max es nearFactor.
 export function signZoomFactor(zoom: number, range: { min: number; max: number }): number {

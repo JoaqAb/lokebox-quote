@@ -6,7 +6,8 @@ import { Stepper } from './controls/Stepper'
 import { TextInput } from './controls/TextInput'
 import type { PanelField, SelectionValue } from './panelTypes'
 
-// Panel generico: recorre los descriptores en el orden recibido y despacha por kind.
+// Panel generico: recorre los descriptores en el orden recibido y despacha por kind. Desde la
+// version 2.8 (D94) los agrupa en pasos numerados, segun el step de cada descriptor.
 // No importa nada de src/verticals ni de src/clients. Los textos salen de texts.
 
 type OptionsPanelProps = {
@@ -121,6 +122,20 @@ function FieldControlView({ field, label, locale, value, onChange }: FieldRowPro
   )
 }
 
+// Pasos del panel (version 2.8, D94): los campos seguidos con el mismo step van juntos.
+function groupSteps(fields: PanelField[]): PanelField[][] {
+  const steps: PanelField[][] = []
+  for (const field of fields) {
+    const last = steps.at(-1)
+    if (last !== undefined && last[0].step === field.step) {
+      last.push(field)
+    } else {
+      steps.push([field])
+    }
+  }
+  return steps
+}
+
 export function OptionsPanel({
   title,
   fields,
@@ -129,26 +144,36 @@ export function OptionsPanel({
   locale,
   onChange,
 }: OptionsPanelProps) {
+  // El numero de cada paso lo pone un contador de CSS (.q-steps): no es texto de la pagina.
   return (
-    <section className="pt-6">
+    <section className="pt-5">
       <h2 className="text-xs font-semibold tracking-[0.18em] text-[var(--q-muted)] uppercase">{title}</h2>
-      <div className="mt-4 flex flex-col gap-6">
-        {fields.map((field) => {
-          const label = texts[field.labelKey]
-          return (
-            <div key={field.id} className="flex flex-col gap-2">
-              <p className="text-sm font-medium text-[var(--q-text)]">{label}</p>
-              <FieldControlView
-                field={field}
-                label={label}
-                locale={locale}
-                value={values[field.id]}
-                onChange={onChange}
-              />
-            </div>
-          )
-        })}
-      </div>
+      <ol className="q-steps mt-4 flex flex-col gap-6">
+        {groupSteps(fields).map((step) => (
+          <li key={step[0].step} className="q-step flex flex-col gap-3" data-step={step[0].step}>
+            <h3 className="q-step-title text-sm font-semibold text-[var(--q-text)]">
+              {texts[step[0].stepTitleKey ?? step[0].labelKey]}
+            </h3>
+            {step.map((field) => {
+              const label = texts[field.labelKey]
+              // La etiqueta que ya es el titulo del paso no se repite.
+              const titled = field.labelKey === (step[0].stepTitleKey ?? step[0].labelKey)
+              return (
+                <div key={field.id} className="flex flex-col gap-2">
+                  {titled ? null : <p className="text-sm font-medium text-[var(--q-text)]">{label}</p>}
+                  <FieldControlView
+                    field={field}
+                    label={label}
+                    locale={locale}
+                    value={values[field.id]}
+                    onChange={onChange}
+                  />
+                </div>
+              )
+            })}
+          </li>
+        ))}
+      </ol>
     </section>
   )
 }

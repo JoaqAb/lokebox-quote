@@ -74,7 +74,10 @@ function QuoteScreen({ config }: QuoteScreenProps) {
   // El mensaje de WhatsApp se arma aca: la vertical traduce ids a etiquetas y el core
   // solo reemplaza los placeholders de la plantilla del cliente.
   const tokens = signLeadTokens(config, selection, result, display)
-  const whatsappMessage = buildWhatsappMessage(signWhatsappTemplate(config, selection, display), tokens)
+  // Solo si el CTA incluye WhatsApp: en hidden la plantilla sin precio es obligatoria solo con
+  // WhatsApp (SPEC 10), y un cliente hidden con cta form no la trae (TAREA_028).
+  const whatsappMessage =
+    config.cta === 'form' ? '' : buildWhatsappMessage(signWhatsappTemplate(config, selection, display), tokens)
 
   // La hoja se abre con un enlace nativo, no con window.open: asi el navegador no lo
   // bloquea y la pestana del cotizador conserva el estado del visitante.
@@ -117,13 +120,16 @@ function QuoteScreen({ config }: QuoteScreenProps) {
         // El modo de calibracion es de desarrollo: import.meta.env.DEV vale false en el
         // build de produccion, asi que esta rama y su modulo quedan fuera del bundle.
         import.meta.env.DEV && searchParams.get('calibrate') === '1' ? (
-          <CalibrationPreview
-            selection={selection}
-            visual={visual}
-            theme={theme}
-            photos={config.photos}
-            loading={loading}
-          />
+          // El area del preview tiene alto fijo desde la version 2.8 (D90): la herramienta scrollea.
+          <div className="h-full overflow-y-auto p-4">
+            <CalibrationPreview
+              selection={selection}
+              visual={visual}
+              theme={theme}
+              photos={config.photos}
+              loading={loading}
+            />
+          </div>
         ) : (
           <SignPreview
             selection={selection}
@@ -151,18 +157,20 @@ function QuoteScreen({ config }: QuoteScreenProps) {
           {display === 'hidden' ? null : (
             <PriceBreakdown result={result} config={config} areaUnit={areaUnit} />
           )}
-          <LeadSection
-            cta={config.cta}
-            texts={config.texts}
-            whatsappNumber={config.brand.whatsapp}
-            whatsappMessage={whatsappMessage}
-            onSubmitForm={handleSubmitForm}
-            onWhatsappClick={handleWhatsappClick}
-            quoteHref={quoteHref}
-          />
         </>
       }
       price={display === 'hidden' ? undefined : <PriceBar result={result} config={config} display={display} />}
+      cta={
+        <LeadSection
+          cta={config.cta}
+          texts={config.texts}
+          whatsappNumber={config.brand.whatsapp}
+          whatsappMessage={whatsappMessage}
+          onSubmitForm={handleSubmitForm}
+          onWhatsappClick={handleWhatsappClick}
+          quoteHref={quoteHref}
+        />
+      }
     />
   )
 }

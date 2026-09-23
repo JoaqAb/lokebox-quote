@@ -33,6 +33,19 @@ function FirstFrame({ onFirstFrame }: { onFirstFrame: () => void }) {
   return null
 }
 
+// Mapas de sombra una vez por cuadro (SPEC 12, version 2.8, D88). three los dibuja en cada render
+// con los objetos de las capas de la camara de ese render, y el composer hace varios por cuadro: la
+// seleccion del bloom, con la camara en su capa, los dejaba sin los objetos de la capa 0. Con
+// autoUpdate apagado, se piden una vez por cuadro antes del composer (prioridad 0, que corre antes
+// que su 1): los dibuja el primer render, el pase principal con la camara en las capas que
+// proyectan, y los demas los reusan. autoUpdate se apaga al crear el canvas.
+function ShadowMaps() {
+  useFrame((state) => {
+    state.gl.shadowMap.needsUpdate = true
+  }, 0)
+  return null
+}
+
 export function PreviewCanvas({ loading, children }: PreviewCanvasProps) {
   // Una vez al montar y nunca mas (D46).
   const [quality] = useState(() => pickQuality(readDevice()))
@@ -45,9 +58,13 @@ export function PreviewCanvas({ loading, children }: PreviewCanvasProps) {
         shadows="percentage"
         dpr={quality.dpr}
         gl={{ antialias: false, alpha: true }}
+        onCreated={(state) => {
+          state.gl.shadowMap.autoUpdate = false
+        }}
         className="!absolute inset-0"
         style={{ background: 'transparent' }}
       >
+        <ShadowMaps />
         <Suspense fallback={null}>
           {children}
           <RenderPipeline quality={quality} />
