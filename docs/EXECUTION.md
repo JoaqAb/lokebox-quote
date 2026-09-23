@@ -32,4 +32,5 @@ Sin tareas de código salvo arreglos bloqueantes.
 
 Objetivo: que el configurador resista una comparacion lado a lado con un configurador comercial de referencia (D48), con ese nivel en core (SPEC 18).
 
-- TAREA_026, integracion fotografica: criterios en docs/tareas/TAREA_026_integracion_fotografica.md.
+- TAREA_027, sombra del totem en vereda y halo de letras sin meseta: criterios en docs/tareas/TAREA_027_sombra_del_totem_y_halo_de_letras.md.
+- TAREA_028, panel y composicion (D83): pendiente de brief.

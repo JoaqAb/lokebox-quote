@@ -4,15 +4,15 @@
 
 ## Bloque actual
 
-Bloque 10, Quote premium, con SPEC 2.6 (D70 a D82). TAREA_026 entregada con codigo en 202caa2: sombra de vista como atenuacion en el core, totem sin halo en vista, camara de vista fuera del eje, banda del halo de letras en 0,8 y casado de tono con la foto. 288 tests en verde. Primer frame en slow 4G 3,9 s.
+Bloque 10, Quote premium, con SPEC 2.7 (D83 a D86). TAREA_027 abierta: el receptor de piso del totem termina en la linea de fachada (anchorGround.wallY) y el halo de letras decrece desde la tinta, sin saturar ni hacer meseta.
 
 ## Ultimo cerrado
 
-TAREA_025, detalle del objeto y halo (D70). Codigo en 2360566.
+TAREA_026, integracion fotografica, cerrada con D83 (sombra del totem y halo de letras a TAREA_027). Codigo en 202caa2.
 
 ## Proximo
 
-Canal B acepta o no TAREA_026: forma del halo 21 de 24 por las letras de norte de dia, y la luminancia de chapa y acrilico en vista movida por la camara de D81. Bloque 10 tiene una tarea mas.
+Ejecutar TAREA_027 (docs/tareas/TAREA_027_sombra_del_totem_y_halo_de_letras.md). Despues, TAREA_028 (panel y composicion), pendiente de brief.
 Bloque 9, Canal C, sigue pendiente: portfolio de Upwork, planilla de precios, lista de Tucuman y el enlace a la demo cuando el listado salga de Under Review.
 
 ## Bloqueos

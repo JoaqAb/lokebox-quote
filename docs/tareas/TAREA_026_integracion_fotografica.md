@@ -152,7 +152,9 @@ Commits: docs de D79 a D82 y SPEC 2.6; codigo; cierre. Despues, push de todo.
 
 ## Resultado (23/09/2026)
 
-Estado: entregada. Codigo en 202caa2. Mediciones en `validacion/premium/026/` (`medir.py`,
+Estado: cerrada con D83. Se acepta en composicion, camara, totem sin halo, tono, anclaje y carga;
+la sombra del totem y el halo de letras pasan a TAREA_027, panel y composicion a TAREA_028. Codigo en
+202caa2. Mediciones en `validacion/premium/026/` (`medir.py`,
 `medir_rev.py`, `comp/medir_comp.py`, `quad/medir_quad.py`, `c4.txt` a `c9.txt`, `carga.txt`),
 capturas en `despues/` (220) y sondas en `sonda-halo/`, `totem/`, `sintinte/`, `comp/`.
 
