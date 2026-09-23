@@ -89,7 +89,8 @@ Despues, push.
 
 ## Resultado (23/09/2026)
 
-Estado: entregada. Codigo en 443b042. Mediciones en `validacion/premium/027/` (`medir027.py`,
+Estado: cerrada. Canal B la acepta el 23/09 (D87); el render de 1x1 de los mapas de sombra se reemplaza
+en TAREA_028 (D88). Codigo en 443b042. Mediciones en `validacion/premium/027/` (`medir027.py`,
 `medir_letras.py`, `medir_c5.py`, `comp/medir_comp.py`, `c3.txt`, `c5.txt`, `c6-*.txt`,
 `calibracion.txt`, `carga.txt`), capturas en `despues/` (220), recortes en `recortes/` y sondas en
 `letras-0.8/`, `c5-solo/`, `comp/` y `calibracion/`.
