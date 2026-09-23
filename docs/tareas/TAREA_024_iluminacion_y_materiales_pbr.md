@@ -158,3 +158,38 @@ descargado o si el primer frame en slow 4G pasa de 6 s (segunda revision, D60 a 
 4. docs: cierre de TAREA_024.
 
 Despues de los tres, push.
+
+## Resultado (23/09/2026)
+
+Estado: entregada, cierre pendiente de Canal B por el criterio 6b. Codigo en a0ee0d1.
+Mediciones en `validacion/premium/024/` (`medir2.py`, `c3.txt` a `c6-despues.txt`), capturas en
+`despues/` y `sinbloom/`, 202 cuadros por corrida.
+
+1. G1 a G6: tsc, lint y build limpios, 259 tests en verde.
+2. Capturas: si. `antes/` con 10d469e, `despues/` y `sinbloom/` con el material en el nombre.
+3. Separacion en modo cartel: 36 de 36. De frente, minimo 10,3; en cartel60, minimo 7,3 (chapa
+   contra acrilico). Antes, de frente: 12 de 18, acrilico contra PVC con mediana 1,0.
+3b. Vista, dato (D61): acrilico menos PVC en p95 menos p50, de -0,7 a 2,4 de dia. Con la fuente
+   especular de 10 grados la media de la cara se mueve 3 niveles y el brillo no aparece: de
+   frente la cara refleja lo que esta detras de la camara y el sol de la foto queda a unos 42
+   grados. Con una fuente de 80 grados la media sube 20 niveles y el contraste sigue en 0 a 2.
+4. Bloom: none y front, 0 pixeles distintos contra sin bloom en los 108 cuadros. En back cambian
+   emisores y entorno; 16 cuadros de back sin cambio, todos de PVC o chapa en fachada o totem,
+   sin emisor visible de frente, como dice D50.
+5. Luminancia por material: cara front mayor que none 45 de 45, opacos back menor que front 30 de
+   30, anillo 27 de 27. Acrilico back mayor que front 12 de 15 y desviacion 13 de 15: fallan las
+   letras de acrilico (cartel en los dos clientes y northline de noche), con la cara en 222 en
+   front y en back.
+6a. Si: diferencia 0 fuera del cartel en none y front, los dos clientes.
+6b. No. El derrame del bloom sale de la banda del halo: hasta 124 niveles en el borde de la banda
+   con acrilico, y en letras la banda mide 3 o 4 pixeles. Con levels 1 y radius 0,2 fachada y
+   totem entran, las letras siguen afuera y el bloom deja de verse. Aparte, el halo de
+   CanvasTexture tiene borde duro desde antes de esta tarea: salto de 43 a 92 niveles sin bloom.
+   Con el bloom de la apertura ese borde queda tapado (D59). Se deja el bloom de la apertura.
+7. Primer frame con build de produccion: sin throttling 2,4 s, fast 4G 1,4 s, slow 4G 3,9 s.
+   567 kB transferidos, sin assets 3D salvo el typeface. La pantalla de carga sigue en su lugar;
+   con un solo asset en el LoadingManager el progreso salta de 0 a 100 en un paso (inferido).
+8. Si: `src/core` sin imports de `src/verticals` ni de `src/clients` fuera de los tests.
+9. Tests nuevos: validacion de `materials[].visual`, generadores de mapas y rig de estudio.
+
+Decisiones de ejecucion en DECISIONES (23/09/2026, TAREA_024).
