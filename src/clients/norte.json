@@ -36,8 +36,8 @@
   "options": {
     "signText": { "default": "NORTE", "maxLength": 18 },
     "types": [
-      { "id": "facade", "label": "Cartel de fachada", "priceFixed": 0, "pricing": "area" },
-      { "id": "totem", "label": "Tótem", "priceFixed": 270000, "pricing": "area" },
+      { "id": "facade", "label": "Cartel de fachada", "priceFixed": 0, "pricing": "area", "visual": { "mount": "standoff" } },
+      { "id": "totem", "label": "Tótem", "priceFixed": 270000, "pricing": "area", "visual": { "mount": "flush" } },
       { "id": "letters", "label": "Letras corpóreas", "priceFixed": 0, "pricing": "letters" }
     ],
     "width": { "min": 0.6, "max": 6, "step": 0.1, "default": 2.5 },

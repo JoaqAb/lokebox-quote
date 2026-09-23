@@ -16,6 +16,12 @@ export const RENDER = {
     radius: 0.6,
     levels: 6,
   },
+  // Tone mapping sobre el canvas transparente (version 2.4, CoverageToneMapping): donde el alpha
+  // del resplandor del bloom pasa de glowAlpha el pixel es luz y se mapea como siempre; debajo,
+  // es cobertura y se mapea lineal en su alpha. Medio nivel de 8 bits: por debajo no se ve.
+  coverage: {
+    glowAlpha: 0.002,
+  },
 } as const
 
 // Capa de three de los emisores (SPEC 12 y 18, version 2.1). La vertical la habilita en las

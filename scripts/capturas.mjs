@@ -8,7 +8,8 @@
 // Desde TAREA_024 la matriz suma, con luz none y front, el cuadro cartel60: modo cartel girado 60
 // grados. Con `premium <carpeta> sinbloom` la misma matriz sale con el dev server sin bloom
 // (VITE_QUOTE_BLOOM=off), la referencia del criterio de bloom. cartel60 sale tambien con
-// luz front: la mascara de la cara es lo que cambia de none a front.
+// luz front: la mascara de la cara es lo que cambia de none a front. Desde TAREA_025 cartel60 sale
+// tambien con luz back.
 import { spawn } from 'node:child_process'
 import { mkdir, readFile, rm, stat } from 'node:fs/promises'
 import { chromium } from 'playwright'
@@ -230,7 +231,7 @@ async function capturePremium(browser, slug) {
           const name = `${slug}-${type}-${material.id}-${light.id}-${view.id}.png`
           await captureFrame(page, name)
           files.push(name)
-          if (view.id === 'cartel' && light.id !== 'back') {
+          if (view.id === 'cartel') {
             await rotate(page, 60)
             const turned = `${slug}-${type}-${material.id}-${light.id}-cartel60.png`
             await captureFrame(page, turned)

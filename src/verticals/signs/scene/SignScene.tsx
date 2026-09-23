@@ -2,7 +2,7 @@ import { OrbitControls, PerspectiveCamera } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import { MathUtils, Vector3, type PerspectiveCamera as PerspectiveCameraImpl } from 'three'
-import type { ClientPhoto, MaterialVisual, PhotoGroundAnchor } from '../../../core/types'
+import type { ClientPhoto, MaterialVisual, Mount, PhotoGroundAnchor } from '../../../core/types'
 import { SignBoard } from './SignBoard'
 import { StudioEnvironment } from '../../../core/preview/StudioEnvironment'
 import {
@@ -62,6 +62,8 @@ type SignSceneProps = {
   letterDepth: number
   // Tipo totem: panel sobre poste y base, con el origen en el piso.
   totem: boolean
+  // Montaje del panel (version 2.4, D68). null en letters.
+  mount: Mount | null
   structureColor: string
 }
 
@@ -180,6 +182,7 @@ export function SignScene({
   letterDepth,
   typeface,
   totem,
+  mount,
   structureColor,
 }: SignSceneProps) {
   // En modo vista la luz viene de la foto: cada foto dice de donde le pega el sol, para que
@@ -268,6 +271,9 @@ export function SignScene({
         totem={totem && letters === null}
         structureColor={structureColor}
         signMode={photo === null}
+        mount={mount}
+        haloAmbient={photo === null ? null : photo.light.ambient}
+        textBounds={letters === null ? null : bounds}
       />
     </>
   )

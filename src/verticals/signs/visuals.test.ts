@@ -55,6 +55,17 @@ describe('resolveSignVisual', () => {
   })
 })
 
+describe('resolveSignVisual: mount', () => {
+  // Version 2.4, D68: el montaje sale del tipo, y letters no monta un panel.
+  it('facade con standoff, totem al ras y letters sin montaje, en los dos clientes', () => {
+    for (const slug of listClientSlugs()) {
+      const config = clientOrFail(slug)
+      const mountOf = (type: string) => resolveSignVisual(config, { ...defaultSelection(config), type }).mount
+      expect([mountOf('facade'), mountOf('totem'), mountOf('letters')]).toEqual(['standoff', 'flush', null])
+    }
+  })
+})
+
 describe('lengthToMeters', () => {
   // 12.5
   it('convierte ft y m, y lanza con cualquier otra unidad', () => {

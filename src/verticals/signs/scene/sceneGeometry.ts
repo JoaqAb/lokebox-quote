@@ -1,5 +1,5 @@
 import { Color, MathUtils } from 'three'
-import type { PhotoLight, SignSelection } from '../../../core/types'
+import type { Mount, PhotoLight, SignSelection } from '../../../core/types'
 
 // Medidas y colores del cartel. Puro, sin React y sin JSX.
 // Desde el pivote de TAREA_010 no hay set: la fachada, la vereda, la vidriera y el poste
@@ -56,12 +56,87 @@ export function signPlacement(selection: SignSelection, lengthToMeters: number):
   return { box: signBoxMeters(selection, lengthToMeters) }
 }
 
-// El halo del modo back, solo en modo vista (SPEC 12, version 1.12): el degradado radial
-// detras del cartel, con un margen de 0,12 del alto del cartel por lado y opacidad maxima
-// 0,55. Se arma en nueve celdas: el centro queda tapado por el cartel, los bordes llevan
-// el perfil del degradado a lo largo del eje y las esquinas el cuarto de circulo, asi no
-// hay borde duro en ningun punto.
-export const HALO = { marginRatio: 0.12, maxOpacity: 0.55, gap: 0.008 } as const
+// Cantos del panel (SPEC 12, version 2.4): redondeados, porque un canto vivo no toma el brillo
+// del estudio y se lee como render. Radio en metros, con tope en fraccion del espesor para que
+// un panel fino no quede como una almohada. segments es el de RoundedBoxGeometry: con 2, cada
+// canto lleva cuatro tramos por cuarto de vuelta.
+export const EDGE_RADIUS_M = 0.004
+export const EDGE_RADIUS_MAX_RATIO = 0.3
+export const EDGE_SEGMENTS = 2
+
+export function panelEdgeRadius(thickness: number): number {
+  return Math.min(EDGE_RADIUS_M, thickness * EDGE_RADIUS_MAX_RATIO)
+}
+
+// Separadores del montaje standoff (SPEC 10, version 2.4, D68): cuatro cilindros de metal
+// cepillado entre la cara trasera del panel y la pared, metidos hacia adentro desde cada
+// esquina. Con standoff la pared queda wallGap detras del panel: halo, sombra de apoyo y la luz
+// de back se corren con ella. Son del producto, no del cliente: el JSON solo dice el montaje.
+export const STANDOFF = {
+  wallGap: 0.03,
+  diameter: 0.02,
+  inset: 0.06,
+  // En un panel chico el inset no pasa de esta fraccion del lado.
+  insetMaxRatio: 0.25,
+  radialSegments: 16,
+  color: '#C9CCD1',
+  metalness: 1,
+  roughness: 0.35,
+  anisotropy: 0.8,
+  normalScale: 0.15,
+} as const
+
+// Cuanto se aleja la pared de la cara trasera del panel. Sin montaje (letters) o al ras, nada.
+export function wallGap(mount: Mount | null): number {
+  return mount === 'standoff' ? STANDOFF.wallGap : 0
+}
+
+// Centros de los cuatro separadores, en metros, con el cartel centrado en el origen.
+export function standoffPositions(box: SignBox): Vec3[] {
+  const insetX = Math.min(STANDOFF.inset, box.width * STANDOFF.insetMaxRatio)
+  const insetY = Math.min(STANDOFF.inset, box.height * STANDOFF.insetMaxRatio)
+  const x = box.width / 2 - insetX
+  const y = box.height / 2 - insetY
+  const z = -SET.sign.thickness / 2 - STANDOFF.wallGap / 2
+  return [
+    [-x, y, z],
+    [x, y, z],
+    [-x, -y, z],
+    [x, -y, z],
+  ]
+}
+
+// El halo de back, solo en modo vista (SPEC 12, version 2.4, D65): la luz que los cantos tiran
+// sobre la pared. Una banda de 0,3 del alto del cartel por lado; en letters el alto del cartel
+// es el alto de letra. El perfil baja de 1 en el contorno a 0 en el borde con derivada 0 en el
+// borde, asi no hay escalon. Se arma en nueve celdas: el centro queda tapado por el cartel, los
+// bordes llevan el perfil a lo largo de la normal y las esquinas un cuarto de circulo.
+// Brillo: el color del material por radiance, la luz de los LED rebotada en la pared, que es
+// mas fuerte que el color del cartel a la luz del dia. Opacidad pico: maxOpacity con poca luz
+// ambiente, desde darkAmbient para abajo, y lineal hasta 0 con ambiente 1. Sale del light de la
+// foto elegida y no de un campo del JSON: de noche se lee y de dia apenas acompana.
+export const HALO = {
+  bandRatio: 0.3,
+  radiance: 8,
+  maxOpacity: 0.85,
+  darkAmbient: 0.35,
+  // Anillos del perfil y tramos de cada cuarto de circulo.
+  rings: 16,
+  arcSegments: 12,
+  gap: 0.008,
+} as const
+
+// Perfil del halo, de t 0 en el contorno a t 1 en el borde de la banda: 1 menos smoothstep.
+// Decrece, llega a 0 con derivada 0 y su pendiente maxima es 1,5 veces la media.
+export function haloProfile(t: number): number {
+  const x = Math.min(1, Math.max(0, t))
+  return 1 - x * x * (3 - 2 * x)
+}
+
+export function haloPeak(ambient: number): number {
+  const light = (1 - ambient) / (1 - HALO.darkAmbient)
+  return HALO.maxOpacity * Math.min(1, Math.max(0, light))
+}
 
 export type HaloCell = {
   kind: HaloCellKind
@@ -72,21 +147,23 @@ export type HaloCell = {
 export type HaloCellKind = 'center' | 'left' | 'right' | 'top' | 'bottom' | 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight'
 
 export function haloMargin(placement: SignPlacement): number {
-  return placement.box.height * HALO.marginRatio
+  return placement.box.height * HALO.bandRatio
 }
 
-export function haloBox(placement: SignPlacement): { z: number; size: [number, number] } {
+export function haloBox(placement: SignPlacement, mount: Mount | null): { z: number; size: [number, number] } {
   const margin = haloMargin(placement)
   return {
-    z: -SET.sign.thickness / 2 - HALO.gap,
+    z: -SET.sign.thickness / 2 - wallGap(mount) - HALO.gap,
     size: [placement.box.width + 2 * margin, placement.box.height + 2 * margin],
   }
 }
 
-// Las nueve celdas del halo, en metros, centradas en el origen del cartel.
-export function haloCells(placement: SignPlacement): HaloCell[] {
+// Las nueve celdas del halo, en metros, centradas en el centro del contorno. La banda es la del
+// alto del cartel; en letters el contorno es el de la tinta y no el de los avances, que es mas
+// ancho y dejaba halo fuera de la banda, pero la banda sigue siendo la del alto de letra.
+export function haloCells(placement: SignPlacement, band: number = haloMargin(placement)): HaloCell[] {
   const { width, height } = placement.box
-  const m = haloMargin(placement)
+  const m = band
   const ex = width / 2 + m / 2
   const ey = height / 2 + m / 2
   return [
@@ -102,16 +179,12 @@ export function haloCells(placement: SignPlacement): HaloCell[] {
   ]
 }
 
-// Coordenadas de textura de cada celda sobre el degradado radial, en el orden de los
-// vertices de un PlaneGeometry de 1 x 1: arriba izquierda, arriba derecha, abajo izquierda,
-// abajo derecha. 0,5 es el centro del degradado (opacidad plena) y 0 o 1 su borde (cero).
-export function haloCellUv(kind: HaloCellKind): number[] {
-  const inner = 0.5
-  const u = { left: [0, inner], right: [inner, 1], mid: [inner, inner] }
-  const v = { top: [1, inner], bottom: [inner, 0], mid: [inner, inner] }
-  const column = kind === 'left' || kind === 'topLeft' || kind === 'bottomLeft' ? u.left : kind === 'right' || kind === 'topRight' || kind === 'bottomRight' ? u.right : u.mid
-  const row = kind === 'top' || kind === 'topLeft' || kind === 'topRight' ? v.top : kind === 'bottom' || kind === 'bottomLeft' || kind === 'bottomRight' ? v.bottom : v.mid
-  return [column[0], row[0], column[1], row[0], column[0], row[1], column[1], row[1]]
+// Hacia donde crece la banda en cada celda: el signo en x y en y del lado de afuera. El centro
+// no tiene banda.
+export function haloCellOutward(kind: HaloCellKind): [number, number] {
+  const x = kind === 'left' || kind === 'topLeft' || kind === 'bottomLeft' ? -1 : kind === 'right' || kind === 'topRight' || kind === 'bottomRight' ? 1 : 0
+  const y = kind === 'top' || kind === 'topLeft' || kind === 'topRight' ? 1 : kind === 'bottom' || kind === 'bottomLeft' || kind === 'bottomRight' ? -1 : 0
+  return [x, y]
 }
 
 // Sombra de apoyo: ancha y baja, justo debajo del cartel, para que no flote sobre la foto.
@@ -123,14 +196,16 @@ export const SUPPORT_SHADOW = {
   offsetRatio: -0.62,
 } as const
 
+// Con standoff la sombra se corre con la pared.
 export function supportShadowBox(
   placement: SignPlacement,
+  mount: Mount | null,
 ): { position: Vec3; size: [number, number] } {
   return {
     position: [
       0,
       placement.box.height * SUPPORT_SHADOW.offsetRatio,
-      -SET.sign.thickness / 2 - SUPPORT_SHADOW.gap,
+      -SET.sign.thickness / 2 - wallGap(mount) - SUPPORT_SHADOW.gap,
     ],
     size: [
       placement.box.width * SUPPORT_SHADOW.widthRatio,
@@ -206,7 +281,8 @@ export type LightingParams = {
   faceEmissiveIntensity: number
   // Emision de los cantos y la cara trasera. En back es la que da la luz del cartel.
   edgeEmissiveIntensity: number
-  // Opacidad del halo, que solo se dibuja en modo vista.
+  // Cuanto del halo se dibuja, de 0 a 1, en fraccion del pico de la foto (haloPeak). Solo en
+  // modo vista.
   haloOpacity: number
   lampIntensity: number
   // Cada modo tiene su caida: front es un foco sobre la cara y back un lavado hacia atras.
@@ -243,7 +319,7 @@ export const LIGHTING: Record<'none' | 'front' | 'back', LightingParams> = {
   back: {
     faceEmissiveIntensity: 0.3,
     edgeEmissiveIntensity: 2.4,
-    haloOpacity: HALO.maxOpacity,
+    haloOpacity: 1,
     lampIntensity: 16,
     lampDecay: 1,
     lampDistance: 16,
@@ -290,7 +366,7 @@ export function signModeLightingParams(mode: string): LightingParams {
   return mode === BACK_MODE ? { ...params, ...SIGN_MODE_BACK_FACE } : params
 }
 
-export function lampPosition(mode: string, placement: SignPlacement): Vec3 | null {
+export function lampPosition(mode: string, placement: SignPlacement, mount: Mount | null): Vec3 | null {
   if (mode === NONE_MODE) {
     return null
   }
@@ -300,9 +376,18 @@ export function lampPosition(mode: string, placement: SignPlacement): Vec3 | nul
   }
   if (mode === BACK_MODE) {
     // En el mismo z del halo y centrada: lava la superficie de atras.
-    return [0, 0, haloBox(placement).z]
+    return [0, 0, haloBox(placement, mount).z]
   }
   throw new Error(`lampPosition: modo de iluminacion desconocido: "${mode}"`)
+}
+
+// Contorno del halo en letters (version 2.4): la caja de la tinta del texto, con el bisel, en
+// metros y con su centro, porque el contorno no es simetrico alrededor del origen.
+export function lettersContour(bounds: TextBounds, letterHeight: number): { box: SignBox; center: [number, number] } {
+  return {
+    box: { width: (bounds.maxX - bounds.minX) * letterHeight, height: (bounds.maxY - bounds.minY) * letterHeight },
+    center: [((bounds.minX + bounds.maxX) / 2) * letterHeight, ((bounds.minY + bounds.maxY) / 2) * letterHeight],
+  }
 }
 
 export type ScenePalette = {

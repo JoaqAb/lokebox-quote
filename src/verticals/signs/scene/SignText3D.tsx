@@ -1,6 +1,6 @@
 import type { Material, Mesh } from 'three'
 import type { LetterBox, Vec3 } from './sceneGeometry'
-import { glyphParts, type Typeface } from './typeface'
+import { glyphParts, type GlyphKind, type Typeface } from './typeface'
 
 // El texto 3D del cartel (SPEC 12, version 1.14), unico para los dos modos: una letra por
 // caracter con TextGeometry del typeface, con su contorno real, canto y bisel. Sin Text ni
@@ -23,17 +23,19 @@ type SignText3DProps = {
   position: Vec3
   materials: Material[]
   owner: string
+  // Letras corporeas o relieve: cambia el bisel (version 2.4).
+  kind: GlyphKind
   onMesh?: (key: string, part: LetterPart, mesh: Mesh | null) => void
 }
 
-export function SignText3D({ typeface, letters, height, depth, position, materials, owner, onMesh }: SignText3DProps) {
+export function SignText3D({ typeface, letters, height, depth, position, materials, owner, kind, onMesh }: SignText3DProps) {
   if (height <= 0 || depth <= 0) {
     return null
   }
   return (
     <group position={position}>
       {letters.map((letter, index) => {
-        const parts = glyphParts(typeface, letter.char)
+        const parts = glyphParts(typeface, letter.char, kind)
         if (parts === null) {
           return null
         }

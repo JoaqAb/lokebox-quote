@@ -8,14 +8,20 @@ import { BLOOM_LAYER, RENDER } from './render'
 // esa profundidad coincide: los emisores que se ven, con su color real. Sin filtro de
 // luminancia, asi el umbral no decide nada. Con la capa vacia, en none y front, la entrada
 // es negra y el cuadro no cambia.
-// Se monta el efecto directo y no el SelectiveBloom de @react-three/postprocessing: ese pide
+// Se usa el efecto directo y no el SelectiveBloom de @react-three/postprocessing: ese pide
 // luces en la capa, que este efecto no usa porque solo dibuja profundidad, y avisa por consola
 // si no se las dan.
 // ignoreBackground: el fondo transparente no entra a la seleccion aunque este vacia.
+// Es un hook y no un componente desde la version 2.4: el tone mapping lee el mapa del bloom para
+// saber que pixeles son luz (CoverageToneMapping), asi que quien monta los dos necesita la
+// instancia. null si el bloom esta apagado.
 
-export function EmitterBloom() {
+export function useEmitterBloom(enabled: boolean): SelectiveBloomEffect | null {
   const { scene, camera } = use(EffectComposerContext)
   const effect = useMemo(() => {
+    if (!enabled) {
+      return null
+    }
     const bloom = new SelectiveBloomEffect(scene, camera, {
       mipmapBlur: true,
       intensity: RENDER.bloom.intensity,
@@ -26,14 +32,14 @@ export function EmitterBloom() {
     bloom.selection.layer = BLOOM_LAYER
     bloom.ignoreBackground = true
     return bloom
-  }, [scene, camera])
+  }, [enabled, scene, camera])
 
   useEffect(
     () => () => {
-      effect.dispose()
+      effect?.dispose()
     },
     [effect],
   )
 
-  return <primitive object={effect} dispose={null} />
+  return effect
 }

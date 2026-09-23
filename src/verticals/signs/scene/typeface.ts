@@ -13,13 +13,20 @@ export const TYPEFACE_SRC = '/assets/quote/fonts/archivo-black-subset.typeface.j
 
 // Geometria de cada letra: bisel chico y pocas curvas, para que 18 letras sigan livianas.
 // bevelSize va en alto de mayuscula y bevelThickness en fraccion de la profundidad total.
+// El relieve del modo area (version 2.4) lleva el mismo bisel en proporcion al alto de letra,
+// bevelSize, y un bisel mas profundo en fraccion de su profundidad: con 0,08 de 3 mm el canto
+// media 0,24 mm y no tomaba luz. Con reliefBevelThickness 0,4 mide 1,2 mm.
 export const TEXT_3D = {
   capChar: 'H',
   curveSegments: 4,
   bevelSize: 0.025,
   bevelThickness: 0.08,
+  reliefBevelThickness: 0.4,
   bevelSegments: 2,
 } as const
+
+// Que texto se arma: las letras corporeas o el relieve de la cara. Cambia solo el bisel.
+export type GlyphKind = 'letter' | 'relief'
 
 // Orden de los materiales de cada letra: la cara frontal, los cantos y la cara trasera.
 export const TEXT_FACE = { front: 0, sides: 1, back: 2 } as const
@@ -111,13 +118,13 @@ export function textBounds(typeface: Typeface, text: string): TextBounds | null 
 // con el bisel incluido, centrada en su avance, en la mayuscula y en la profundidad.
 // Las tapas vienen en un solo grupo; se parten en cara trasera (primera mitad, la de z
 // menor) y cara frontal (segunda mitad), asi en back emiten los cantos y la trasera.
-export function buildGlyphGeometry(typeface: Typeface, char: string): BufferGeometry | null {
+export function buildGlyphGeometry(typeface: Typeface, char: string, kind: GlyphKind = 'letter'): BufferGeometry | null {
   const glyph = glyphOf(typeface, char)
   if (glyph?.o === undefined || glyph.o.length === 0) {
     return null
   }
   const size = typeface.font.data.resolution / typeface.capUnits
-  const thickness = TEXT_3D.bevelThickness
+  const thickness = kind === 'relief' ? TEXT_3D.reliefBevelThickness : TEXT_3D.bevelThickness
   const geometry = new TextGeometry(char, {
     font: typeface.font,
     size,
@@ -146,24 +153,27 @@ export function buildGlyphGeometry(typeface: Typeface, char: string): BufferGeom
 
 // Una geometria por caracter, memoizada: el visitante escribe letra a letra y las letras
 // repetidas comparten geometria. Vive mientras vive el preview.
+// La clave lleva el tipo de texto: el relieve tiene su propio bisel.
 const cache = new Map<string, BufferGeometry | null>()
 
-export function glyphGeometry(typeface: Typeface, char: string): BufferGeometry | null {
-  if (!cache.has(char)) {
-    cache.set(char, buildGlyphGeometry(typeface, char))
+export function glyphGeometry(typeface: Typeface, char: string, kind: GlyphKind = 'letter'): BufferGeometry | null {
+  const key = `${kind}:${char}`
+  if (!cache.has(key)) {
+    cache.set(key, buildGlyphGeometry(typeface, char, kind))
   }
-  return cache.get(char) ?? null
+  return cache.get(key) ?? null
 }
 
 // Cara y cascara de cada caracter (version 2.1), sobre los atributos de su geometria.
 const partsCache = new Map<string, SurfaceParts | null>()
 
-export function glyphParts(typeface: Typeface, char: string): SurfaceParts | null {
-  if (!partsCache.has(char)) {
-    const geometry = glyphGeometry(typeface, char)
-    partsCache.set(char, geometry === null ? null : splitSurface(geometry, TEXT_FACE.front))
+export function glyphParts(typeface: Typeface, char: string, kind: GlyphKind = 'letter'): SurfaceParts | null {
+  const key = `${kind}:${char}`
+  if (!partsCache.has(key)) {
+    const geometry = glyphGeometry(typeface, char, kind)
+    partsCache.set(key, geometry === null ? null : splitSurface(geometry, TEXT_FACE.front))
   }
-  return partsCache.get(char) ?? null
+  return partsCache.get(key) ?? null
 }
 
 export function disposeGlyphGeometries(): void {

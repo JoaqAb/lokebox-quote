@@ -6,6 +6,7 @@ import type {
   DepthOption,
   DiscountTier,
   LightingMode,
+  Mount,
   LightingOption,
   MaterialOption,
   MaterialVisual,
@@ -32,6 +33,10 @@ function isCtaMode(value: string): value is CtaMode {
 
 function isPricingMode(value: string): value is PricingMode {
   return value === 'area' || value === 'letters'
+}
+
+function isMount(value: string): value is Mount {
+  return value === 'flush' || value === 'standoff'
 }
 
 function isLightingMode(value: string): value is LightingMode {
@@ -200,12 +205,26 @@ function readTypes(options: Raw, slug: string): SignTypeOption[] {
     if (!isPricingMode(pricing)) {
       fail(slug, `${path}.pricing tiene un valor invalido: "${pricing}".`)
     }
-    return {
-      id: readString(raw, 'id', slug, `${path}.id`),
+    const id = readString(raw, 'id', slug, `${path}.id`)
+    const base = {
+      id,
       label: readString(raw, 'label', slug, `${path}.label`),
       priceFixed: readNumber(raw, 'priceFixed', slug, `${path}.priceFixed`),
       pricing,
     }
+    // mount (version 2.4, D68): obligatorio en los tipos de area; letters no monta un panel.
+    if (pricing !== 'area') {
+      return base
+    }
+    if (raw.visual === undefined) {
+      fail(slug, `el tipo "${id}" es de area y le falta ${path}.visual.mount.`)
+    }
+    const visual = readObject(raw, 'visual', slug, `${path}.visual`)
+    const mount = readString(visual, 'mount', slug, `${path}.visual.mount`)
+    if (!isMount(mount)) {
+      fail(slug, `el tipo "${id}" tiene ${path}.visual.mount invalido: "${mount}". Los valores son flush y standoff.`)
+    }
+    return { ...base, visual: { mount } }
   })
   requireUniqueIds(
     types.map((item) => item.id),

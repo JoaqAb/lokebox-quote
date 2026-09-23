@@ -2,6 +2,7 @@ import type {
   ClientConfig,
   LightingVisual,
   MaterialVisual,
+  Mount,
   PricingMode,
   SignSelection,
 } from '../../core/types'
@@ -18,6 +19,8 @@ export type SignVisual = {
   depthMeters: number
   // El tipo totem se dibuja con poste y base (SPEC 12, version 1.15).
   totem: boolean
+  // Montaje del panel (SPEC 10, version 2.4, D68). null en letters, que no monta un panel.
+  mount: Mount | null
   lengthToMeters: number
 }
 
@@ -65,6 +68,7 @@ export function resolveSignVisual(config: ClientConfig, selection: SignSelection
     lighting: lighting.visual,
     depthMeters: depth.visual.depthMeters,
     totem: signType.id === TOTEM_TYPE_ID,
+    mount: signType.visual?.mount ?? null,
     lengthToMeters: lengthToMeters(config.units.length),
   }
 }

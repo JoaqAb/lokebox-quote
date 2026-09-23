@@ -19,7 +19,6 @@ import { hasWebGL } from './scene/webgl'
 import { createTypeface, disposeGlyphGeometries, glyphAdvance, TYPEFACE_SRC, type Typeface } from './scene/typeface'
 import { disposeHaloGeometry } from './scene/haloGeometry'
 import { disposeSupportShadow } from './scene/supportShadow'
-import { disposePanelParts } from './scene/surfaceParts'
 import { disposeFinishTextures } from '../../core/preview/finishTextures'
 import type { SignVisual } from './visuals'
 
@@ -100,6 +99,7 @@ function StageScene({
       letterDepth={visual.depthMeters}
       typeface={typeface}
       totem={visual.totem}
+      mount={visual.mount}
       structureColor={structureColor}
     />
   )
@@ -131,12 +131,12 @@ export function PhotoStage({
   const palette = useMemo(() => scenePalette(theme), [theme])
   const structureColor = useMemo(() => totemStructureColor(theme), [theme])
 
-  // Las CanvasTexture, los mapas de los acabados y las geometrias del panel, del halo y de las
-  // letras viven mientras vive la escena: se liberan aca.
+  // La CanvasTexture de la sombra, los mapas de los acabados y las geometrias del halo y de las
+  // letras viven mientras vive la escena: se liberan aca. El panel redondeado y los separadores
+  // los libera SignBoard, que los arma por medida (version 2.4).
   useEffect(
     () => () => {
       disposeGlyphGeometries()
-      disposePanelParts()
       disposeSupportShadow()
       disposeFinishTextures()
       disposeHaloGeometry()

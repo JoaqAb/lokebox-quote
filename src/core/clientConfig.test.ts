@@ -56,6 +56,19 @@ describe('validateClientConfig', () => {
     expect(() => validateClientConfig(broken)).toThrow(/disclaimer/)
   })
 
+  // Version 2.4, D68.
+  it('mount es obligatorio en los tipos de area, flush o standoff, y letters no lo lleva', () => {
+    const config = validateClientConfig(structuredClone(northline))
+    const mounts = Object.fromEntries(config.options.types.map((item) => [item.id, item.visual?.mount]))
+    expect(mounts).toEqual({ facade: 'standoff', totem: 'flush', letters: undefined })
+    const missing = structuredClone(northline) as unknown as { options: { types: { visual?: unknown }[] } }
+    delete missing.options.types[0].visual
+    expect(() => validateClientConfig(missing)).toThrow(/"facade".*visual.mount/)
+    const wrong = structuredClone(northline) as unknown as { options: { types: { visual: { mount: string } }[] } }
+    wrong.options.types[1].visual.mount = 'glued'
+    expect(() => validateClientConfig(wrong)).toThrow(/"totem".*"glued"/)
+  })
+
   it('falla si options.materials esta vacio', () => {
     const broken = structuredClone(northline)
     broken.options.materials = []

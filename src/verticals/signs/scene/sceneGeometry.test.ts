@@ -15,9 +15,16 @@ import {
   SIGN_MODE_BACK_FACE,
   SIGN_STUDIO_LIGHT,
   SIGN_VIEW,
+  EDGE_RADIUS_M,
+  STANDOFF,
   haloBox,
-  haloCellUv,
   haloCells,
+  haloPeak,
+  haloProfile,
+  lettersContour,
+  panelEdgeRadius,
+  standoffPositions,
+  wallGap,
   lensShift,
   orbitPosition,
   photoCameraDistance,
@@ -107,17 +114,27 @@ describe('haloBox y supportShadowBox', () => {
   it('el halo es mas grande que el cartel y queda detras de su cara', () => {
     const config = clientOrFail('norte')
     const placement = signPlacement(defaultSelection(config), factorOf('norte'))
-    const halo = haloBox(placement)
-    expect(halo.size[0]).toBeCloseTo(placement.box.width + 2 * HALO.marginRatio * placement.box.height, 10)
-    expect(halo.size[1]).toBeCloseTo(placement.box.height * (1 + 2 * HALO.marginRatio), 10)
+    const halo = haloBox(placement, 'flush')
+    expect(halo.size[0]).toBeCloseTo(placement.box.width + 2 * HALO.bandRatio * placement.box.height, 10)
+    expect(halo.size[1]).toBeCloseTo(placement.box.height * (1 + 2 * HALO.bandRatio), 10)
     expect(halo.z).toBeLessThan(-SET.sign.thickness / 2)
+  })
+
+  // Version 2.4, D68: con standoff la pared se aleja y halo y sombra se corren con ella.
+  it('con standoff halo y sombra se corren la separacion de pared', () => {
+    const config = clientOrFail('northline')
+    const placement = signPlacement(defaultSelection(config), factorOf('northline'))
+    expect(haloBox(placement, 'standoff').z).toBeCloseTo(haloBox(placement, 'flush').z - STANDOFF.wallGap, 10)
+    expect(supportShadowBox(placement, 'standoff').position[2]).toBeCloseTo(supportShadowBox(placement, 'flush').position[2] - STANDOFF.wallGap, 10)
+    expect(haloBox(placement, null).z).toBe(haloBox(placement, 'flush').z)
+    expect(wallGap('standoff')).toBe(0.03)
   })
 
   // 10.2
   it('la sombra es mas ancha que alta y queda por debajo del cartel', () => {
     const config = clientOrFail('northline')
     const placement = signPlacement(defaultSelection(config), factorOf('northline'))
-    const shadow = supportShadowBox(placement)
+    const shadow = supportShadowBox(placement, 'flush')
     expect(shadow.size[0]).toBeGreaterThan(placement.box.width)
     expect(shadow.size[1]).toBeLessThan(placement.box.height)
     expect(shadow.position[1]).toBeLessThan(0)
@@ -145,7 +162,7 @@ describe('lightingParams y lampPosition', () => {
 
   it('en back la cara emite menos que en front, para que el texto se lea', () => {
     expect(LIGHTING.back.faceEmissiveIntensity).toBeLessThan(LIGHTING.front.faceEmissiveIntensity)
-    expect(LIGHTING.back.haloOpacity).toBeLessThanOrEqual(HALO.maxOpacity)
+    expect(LIGHTING.back.haloOpacity).toBe(1)
   })
 
   // 10.3
@@ -158,9 +175,9 @@ describe('lightingParams y lampPosition', () => {
   it('lampPosition da null en none, adelante en front y detras en back', () => {
     const config = clientOrFail('northline')
     const placement = signPlacement(defaultSelection(config), factorOf('northline'))
-    expect(lampPosition('none', placement)).toBeNull()
-    const front = lampPosition('front', placement)
-    const back = lampPosition('back', placement)
+    expect(lampPosition('none', placement, 'flush')).toBeNull()
+    const front = lampPosition('front', placement, 'flush')
+    const back = lampPosition('back', placement, 'standoff')
     if (front === null || back === null) {
       throw new Error('front y back tienen que tener lampara')
     }
@@ -191,7 +208,7 @@ describe('lightingParams y lampPosition', () => {
     const config = clientOrFail('northline')
     const placement = signPlacement(defaultSelection(config), factorOf('northline'))
     expect(() => lightingParams('neon')).toThrow(/neon/)
-    expect(() => lampPosition('neon', placement)).toThrow(/neon/)
+    expect(() => lampPosition('neon', placement, 'flush')).toThrow(/neon/)
   })
 })
 
@@ -275,23 +292,77 @@ describe('layoutLetters', () => {
 describe('halo de nueve celdas', () => {
   const placement = { box: { width: 2.4, height: 0.9 } }
 
-  it('ninguna celda pasa el margen de 0,12 del alto del cartel', () => {
-    const margin = placement.box.height * HALO.marginRatio
+  // Version 2.4, D65: banda de 0,3 del alto del cartel por lado.
+  it('ninguna celda pasa la banda de 0,3 del alto del cartel', () => {
+    const margin = placement.box.height * HALO.bandRatio
+    expect(HALO.bandRatio).toBe(0.3)
     for (const cell of haloCells(placement)) {
       const right = Math.abs(cell.position[0]) + cell.size[0] / 2
       const top = Math.abs(cell.position[1]) + cell.size[1] / 2
       expect(right, cell.kind).toBeLessThanOrEqual(placement.box.width / 2 + margin + 1e-9)
       expect(top, cell.kind).toBeLessThanOrEqual(placement.box.height / 2 + margin + 1e-9)
     }
-    expect(HALO.maxOpacity).toBe(0.55)
   })
 
-  it('el borde exterior de cada celda cae en el borde del degradado, sin corte duro', () => {
-    // Coordenadas en el orden de PlaneGeometry: arriba izq, arriba der, abajo izq, abajo der.
-    expect(haloCellUv('center')).toEqual([0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5])
-    expect(haloCellUv('left')).toEqual([0, 0.5, 0.5, 0.5, 0, 0.5, 0.5, 0.5])
-    expect(haloCellUv('topRight')).toEqual([0.5, 1, 1, 1, 0.5, 0.5, 1, 0.5])
-    expect(haloCellUv('bottom')).toEqual([0.5, 0.5, 0.5, 0.5, 0.5, 0, 0.5, 0])
+  it('el perfil baja de 1 a 0, con derivada 0 en el borde y pendiente de hasta 1,5 veces la media', () => {
+    expect(haloProfile(0)).toBe(1)
+    expect(haloProfile(1)).toBe(0)
+    const h = 1e-4
+    expect((haloProfile(1) - haloProfile(1 - h)) / h).toBeCloseTo(0, 3)
+    let previous = haloProfile(0)
+    for (let i = 1; i <= 100; i += 1) {
+      const value = haloProfile(i / 100)
+      expect(value).toBeLessThanOrEqual(previous)
+      expect(previous - value).toBeLessThanOrEqual(1.5 / 100 + 1e-9)
+      previous = value
+    }
+  })
+
+  it('el pico sale de la luz ambiente: pleno con poca luz, menor de dia, nunca negativo', () => {
+    expect(haloPeak(0.35)).toBe(HALO.maxOpacity)
+    expect(haloPeak(0.1)).toBe(HALO.maxOpacity)
+    expect(haloPeak(0.9)).toBeLessThan(HALO.maxOpacity / 4)
+    expect(haloPeak(0.9)).toBeGreaterThan(0)
+    expect(haloPeak(1.2)).toBe(0)
+  })
+})
+
+describe('contorno del halo en letters', () => {
+  it('es la caja de la tinta en metros, con su centro, aunque no sea simetrica', () => {
+    const contour = lettersContour({ minX: -2.1, maxX: 1.9, minY: -0.52, maxY: 0.52 }, 0.5)
+    expect(contour.box.width).toBeCloseTo(2, 10)
+    expect(contour.box.height).toBeCloseTo(0.52, 10)
+    expect(contour.center[0]).toBeCloseTo(-0.05, 10)
+    expect(contour.center[1]).toBeCloseTo(0, 10)
+  })
+})
+
+describe('separadores del standoff', () => {
+  it('cuatro, uno por esquina, metidos hacia adentro y entre el panel y la pared', () => {
+    const box = { width: 2.4, height: 0.9 }
+    const positions = standoffPositions(box)
+    expect(positions).toHaveLength(4)
+    for (const [x, y, z] of positions) {
+      expect(Math.abs(x)).toBeCloseTo(box.width / 2 - STANDOFF.inset, 10)
+      expect(Math.abs(y)).toBeCloseTo(box.height / 2 - STANDOFF.inset, 10)
+      expect(z).toBeCloseTo(-SET.sign.thickness / 2 - STANDOFF.wallGap / 2, 10)
+    }
+    expect(new Set(positions.map(([x, y]) => `${String(Math.sign(x))}${String(Math.sign(y))}`)).size).toBe(4)
+    expect([STANDOFF.wallGap, STANDOFF.diameter, STANDOFF.metalness]).toEqual([0.03, 0.02, 1])
+  })
+
+  it('en un panel chico el inset no pasa de un cuarto del lado', () => {
+    const [[x, y]] = standoffPositions({ width: 0.2, height: 0.16 })
+    expect(Math.abs(x)).toBeCloseTo(0.1 - 0.05, 10)
+    expect(Math.abs(y)).toBeCloseTo(0.08 - 0.04, 10)
+  })
+})
+
+describe('cantos del panel', () => {
+  it('radio de 4 mm con tope de 0,3 del espesor', () => {
+    expect(panelEdgeRadius(SET.sign.thickness)).toBe(EDGE_RADIUS_M)
+    expect(EDGE_RADIUS_M).toBe(0.004)
+    expect(panelEdgeRadius(0.01)).toBeCloseTo(0.003, 10)
   })
 })
 

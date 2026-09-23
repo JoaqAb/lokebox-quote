@@ -1,24 +1,28 @@
 import { useFrame } from '@react-three/fiber'
 import { useEffect, useMemo, useRef } from 'react'
-import { Color, type Group, type Mesh, type MeshBasicMaterial, type PointLight } from 'three'
+import { Color, CylinderGeometry, DoubleSide, type Group, type Mesh, type MeshBasicMaterial, type PointLight } from 'three'
 import { BLOOM_LAYER } from '../../../core/preview/render'
-import type { MaterialVisual } from '../../../core/types'
+import type { MaterialVisual, Mount } from '../../../core/types'
 import { haloCellGeometry } from './haloGeometry'
 import { SignText3D, type LetterPart } from './SignText3D'
 import {
   applyFinish,
+  disposeStandoffSurface,
   disposeSurface,
   letterSurface,
   panelSurface,
   repeatSurface,
+  standoffSurface,
   type Surface,
   type SurfaceSize,
 } from './surfaceMaterials'
-import { panelParts } from './surfaceParts'
+import { disposeSurfaceParts, roundedPanelParts } from './surfaceParts'
 import { supportShadowTexture } from './supportShadow'
 import {
   DAMP_LAMBDA,
+  HALO,
   SET,
+  STANDOFF,
   SETTLE_EPSILON,
   SIGN_TEXT,
   SUPPORT_SHADOW,
@@ -30,15 +34,20 @@ import {
   approach,
   haloBox,
   haloCells,
+  haloMargin,
+  haloPeak,
+  lettersContour,
   lampPosition,
   lightingParams,
   signModeLightingParams,
+  standoffPositions,
   supportShadowBox,
   totemLayout,
   translucentFace,
   type HaloCellKind,
   type LetterBox,
   type SignPlacement,
+  type TextBounds,
 } from './sceneGeometry'
 import type { Typeface } from './typeface'
 
@@ -62,6 +71,11 @@ import type { Typeface } from './typeface'
 // con el color del texto y sin emision: es parte de la cara.
 // Sombras de mapa (SPEC 12, version 2.0): panel, letras, relieve, poste y base proyectan y
 // reciben; halo y sombra de apoyo no, porque son luz y sombra pintadas.
+// Version 2.4: el panel tiene los cantos redondeados y se arma a la medida objetivo; con
+// mount standoff lleva cuatro separadores y la pared (halo, sombra, luz de back) se aleja.
+// En modo vista no hay bloom (D64). El halo es una banda de 0,3 del alto del cartel con el
+// perfil en el alpha de sus vertices y el pico de la luz ambiente de la foto (D65); en
+// letters rodea la tinta y no los avances.
 
 const HALO_KINDS: HaloCellKind[] = [
   'center',
@@ -105,6 +119,12 @@ type SignBoardProps = {
   structureColor: string
   // Modo cartel: sin halo y, en back, la cara apagada.
   signMode: boolean
+  // Montaje del panel (version 2.4, D68): con standoff van los separadores y la pared se aleja.
+  mount: Mount | null
+  // Luz ambiente de la foto elegida, que da el pico del halo (D65). null en modo cartel.
+  haloAmbient: number | null
+  // Modo letters: el contorno de la tinta, que rodea el halo. null en modo area.
+  textBounds: TextBounds | null
 }
 
 type Surfaces = { panel: Surface; letter: Surface; relief: Surface }
@@ -138,6 +158,9 @@ export function SignBoard({
   totem,
   structureColor,
   signMode,
+  mount,
+  haloAmbient,
+  textBounds,
 }: SignBoardProps) {
   const signRef = useRef<Mesh>(null)
   const shellRef = useRef<Mesh>(null)
@@ -149,10 +172,13 @@ export function SignBoard({
   const haloMaterialsRef = useRef<(MeshBasicMaterial | null)[]>([])
   const lampRef = useRef<PointLight>(null)
   const shadowRef = useRef<Mesh>(null)
+  const standoffRefs = useRef<(Mesh | null)[]>([])
   // Estado amortiguado del material, compartido por todas las caras de todas las cajas.
   const look = useRef({
     color: new Color(),
     physical: { metalness: 0, roughness: 1, specularIntensity: 1, clearcoat: 0, clearcoatRoughness: 0, anisotropy: 0, normalScale: 0 } as Damped,
+    width: 0,
+    height: 0,
     face: 0,
     edge: 0,
     shade: 0,
@@ -161,7 +187,29 @@ export function SignBoard({
   })
   const targetColor = useMemo(() => new Color(material.color), [material.color])
   const reliefColor = useMemo(() => new Color(textColor), [textColor])
-  const parts = panelParts()
+  const { width: boxWidth, height: boxHeight } = placement.box
+  // El panel redondeado se arma a la medida objetivo (version 2.4): el radio de los cantos va
+  // en metros y no sobrevive a un scale. Se libera al cambiar de medida y al desmontar.
+  const parts = useMemo(() => roundedPanelParts(boxWidth, boxHeight, SET.sign.thickness), [boxWidth, boxHeight])
+  useEffect(
+    () => () => {
+      disposeSurfaceParts(parts)
+    },
+    [parts],
+  )
+  const standoff = useMemo(() => {
+    const geometry = new CylinderGeometry(STANDOFF.diameter / 2, STANDOFF.diameter / 2, STANDOFF.wallGap, STANDOFF.radialSegments)
+    // El eje del cilindro va de la cara trasera del panel a la pared.
+    geometry.rotateX(Math.PI / 2)
+    return { geometry, surface: standoffSurface() }
+  }, [])
+  useEffect(
+    () => () => {
+      standoff.geometry.dispose()
+      disposeStandoffSurface(standoff.surface)
+    },
+    [standoff],
+  )
   // Los materiales de las tres superficies viven lo que vive el cartel.
   const surfaces = useMemo(
     (): Surfaces => ({ panel: panelSurface(), letter: letterSurface(), relief: letterSurface() }),
@@ -199,7 +247,7 @@ export function SignBoard({
 
     const lighting = signMode ? signModeLightingParams(lightingMode) : lightingParams(lightingMode)
     const face = translucentFace(lighting, material.translucency)
-    const lampTarget = lampPosition(lightingMode, placement)
+    const lampTarget = lampPosition(lightingMode, placement, mount)
     const state = look.current
 
     // El primer frame se acomoda de golpe, para no entrar con una animacion de carga.
@@ -208,12 +256,21 @@ export function SignBoard({
     const move = (current: number, target: number): number =>
       instant ? target : approach(current, target, delta)
 
-    sign.scale.x = move(sign.scale.x, placement.box.width)
-    sign.scale.y = move(sign.scale.y, placement.box.height)
-    sign.scale.z = SET.sign.thickness
+    // La geometria mide el objetivo: durante la transicion el scale la estira hasta la medida
+    // amortiguada, y al llegar vale 1.
+    state.width = move(state.width, placement.box.width)
+    state.height = move(state.height, placement.box.height)
+    sign.scale.set(state.width / placement.box.width, state.height / placement.box.height, 1)
     sign.visible = letters === null
     shell.scale.copy(sign.scale)
     shell.visible = sign.visible
+    const standoffs = standoffPositions({ width: state.width, height: state.height })
+    standoffRefs.current.forEach((mesh, index) => {
+      if (mesh !== null) {
+        mesh.visible = sign.visible && mount === 'standoff'
+        mesh.position.set(...standoffs[index])
+      }
+    })
 
     if (instant) {
       state.color.copy(targetColor)
@@ -226,11 +283,11 @@ export function SignBoard({
     state.face = move(state.face, face.faceEmissiveIntensity)
     state.edge = move(state.edge, lighting.edgeEmissiveIntensity)
     state.shade = move(state.shade, face.faceShade)
-    state.haloOpacity = move(state.haloOpacity, lighting.haloOpacity)
+    state.haloOpacity = move(state.haloOpacity, lighting.haloOpacity * (haloAmbient === null ? 0 : haloPeak(haloAmbient)))
 
     // Medidas de cada superficie, para repetir los mapas por metro.
     const sizes: Record<keyof Surfaces, SurfaceSize> = {
-      panel: { width: sign.scale.x, height: sign.scale.y, depth: SET.sign.thickness },
+      panel: { width: state.width, height: state.height, depth: SET.sign.thickness },
       letter: { width: placement.box.height, height: placement.box.height, depth: letterDepth },
       relief: { width: relief?.scale ?? 0, height: relief?.scale ?? 0, depth: SIGN_TEXT.reliefDepth },
     }
@@ -263,8 +320,10 @@ export function SignBoard({
     }
 
     // Seleccion del bloom: en back la cascara, y la cara si es translucida. El relieve nunca.
-    const bloomShell = lighting.emitters
-    const bloomFace = lighting.emitters && material.translucency > 0
+    // En modo vista nada (version 2.4, D64): el bloom es de pantalla y se derrama sobre lo que
+    // la foto tenga al lado del cartel. Ahi la luz de afuera es solo el halo.
+    const bloomShell = lighting.emitters && signMode
+    const bloomFace = bloomShell && material.translucency > 0
     setBloom(shell, bloomShell)
     setBloom(sign, bloomFace)
     for (const { part, mesh } of letterMeshesRef.current.values()) {
@@ -272,8 +331,13 @@ export function SignBoard({
     }
 
     // El halo sigue al tamano amortiguado del cartel, no al objetivo: asi no se adelanta.
-    const cells = haloCells({ box: { width: sign.scale.x, height: sign.scale.y } })
-    const haloZ = haloBox(placement).z
+    // En letters el halo rodea la tinta, con la banda del alto de letra.
+    const contour =
+      letters !== null && textBounds !== null
+        ? lettersContour(textBounds, state.height)
+        : { box: { width: state.width, height: state.height }, center: [0, 0] }
+    const cells = haloCells({ box: contour.box }, haloMargin({ box: { width: state.width, height: state.height } }))
+    const haloZ = haloBox(placement, mount).z
     const haloVisible = state.haloOpacity > VISIBLE_EPSILON
     cells.forEach((cell, index) => {
       const mesh = haloMeshesRef.current[index]
@@ -281,10 +345,10 @@ export function SignBoard({
       if (mesh === null || mesh === undefined || haloMaterial === null || haloMaterial === undefined) {
         return
       }
-      mesh.position.set(cell.position[0], cell.position[1], haloZ)
+      mesh.position.set(contour.center[0] + cell.position[0], contour.center[1] + cell.position[1], haloZ)
       mesh.scale.set(cell.size[0], cell.size[1], 1)
       mesh.visible = haloVisible
-      haloMaterial.color.copy(state.color)
+      haloMaterial.color.copy(state.color).multiplyScalar(HALO.radiance)
       haloMaterial.opacity = state.haloOpacity
     })
 
@@ -303,7 +367,7 @@ export function SignBoard({
     // Totem (SPEC 12, version 1.15): poste y base siguen al ancho amortiguado del panel, el
     // panel sube a su altura sobre el piso y la sombra se acuesta bajo la base. Poste y base
     // no emiten nunca: su material no pasa por el loop de caras.
-    const totemParts = totem ? totemLayout({ width: sign.scale.x, height: sign.scale.y }) : null
+    const totemParts = totem ? totemLayout({ width: state.width, height: state.height }) : null
     post.visible = totemParts !== null
     base.visible = totemParts !== null
     panelGroup.position.y = totemParts === null ? 0 : totemParts.panelY
@@ -321,7 +385,7 @@ export function SignBoard({
 
     // La sombra de apoyo sigue al cartel: es lo que impide que flote.
     shadow.rotation.x = 0
-    const shadowTarget = supportShadowBox(placement)
+    const shadowTarget = supportShadowBox(placement, mount)
     shadow.scale.x = move(shadow.scale.x, shadowTarget.size[0])
     shadow.scale.y = move(shadow.scale.y, shadowTarget.size[1])
     shadow.position.y = move(shadow.position.y, shadowTarget.position[1])
@@ -331,8 +395,22 @@ export function SignBoard({
   return (
     <group>
       <group ref={panelGroupRef}>
-        <mesh ref={signRef} scale={UNIT_BOX} geometry={parts.face} material={surfaces.panel.materials} castShadow receiveShadow />
-        <mesh ref={shellRef} scale={UNIT_BOX} geometry={parts.shell} material={surfaces.panel.materials} castShadow receiveShadow />
+        <mesh ref={signRef} geometry={parts.face} material={surfaces.panel.materials} castShadow receiveShadow />
+        <mesh ref={shellRef} geometry={parts.shell} material={surfaces.panel.materials} castShadow receiveShadow />
+
+        {[0, 1, 2, 3].map((index) => (
+          <mesh
+            key={index}
+            geometry={standoff.geometry}
+            material={standoff.surface.material}
+            visible={false}
+            castShadow
+            receiveShadow
+            ref={(mesh) => {
+              standoffRefs.current[index] = mesh
+            }}
+          />
+        ))}
 
         {typeface !== null && letters !== null ? (
           <SignText3D
@@ -342,6 +420,7 @@ export function SignBoard({
             depth={letterDepth}
             position={[0, 0, 0]}
             owner="letter"
+            kind="letter"
             materials={surfaces.letter.materials}
             onMesh={onLetterMesh}
           />
@@ -355,6 +434,7 @@ export function SignBoard({
             depth={SIGN_TEXT.reliefDepth}
             position={[relief.x, relief.y, SET.sign.thickness / 2 + SIGN_TEXT.reliefDepth / 2]}
             owner="relief"
+            kind="relief"
             materials={surfaces.relief.materials}
           />
         ) : null}
@@ -372,7 +452,8 @@ export function SignBoard({
               ref={(instance) => {
                 haloMaterialsRef.current[index] = instance
               }}
-              alphaMap={supportShadowTexture()}
+              vertexColors
+              side={DoubleSide}
               transparent
               opacity={0}
               depthWrite={false}

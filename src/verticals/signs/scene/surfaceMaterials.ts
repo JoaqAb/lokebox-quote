@@ -6,6 +6,7 @@ import {
   type FinishTextures,
 } from '../../../core/preview/finishTextures'
 import type { Finish } from '../../../core/types'
+import { STANDOFF } from './sceneGeometry'
 import { PANEL_FACES } from './surfaceParts'
 import { TEXT_FACE } from './typeface'
 
@@ -39,6 +40,7 @@ export type Surface = {
 // vuelta deja la veta a lo largo del canto, que es su direccion propia. La de arriba y la de
 // abajo ya corren a lo ancho. BoxGeometry cubre cada cara con una UV de 0 a 1.
 const QUARTER_TURN = Math.PI / 2
+const STANDOFF_FINISH: Finish = 'brushed'
 const PANEL_SLOTS: Slot[] = Array.from({ length: PANEL_FACES.count }, (_unused, index): Slot => {
   if (index <= 1) {
     return { front: false, anisotropyRotation: QUARTER_TURN, uv: (size) => [size.depth, size.height] }
@@ -115,4 +117,30 @@ export function disposeSurface(surface: Surface): void {
   for (const material of surface.materials) {
     material.dispose()
   }
+}
+
+// Material de los separadores (version 2.4): metal cepillado, con la veta a lo largo del eje.
+// Los parametros son constantes del producto (STANDOFF), no del cliente.
+export type StandoffSurface = { material: MeshPhysicalMaterial; textures: FinishTextures }
+
+export function standoffSurface(): StandoffSurface {
+  const textures = surfaceTextures(STANDOFF_FINISH)
+  // El cilindro va de u alrededor y v a lo largo: la veta corre en v.
+  setSurfaceRepeat(textures, STANDOFF_FINISH, Math.PI * STANDOFF.diameter, STANDOFF.wallGap)
+  const material = new MeshPhysicalMaterial({
+    color: STANDOFF.color,
+    metalness: STANDOFF.metalness,
+    roughness: STANDOFF.roughness,
+    anisotropy: STANDOFF.anisotropy,
+    anisotropyRotation: QUARTER_TURN,
+    roughnessMap: textures.roughness,
+    normalMap: textures.normal,
+  })
+  material.normalScale.setScalar(STANDOFF.normalScale)
+  return { material, textures }
+}
+
+export function disposeStandoffSurface(surface: StandoffSurface): void {
+  disposeSurfaceTextures(surface.textures)
+  surface.material.dispose()
 }

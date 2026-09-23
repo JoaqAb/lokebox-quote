@@ -81,11 +81,17 @@ export type ClientPhoto = {
 // Modo de precio de un tipo de cartel (SPEC 5.1): el motor ramifica por aca.
 export type PricingMode = 'area' | 'letters'
 
+// Como se monta el panel de un tipo de area (SPEC 10, version 2.4, D68): al ras o con
+// separadores. Es dato del negocio, no del codigo.
+export type Mount = 'flush' | 'standoff'
+
 export type SignTypeOption = {
   id: string
   label: string
   priceFixed: number
   pricing: PricingMode
+  // Obligatorio en los tipos de area, ausente en los de letters: lo exige la validacion.
+  visual?: { mount: Mount }
 }
 
 // Acabado del material: elige el generador de mapas (SPEC 10, version 2.1, D52).

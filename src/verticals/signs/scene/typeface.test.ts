@@ -134,6 +134,25 @@ describe('geometria de cada letra', () => {
     }
   })
 
+  // Version 2.4: el relieve lleva el mismo bisel en proporcion al alto y mas profundo.
+  it('el relieve tiene el mismo contorno que la letra y un bisel mas profundo', () => {
+    const letter = buildGlyphGeometry(typeface, 'R', 'letter')
+    const relief = buildGlyphGeometry(typeface, 'R', 'relief')
+    if (letter === null || relief === null) {
+      throw new Error('la R no dio geometria')
+    }
+    const letterBox = new Box3().setFromBufferAttribute(letter.getAttribute('position') as never)
+    const reliefBox = new Box3().setFromBufferAttribute(relief.getAttribute('position') as never)
+    expect(reliefBox.min.x).toBeCloseTo(letterBox.min.x, 6)
+    expect(reliefBox.max.y).toBeCloseTo(letterBox.max.y, 6)
+    expect(reliefBox.getSize(new Vector3()).z).toBeCloseTo(1, 6)
+    expect(TEXT_3D.reliefBevelThickness).toBeGreaterThan(TEXT_3D.bevelThickness)
+    expect(TEXT_3D.reliefBevelThickness).toBeLessThan(0.5)
+    expect(groupNormalZ(relief, TEXT_FACE.front)).toBeCloseTo(1, 6)
+    letter.dispose()
+    relief.dispose()
+  })
+
   it('la curva usa curveSegments 4 y el bisel es chico', () => {
     expect(TEXT_3D.curveSegments).toBe(4)
     expect(TEXT_3D.bevelSize).toBeLessThan(0.05)
