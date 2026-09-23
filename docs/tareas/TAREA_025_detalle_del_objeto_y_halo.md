@@ -105,7 +105,8 @@ Despues de los tres, push.
 
 ## Resultado (23/09/2026)
 
-Estado: entregada, con los criterios 4 (en parte), 5 y 7 para Canal B. Codigo en 2360566.
+Estado: cerrada. Canal B la acepta el 23/09 (D70): ratifica CoverageToneMapping, el criterio 4 con D71, el 5 con D72,
+el 7 como dato (D73) y la sombra de apoyo del modo cartel (D74). Codigo en 2360566.
 Mediciones en `validacion/premium/025/` (`medir.py`, `canto.py`, `sonda.mjs`, `c3.txt` a
 `c7.txt`, `c4-forma.txt`, `sombra/medicion.txt`, `triangulos.txt`, `carga.txt`), capturas en
 `despues/` y `sinbloom/`, 220 cuadros por corrida.

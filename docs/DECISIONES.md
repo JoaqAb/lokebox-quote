@@ -386,3 +386,12 @@
 - 23/09/2026: TAREA_025, el panel redondeado se arma a la medida objetivo con RoundedBoxGeometry, que conserva los seis grupos; la cara se queda con lo que mira mas al frente que a un costado. Durante la transicion del slider el scale lo estira.
 - 23/09/2026: TAREA_025, sombra de apoyo del modo cartel por D67: queda. La sombra de mapa oscurece la huella 0 niveles en los 6 casos, no hay receptor.
 - 23/09/2026: TAREA_025, translucency del acrilico queda en 0,4 y las tiras de canto no entran al rig: ninguna de las dos cumple su criterio sin romper otro. Criterios 5 (acrilico en vista) y 7 para Canal B.
+- 23/09/2026: D70, TAREA_025 aceptada. Se ratifica CoverageToneMapping en src/core/preview: corrige en origen el tone mapping sobre color premultiplicado, es generico y mueve el modo cartel 1 nivel como maximo.
+- 23/09/2026: D71, la forma del halo tolera 1 nivel de cuantizacion de 8 bits en el salto maximo.
+- 23/09/2026: D72, en vista la cara del acrilico no se compara entre front y back. Manda el anillo, y la cara en back no queda mas de 10 niveles debajo de front. translucency sigue en 0,4. D57 sigue en modo cartel. Motivo: sin bloom (D64) la cara solo sube por emisivo y el relieve no emite; subir translucency sube la desviacion.
+- 23/09/2026: D73, el brillo de canto queda como dato. A este encuadre, 4 mm son 1 px. Descartados, sin reintento: radio de 20 mm (1 de 6) y tiras en el rig (la cara del PVC sube 9 niveles).
+- 23/09/2026: D74, la sombra de apoyo del modo cartel queda. La sombra de mapa oscurece la huella 0 niveles en 6 de 6.
+- 23/09/2026: D75, el halo de letras es un defecto. Contra la foto sube 52 niveles en 5 px y hace meseta entre letras: se lee como placa blanca con borde. Vara: pendiente media de 5 niveles por px como maximo.
+- 23/09/2026: D76, en vista entra la sombra proyectada, con un receptor de solo sombra y la key de la foto elegida. Deroga el descarte del 14/09: hoy cada foto declara azimut y elevacion, y el techo del viernes ya no rige.
+- 23/09/2026: D77, casado de tono. En vista, el color de ambiente y de key se tine con la crominancia de la foto elegida alrededor del anclaje. Se calcula en core, una vez por foto, sin campo nuevo en el JSON.
+- 23/09/2026: D78, 6a nuevo. En none y front, la diferencia es 0 fuera del cartel y fuera de la zona de sombra.
