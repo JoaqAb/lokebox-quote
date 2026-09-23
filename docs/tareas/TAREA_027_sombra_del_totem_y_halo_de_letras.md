@@ -86,3 +86,41 @@ Archivos: `src/verticals/signs/scene/sceneGeometry.ts`, `src/verticals/signs/sce
 3. docs: cierre de TAREA_027.
 
 Despues, push.
+
+## Resultado (23/09/2026)
+
+Estado: entregada. Codigo en 443b042. Mediciones en `validacion/premium/027/` (`medir027.py`,
+`medir_letras.py`, `medir_c5.py`, `comp/medir_comp.py`, `c3.txt`, `c5.txt`, `c6-*.txt`,
+`calibracion.txt`, `carga.txt`), capturas en `despues/` (220), recortes en `recortes/` y sondas en
+`letras-0.8/`, `c5-solo/`, `comp/` y `calibracion/`.
+
+wallY calibrado por foto: northline 0,863 de dia y 0,862 de noche; norte 0,857 de dia y 0,846 de
+noche. HALO_LETTERS_BAND: 0,8.
+
+- C1. Si. `anchorGround.wallY` en el tipo, la validacion (obligatorio, entre 0 y 1, por encima del
+  apoyo) y los dos JSON, con tests. `?calibrate=1` dibuja la linea y la ajusta: en las cuatro fotos
+  cae donde la fachada toca la vereda.
+- C2. Si. El receptor de piso termina en la profundidad del rayo de la camara por (x del apoyo,
+  wallY) sobre el piso; geometria pura con tests (la linea proyecta de vuelta en su (x, wallY)).
+- C3. Si. 0 px distintos de la foto por encima de wallY y fuera del totem en 24 de 24 cuadros (none
+  y back). De dia la vereda bajo la sombra se oscurece 55,9 niveles en northline y 51,3 en norte, 6
+  de 6.
+- C4. Si, 12 de 12 con banda 0,8: pico compuesto de 36 a 38 niveles debajo del techo de noche;
+  meseta de noche de 0 a 0,8 por ciento; pico de noche contra la foto de 38,6 a 70,6; pendiente de
+  3,0 a 3,7. De dia el halo suma menos de 10 niveles y la meseta no aplica. Con los picos medidos, la
+  banda cumple la pendiente de 0,6 a 0,8 (inferido para 0,6 y 0,7).
+- C5. Artefacto de la mascara, verificado. Con las letras ocultas, el halo solo pasa la forma de D71
+  en los 3 casos (saltos 4,4, 4,0 y 4,4 contra 4,8, 4,7 y 5,4); con las letras, la misma medicion da
+  saltos de 70 porque la muestra entra en la tinta.
+- C6. Sin regresion en 6a (36 de 36), anclaje (0,5 px o menos), sombra bajo el halo (40 a 55 niveles
+  mas oscura con receptor), halo de facade y letters contra la foto (24 de 24) y modo cartel (108
+  de 108 a 1 nivel o menos de 026). Composicion D79: fachada 1,4 y 1,3 niveles; letras 2,5 en 4 px
+  de 303.215, en el borde suavizado de la tinta, donde alpha y sombra se estiman de cuadros de 8
+  bits (inferido); p99 0,5.
+- C7. Si. Recortes x4 de la base del totem (4 casos de PVC none) y del halo de letras (4 casos de
+  back de noche: pvc y acrilico por cliente), con los perfiles de fila y columna en
+  `recortes/perfiles.txt`.
+- C8. Si. Build sin avisos, tsc sin errores, lint limpio, 297 tests en verde, sin rayas largas.
+  Primer frame en slow 4G 4,0 s, 570 kB.
+
+Decisiones de ejecucion en DECISIONES (23/09/2026, TAREA_027).

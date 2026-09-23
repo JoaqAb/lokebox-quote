@@ -38,3 +38,4 @@ ejecutaron, que es el orden del historial: TAREA_013 se ejecuto despues de TAREA
 | TAREA_024 | Iluminacion y materiales PBR | cerrada | a0ee0d1 |
 | TAREA_025 | Detalle del objeto y halo | cerrada | 2360566 |
 | TAREA_026 | Integracion fotografica | cerrada (D83, parte a 027 y 028) | 202caa2 |
+| TAREA_027 | Sombra del totem en vereda y halo de letras sin meseta | entregada | 443b042 |

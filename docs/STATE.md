@@ -4,15 +4,15 @@
 
 ## Bloque actual
 
-Bloque 10, Quote premium, con SPEC 2.7 (D83 a D86). TAREA_027 abierta: el receptor de piso del totem termina en la linea de fachada (anchorGround.wallY) y el halo de letras decrece desde la tinta, sin saturar ni hacer meseta.
+Bloque 10, Quote premium, con SPEC 2.7 (D83 a D86). TAREA_027 entregada con codigo en 443b042: el receptor de piso del totem termina en la linea de fachada (anchorGround.wallY), el halo de letras decrece desde la tinta con banda 0,8, y el pase de atenuacion redibuja los mapas de sombra. 297 tests en verde. Primer frame en slow 4G 4,0 s.
 
 ## Ultimo cerrado
 
-TAREA_026, integracion fotografica, cerrada con D83 (sombra del totem y halo de letras a TAREA_027). Codigo en 202caa2.
+TAREA_026, integracion fotografica, cerrada con D83. Codigo en 202caa2.
 
 ## Proximo
 
-Ejecutar TAREA_027 (docs/tareas/TAREA_027_sombra_del_totem_y_halo_de_letras.md). Despues, TAREA_028 (panel y composicion), pendiente de brief.
+Canal B acepta o no TAREA_027. Despues, TAREA_028 (panel y composicion, D83), pendiente de brief.
 Bloque 9, Canal C, sigue pendiente: portfolio de Upwork, planilla de precios, lista de Tucuman y el enlace a la demo cuando el listado salga de Under Review.
 
 ## Bloqueos
