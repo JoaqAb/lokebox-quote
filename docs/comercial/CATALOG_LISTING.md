@@ -1,7 +1,7 @@
 # Texto del listado del Project Catalog
 
 Fecha: 2026-09-17
-Estado: enviado el 17/09/2026, en Under Review. Este documento es el registro de lo que se envio, mas lo que falta agregar despues de la aprobacion. Unica fuente del texto del listado. docs/comercial/UPWORK.md ya no lo duplica.
+Estado: publicado (D110), aprobado despues del envio del 17/09/2026. La edicion posterior a la aprobacion esta en docs/comercial/CANAL_C_BLOQUE9.md, paso 3. Este documento es el registro de lo que se envio, mas lo que falta agregar despues de la aprobacion. Unica fuente del texto del listado. docs/comercial/UPWORK.md ya no lo duplica.
 
 Reglas que cumple este texto:
 

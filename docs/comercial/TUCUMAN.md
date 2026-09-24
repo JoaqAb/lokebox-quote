@@ -3,6 +3,8 @@
 Fecha de apertura: 2026-09-11
 Última auditoría: 2026-09-11
 
+Nota del 24/09: los precios sugeridos por lead de este documento quedan reemplazados por PRICING V2 (D17, D113): desde USD 250 de setup más USD 29 por mes, igual para todos. Los mensajes vigentes están en docs/comercial/CANAL_C_BLOQUE9.md, paso 6.
+
 ## Rol de Tucumán en la estrategia
 
 Tucumán es el frente comercial prioritario de Lokebox Quote en esta etapa.

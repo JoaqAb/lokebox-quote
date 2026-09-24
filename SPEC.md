@@ -3,7 +3,7 @@
 Fuente de verdad del alcance. Si algo no está acá, no se construye.
 Este documento se edita, no se contradice. Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 
-Versión: 2.10 · 24/09/2026
+Versión: 2.12 · 24/09/2026
 
 ## 1. Objetivo
 
@@ -458,6 +458,12 @@ Validación: al cargar un cliente se valida la forma en runtime. Si falta una cl
 - EN: slug `northline`, marca ficticia Northline Signs. Paleta clara, tipografía grande, acento cálido.
 - ES: slug `norte`, marca ficticia Norte Carteles. Paleta clara y mismo esquema, con idioma, unidades, moneda y precios cambiados.
 
+Desde 2.11 (D114, D115), tres clientes de vitrina, sin cambios de código, para portfolio y material de venta. No son demos de la landing (D118):
+
+- `halcyon`, Halcyon Signworks: en-GB, GBP, metros, precio `exact`, CTA formulario, premium sobrio.
+- `afterglow`, Afterglow Signs: en, USD, pies, precio `range`, CTA WhatsApp, tema oscuro.
+- `alba`, Rótulos Alba: es-ES, EUR, metros, precio `hidden`, CTA los dos, cálido, con totem.
+
 Desde 1.16 esta sección dice lo que los JSON ya tienen: los dos clientes de la demo usan paleta clara, y la estética oscura de northline no existe desde hace varias versiones.
 
 Sin marcas reales, sin fotos reales, sin logos de terceros.
@@ -571,7 +577,9 @@ El cliente entrega antes de empezar: logo, colores, WhatsApp o mail, y sus regla
 
 ## 16. Fuera de alcance
 
-CRM, auth, usuarios, multi-tenant, panel de administración, permisos, integraciones, email transaccional, generación de PDF en servidor, modelos 3D importados, editor visual del JSON, un cuarto tipo de cartel, más de una vertical.
+CRM, auth, usuarios, multi-tenant, panel de administración, permisos, integraciones, email transaccional, generación de PDF en servidor, modelos 3D importados, editor visual del JSON, un cuarto tipo de cartel, más de dos verticales.
+
+Desde 2.12 (D119) la segunda vertical, cajas, está en alcance del bloque 12. Su forma y el contrato de vertical entran en las secciones 4, 6, 8 y 10 cuando se escriba TAREA_032.
 
 Desde 2.0 (D45) no están fuera de alcance el postprocesado, los assets descargados en runtime ni los typefaces: los regula la sección 12.
 

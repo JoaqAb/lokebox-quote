@@ -18,19 +18,37 @@ Reglas:
   - G5 Sin guiones largos en ningún archivo nuevo o editado.
   - G6 Nada de parches. Si algo pide un workaround, se frena y se reporta.
 
-## Bloque 9 · viernes 18 · salida comercial
+## Bloque 9 · salida comercial
 
-Sin tareas de código salvo arreglos bloqueantes.
+Sin tareas de código salvo arreglos bloqueantes. Los pasos, con el cómo completo, están en docs/comercial/CANAL_C_BLOQUE9.md.
 
-- Canal C: portfolio item en el perfil de Upwork, que sí admite enlace a sitio, con el video, las capturas y el enlace a https://quote.lokebox.com.
-- Canal C: planilla plantilla de precios para el cliente, la que el listado promete en "Your prices, in the spreadsheet I send you".
-- Canal C: lista de cartelerías de Tucumán con WhatsApp, y plantilla del mensaje de salida en frío.
-- Canal C, cuando el listado salga de Under Review: agregar el enlace a la demo y quote-northline.pdf editando el proyecto aprobado (D38).
+- C1 Video de 30 s en inglés (escritorio, northline) y clip de 15 s en español (mobile vertical, norte), grabados sobre el layout de TAREA_030 (D112).
+- C2 Video de 30 s subido a YouTube como no listado.
+- C3 Listado del Catalog editado: video y galería nuevos, enlace a la demo y quote-northline.pdf (D38, D110).
+- C4 Portfolio item publicado en el perfil de Upwork con video, capturas y enlace a https://quote.lokebox.com.
+- C5 Planillas de precios en docs/comercial/plantillas/, en inglés y en español (D111).
+- C6 Tres mensajes en frío enviados por WhatsApp (Lumilet, Multigráfica, GB) y registrados en el CRM.
 - Cierre: docs/STATE.md con el resultado del DONE de SPEC 17, punto por punto.
 
-## Bloque 10 · Quote premium
+## Bloque 11 · Vitrina
 
-Objetivo: que el configurador resista una comparacion lado a lado con un configurador comercial de referencia (D48), con ese nivel en core (SPEC 18).
+Corre en paralelo con el bloque 9: Code trabaja mientras Joaquín hace el Canal C comercial. Decisiones D114 a D118.
 
-- TAREA_030, escenario claro y cartel que se lee blanco, la ultima del bloque (D106), con limite de 2 horas: criterios en docs/tareas/TAREA_030_escenario_claro.md.
-- Despues de TAREA_030: Canal C del bloque 9 completo, con video nuevo.
+- C1 Seis fotos en incoming/vitrina/ según docs/comercial/CANAL_C_VITRINA_FOTOS.md (prerrequisito).
+- T1 TAREA_031 cerrada con sus 12 criterios.
+- R1 Canal B revisa las 31 capturas de validacion/vitrina/ y los hallazgos D116.
+- Cierre: docs/STATE.md con el resultado y el material elegido para el portfolio y la web nueva.
+
+## Bloque 12 · Segunda vertical: cajas
+
+Arranca con TAREA_031 aceptada. Decisiones D119 a D125. Corre en paralelo con el bloque 9. La tarea se escribe en el chat que acepta la anterior, con el código leído, y ese chat edita SPEC 4, 6, 8, 10 y 16 con el contrato real.
+
+- T1 TAREA_032, contrato de vertical y motor genérico. Refactor sin cambio visible ni de datos, con la vara de D122: JSON sin editar, motor idéntico contra snapshot, URLs de hoja publicadas válidas, capturas de vitrina iguales dentro del ruido medido, cero vocabulario de carteles en src/core.
+- T2 TAREA_033, vertical boxes con foldline y cajasur (D123 a D125). Flujo completo en los dos, precio por escalones con tests, logo en la tapa, tapa que abre y cierra, capturas de vitrina de los dos clientes con scripts/vitrina.mjs.
+- R1 Canal B revisa las capturas de cajas contra las de carteles: tienen que parecer del mismo producto.
+- Cierre: docs/STATE.md, y en docs/DECISIONES.md la lista de lo que la segunda vertical obligó a cambiar en el contrato, que es la entrada del bloque 13.
+
+## Bloque 13 · Kit y agente
+
+Arranca con TAREA_033 cerrada (D126). docs/verticales/KIT.md desde el contrato real, subagente en .claude/agents/vertical-builder.md y prueba con muebles a medida. Vara: la tercera vertical cierra con una sola ronda de correcciones. Las tareas se escriben al cerrar el bloque 12.
+

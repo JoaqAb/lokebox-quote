@@ -4,21 +4,27 @@
 
 ## Bloque actual
 
-Bloque 10, Quote premium, con SPEC 2.10. TAREA_030, escenario claro y cartel que se lee blanco (D103 a D107), la ultima del bloque, entregada con codigo en ed79a4e: estudio claro calido, grafito con el cartel encendido, PVC en 226 de luminancia (antes 176), foto de vista con radio y sombra, y material de venta y Open Graph regenerados. 302 tests en verde. Primer frame en slow 4G 4,1 s.
+Dos bloques en paralelo.
+
+- Bloque 9, salida comercial, con SPEC 2.11. Sin tareas de codigo salvo arreglos bloqueantes. Todo el Canal C esta en docs/comercial/CANAL_C_BLOQUE9.md, en orden: planillas, video, YouTube, edicion del listado publicado, portfolio, Tucuman.
+- Bloque 11, Vitrina (D114 a D118). Tres clientes nuevos de carteleria sin tocar codigo (halcyon, afterglow, alba) y material de vitrina para portfolio y web nueva. Prerrequisito de Canal C: docs/comercial/CANAL_C_VITRINA_FOTOS.md. Despues, TAREA_031.
+- Bloques 12 y 13 definidos en docs/EXECUTION.md (D119 a D126): segunda vertical cajas con motor generico, despues kit y agente. Arrancan con TAREA_031 aceptada.
 
 ## Ultimo cerrado
 
-TAREA_029, pulido de composicion y material de venta, aceptada el 24/09. Codigo en 8b3e409.
+Bloque 10, Quote premium. TAREA_030 aceptada por pares (D108), codigo en ed79a4e.
 
 ## Proximo
 
-Canal B revisa con Joaquin los seis pares de validacion/premium/030/antes-despues/ y cierra el bloque 10. Punto abierto: el acrilico sin luz se lee brillante en los cantos pero con la cara pareja.
-Despues, el Canal C del bloque 9 completo: portfolio de Upwork, planilla de precios, lista de Tucuman, video nuevo con el layout de 030 y el enlace a la demo cuando el listado salga de Under Review. No entran mas tareas de acabado antes (D106).
+1. Joaquin genera las seis fotos de CANAL_C_VITRINA_FOTOS.md y pega TAREA_031 en Code.
+2. En paralelo sigue con CANAL_C_BLOQUE9.md.
+3. Canal B revisa el reporte de TAREA_031: hallazgos D116, contrastes de afterglow y las capturas de validacion/vitrina/.
+4. Con TAREA_031 aceptada, el mismo chat de Canal B escribe TAREA_032 (contrato de vertical y motor generico, bloque 12, D119 a D122) y edita SPEC 4, 6, 8, 10 y 16. Despues TAREA_033 (cajas) y el bloque 13 (kit y agente), en ese orden.
 
 ## Bloqueos
 
-Pendientes D18 (contraste del texto sobre `.q-on` con la identidad nueva) y D30 (etapa 2 de SPEC 6.2, `gated`, `internal` y `?view=owner`).
+Pendientes D18 (contraste del texto sobre `.q-on` con la identidad nueva) y D30 (etapa 2 de SPEC 6.2, `gated`, `internal` y `?view=owner`). D18 puede aparecer en afterglow, tema oscuro: si pasa, es hallazgo D116 y no se parchea.
 
 ## Comando para retomar
 
-`cd ~/proyectos/lokebox-quote && cat docs/STATE.md SPEC.md`
+`cd ~/proyectos/lokebox-quote && cat docs/STATE.md docs/tareas/TAREA_031_vitrina_nivel_1.md docs/comercial/CANAL_C_BLOQUE9.md`
