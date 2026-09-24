@@ -446,3 +446,10 @@
 - 23/09/2026: TAREA_029, para el alto mobile se mide la proporcion de la primera foto al cargar: la primera carga suma 125 kB de webp, que despues sirven al modo vista. Slow 4G queda en 4,0 s.
 - 23/09/2026: TAREA_029, el metodo de anclaje toma lo esperado de la caja real del elemento y no del tamano de la captura, que redondea hacia afuera. Ademas las capturas llevan ancho y alto en el nombre: en 028 no habia colision, en 029 1280x720 y 1280x600 se pisaban.
 - 23/09/2026: TAREA_029, el material viejo de venta y la imagen de Open Graph anterior quedan copiados en validacion/premium/029/venta-anterior/, porque validacion/ no esta versionado.
+- 24/09/2026: TAREA_029 se acepta. C4 en fachada de northline a 1440x900 (0,60 px, 2 de 48) es el mismo error de metodo que D97. No se abre tarea por eso.
+- 24/09/2026: el bloque 10 midio pixeles y niveles y no lo que percibe un comprador. Desde ahora, las tareas visuales se aceptan por pares antes y despues mirados por Joaquin; las metricas quedan como regresion, no como objetivo. Motivo: horas de trabajo sin mejora visible y el viernes 18 ya paso.
+- 24/09/2026: D103, el escenario del preview pasa de gris plano a estudio claro calido (degradado y vineta) del core, en los dos modos. En modo cartel el canvas es transparente y el piso solo recibe sombra.
+- 24/09/2026: D104, en modo cartel con iluminacion none la cara de PVC se lee casi blanca (luminancia media 225 o mas). Se ajusta la luz o la exposicion del estudio, no el color del material.
+- 24/09/2026: D105, en modo cartel con iluminacion front o back el escenario pasa a grafito con transicion de 300 a 450 ms, sin remontar el canvas.
+- 24/09/2026: D106, el bloque 10 cierra con TAREA_030, con limite de 2 horas. Despues no entran mas tareas de acabado antes del Canal C del bloque 9.
+- 24/09/2026: D107, en escritorio la foto de vista lleva radio de 14 px y sombra suave sobre el escenario claro. En mobile va a todo el ancho, sin radio ni sombra.

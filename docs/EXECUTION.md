@@ -32,5 +32,5 @@ Sin tareas de código salvo arreglos bloqueantes.
 
 Objetivo: que el configurador resista una comparacion lado a lado con un configurador comercial de referencia (D48), con ese nivel en core (SPEC 18).
 
-- TAREA_029, pulido de composicion y material de venta, la ultima del bloque (D102): criterios en docs/tareas/TAREA_029_pulido_de_composicion.md.
-- Despues de TAREA_029: Canal C del bloque 9 completo, con video nuevo.
+- TAREA_030, escenario claro y cartel que se lee blanco, la ultima del bloque (D106), con limite de 2 horas: criterios en docs/tareas/TAREA_030_escenario_claro.md.
+- Despues de TAREA_030: Canal C del bloque 9 completo, con video nuevo.

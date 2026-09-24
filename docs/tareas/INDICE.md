@@ -40,4 +40,5 @@ ejecutaron, que es el orden del historial: TAREA_013 se ejecuto despues de TAREA
 | TAREA_026 | Integracion fotografica | cerrada (D83, parte a 027 y 028) | 202caa2 |
 | TAREA_027 | Sombra del totem en vereda y halo de letras sin meseta | cerrada | 443b042 |
 | TAREA_028 | Panel, composicion y control de sombras | cerrada (D97) | 54dc917 |
-| TAREA_029 | Pulido de composicion y material de venta | entregada | 8b3e409 |
+| TAREA_029 | Pulido de composicion y material de venta | cerrada (24/09) | 8b3e409 |
+| TAREA_030 | Escenario claro y cartel que se lee blanco | abierta | |
