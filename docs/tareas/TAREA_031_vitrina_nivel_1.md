@@ -12,6 +12,13 @@ Sumar tres clientes ficticios de cartelería sobre el core actual, cada uno con 
 
 Excepciones permitidas fuera de `src/clients/` y `public/`: `scripts/vitrina.mjs` (nuevo) y un test que valide todos los clientes del registro si no existe ya uno.
 
+Excepciones agregadas por Canal B después del primer reporte (D127, D128):
+
+- Tests de `src/core` y `src/verticals` que fijaban los dos clientes demo. Se reescriben para recorrer todos los clientes según su forma. Reglas: ninguna aserción se debilita; lo que antes corría sobre dos clientes ahora corre sobre cada cliente al que aplica; cada test condicional (totem, tipo de área, tipo letters, `pricing.display`) afirma además que al menos un cliente del registro cumple la condición, para que no pase en vacío; los tipos se eligen por su `pricing` y no por posición; la lista de clientes se compara contra los JSON de `src/clients/` y exige que estén northline y norte; lo que es propio de la demo ("no traen pricing") se fija por slug. Detalle por archivo: `clientConfig.test.ts:25`, `:283` (las 47 claves son un piso; las dos de hidden solo se permiten y se exigen según SPEC 10), el test de pricing ausente, `quoteParams.test.ts:46`, `lineLabels.test.ts:31`, `leadTokens.test.ts:50`, `visuals.test.ts:28` y `:61`.
+- `src/core/ui/LoadingScreen.tsx` y `src/index.css`: el texto de la pantalla de carga deja de usar `--q-muted` del cliente y usa un color de tinta del escenario, fijo, definido junto a `q-stage-light` y `q-stage-dark`, porque el fondo es fijo desde TAREA_030 y el color del cliente no puede garantizar contraste sobre él. Criterio: 4,5:1 o más contra el extremo superior y el inferior del degradado, en los dos escenarios, medido en el navegador sobre píxeles. Se verifica en los cinco clientes.
+
+El resto de `src/core` y `src/verticals` sigue cerrado por D116.
+
 ## Prerrequisito (Canal C, ya ejecutado antes de pegar esta tarea)
 
 Seis fotos en `incoming/vitrina/`, generadas según docs/comercial/CANAL_C_VITRINA_FOTOS.md:
@@ -105,11 +112,11 @@ Más `validacion/vitrina/00-grilla.png`, 1920 x 1080: los cinco `05-cuadrado.png
 ## Criterios de aceptación
 
 1. Los tres JSON validan al cargar y `/d/halcyon`, `/d/afterglow` y `/d/alba` renderizan sin error en consola.
-2. `git diff --stat` no muestra archivos en `src/core/` ni en `src/verticals/` (D116).
+2. `git diff --stat` no muestra archivos en `src/core/` ni en `src/verticals/` fuera de los tests listados en D127 y de `LoadingScreen.tsx` e `index.css` de D128.
 3. Flujo completo en los tres: configurar, precio según su modo, lead por su CTA con el nombre `Vitrina Test`, pantalla de gracias y hoja imprimible. Filas en `leads` verificadas con una consulta por `contact_name`.
 4. alba (`hidden`): ninguna cifra de precio en pantalla, en el mensaje de WhatsApp ni en la hoja. Se verifica buscando `€` y dígitos seguidos de `€` en el DOM y en la URL de wa.me.
 5. halcyon (`exact`): precio exacto sin rango, con `£` y formato `en-GB`. alba con `€` y `2,5` en `es-ES`.
-6. afterglow: contraste de 4,5:1 o más en todo texto sobre `bg`, `surface` y los controles activos (`.q-on`), medido y reportado por par de colores. Si el fallo viene de D18 o de cómo el core deriva colores, se reporta por la regla D116, sin parche.
+6. afterglow: contraste de 4,5:1 o más en todo texto sobre `bg`, `surface` y los controles activos (`.q-on`), medido en el navegador sobre píxeles, no calculado, y reportado por par de colores. Pantalla de carga según D128, en los cinco clientes.
 7. Fotos: seis webp de 150 kB o menos, cartel apoyado en la banda y totem apoyado en la vereda, verificado en `02` y `03` de cada cliente.
 8. Logos: tres SVG sin `<text>`, menos de 10 kB, legibles en el header de desktop y de mobile.
 9. `scripts/vitrina.mjs` genera los 31 archivos y lista tamaño y dimensiones de cada uno.
