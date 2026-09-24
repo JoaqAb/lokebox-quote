@@ -453,3 +453,8 @@
 - 24/09/2026: D105, en modo cartel con iluminacion front o back el escenario pasa a grafito con transicion de 300 a 450 ms, sin remontar el canvas.
 - 24/09/2026: D106, el bloque 10 cierra con TAREA_030, con limite de 2 horas. Despues no entran mas tareas de acabado antes del Canal C del bloque 9.
 - 24/09/2026: D107, en escritorio la foto de vista lleva radio de 14 px y sombra suave sobre el escenario claro. En mobile va a todo el ancho, sin radio ni sombra.
+- 24/09/2026: TAREA_030, SPEC pasa a 2.10: el fondo --q-stage del modo cartel de SPEC 12 quedaba contradicho por D103. Se editan 12 (escenario, foto de vista y luz del estudio). --q-stage sigue en el tema para la landing.
+- 24/09/2026: TAREA_030, el escenario va con colores fijos en src/index.css (q-stage-light y q-stage-dark) y un componente del core, StageBackdrop: norte tiene fondo frio y D103 pide calido y fuera del JSON. La capa grafito entra por opacidad, porque un degradado no se interpola.
+- 24/09/2026: TAREA_030, la luz del estudio con el cartel apagado (SIGN_STUDIO_BRIGHT) sube la key de 0,3 a 5 y la ambiente de 0 a 3,5, con el entorno en 1. Motivo medido: subir el entorno (4,5) llevaba el PVC a 228 pero lavaba el aluminio; la ambiente es difusa pura y el metal no la recibe. Cara del PVC de 175,9 a 226,1.
+- 24/09/2026: TAREA_030, con el cartel encendido el estudio vuelve a la luz de 029, asi el halo, el bloom y sus mediciones no cambian: se apagan las luces, que es lo que dice D105.
+- 24/09/2026: TAREA_030, la pantalla de carga pasa al escenario claro, con el texto en --q-muted: sobre el gris de antes quedaba un salto de oscuro a claro al terminar de cargar.

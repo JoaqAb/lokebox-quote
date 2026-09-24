@@ -42,3 +42,26 @@ Si la tarea pasa de 2 horas de trabajo, Code frena, commitea lo que este sano en
 ## Fuera
 
 Cambios de layout, panel, precios, textos (D96 sigue), fotos nuevas, shaders custom, postproceso nuevo.
+
+## Resultado (24/09/2026)
+
+Estado: entregada. Codigo en ed79a4e. Pares en `validacion/premium/030/antes-despues/`, capturas en
+`antes/` (worktree en cd50de3) y `despues/`, con `pares.mjs`, `unir.py`, `cara.py`, `c2-antes.txt`,
+`c2-despues.txt`, `escenario.mjs`, `escenario.txt`, `escenario/`, `prueba-entorno/` y `carga.txt`.
+
+- C1. Si. Estudio claro calido en los dos modos y los dos clientes, canvas transparente, sin plano
+  de fondo ni horizonte: la sombra de apoyo cae sobre el degradado.
+- C2. En parte. Cara de PVC del par 1: 226,1 de luminancia media sin las letras (215,3 con ellas),
+  antes 175,9. Aluminio se lee metal, cepillado y con degradado. Acrilico: brillo en los cantos,
+  cara bastante pareja. Probe entorno 1,5 y no cambia; no se persiguio mas (D106).
+- C3. Si. Front y back pasan a grafito en 375 ms (opacidad 0,80 a los 150 ms), y none vuelve al
+  claro igual. En vista con front el escenario sigue claro. Canvas sin remontar.
+- C4. Si. Escritorio: radio de 14 px y sombra hacia abajo. Mobile: foto a todo el ancho, sin radio
+  ni sombra, y la franja sobre el escenario. Selector y zoom legibles sobre claro y sobre grafito
+  en los pares 1, 2 y 5.
+- C5. Si. Material de venta 01 a 08, las seis de subir/ y la imagen de Open Graph, con los
+  mismos nombres.
+- C6. Si. Build sin avisos, tsc sin errores, lint limpio, 302 tests en verde, sin rayas largas.
+  Slow 4G 4,1 s contra 4,0 de 029.
+
+Decisiones de ejecucion en DECISIONES (24/09/2026, TAREA_030).
