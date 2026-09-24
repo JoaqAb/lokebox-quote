@@ -597,6 +597,15 @@ export const SIGN_STUDIO_LIGHT: PhotoLight = {
   keyElevationDeg: 40,
 }
 
+// Estudio con las luces prendidas (SPEC 12, D104): el modo cartel con el cartel apagado, sobre el
+// escenario claro. Mas key y mas entorno, para que el cartel se lea del color del JSON: el PVC,
+// #E8E8E4, salia gris medio. Se sube la luz y no el material. Con el cartel encendido el estudio
+// vuelve a SIGN_STUDIO_LIGHT y al entorno 1 sobre el escenario grafito (D105): se apagan las luces.
+export const SIGN_STUDIO_BRIGHT = {
+  light: { ...SIGN_STUDIO_LIGHT, ambient: 3.5, keyIntensity: 5 } satisfies PhotoLight,
+  environment: 1,
+}
+
 // Sombra de mapa de la key del modo cartel (SPEC 12, version 2.0). La key esta a 10 m del
 // origen, asi near y far cubren cualquier cartel del rango. normalBias evita el acne en el
 // relieve de 3 mm, que proyecta sobre la misma cara que lo recibe. radius es el ancho del

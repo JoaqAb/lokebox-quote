@@ -2,6 +2,7 @@ import { useReducedMotion } from 'framer-motion'
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import type { ClientPhoto, SignSelection } from '../../core/types'
 import type { LoadingBrand } from '../../core/ui/LoadingScreen'
+import { StageBackdrop } from '../../core/ui/StageBackdrop'
 import { PhotoStage } from './PhotoStage'
 import { containBox, signZoomFactor, zoomBy, zoomFromPinch } from './scene/sceneGeometry'
 import type { SignVisual } from './visuals'
@@ -33,6 +34,11 @@ import type { SignVisual } from './visuals'
 //   franja, con tope de 42svh; el ancho sale de 100cqw del area del core. La proporcion es la de
 //   la foto elegida, o en modo cartel la de la ultima elegida o la primera: cambiar de modo no
 //   cambia el alto.
+// Desde la version 2.10:
+// - D103, D105: el fondo es el escenario del core (StageBackdrop), claro, y grafito en modo cartel
+//   con el cartel encendido. La franja de controles queda sobre el mismo fondo.
+// - D107: en lg la foto de vista lleva radio de 14 px y sombra suave hacia abajo; en mobile va a
+//   todo el ancho, sin radio ni sombra.
 
 const ZOOM = { min: 1, max: 2.5, step: 0.25 }
 
@@ -190,7 +196,7 @@ export function SignPreview({ selection, visual, theme, photos, zoomLabel, signO
       ref={zoneRef}
       data-preview-zone
       style={zoneStyle}
-      className={`relative h-[min(42svh,calc(100cqw/var(--q-photo-aspect)_+_var(--q-strip)))] w-full touch-none lg:h-full overflow-hidden bg-[var(--q-stage)] ${photo === null ? 'cursor-grab active:cursor-grabbing' : ''}`}
+      className={`relative h-[min(42svh,calc(100cqw/var(--q-photo-aspect)_+_var(--q-strip)))] w-full touch-none lg:h-full overflow-hidden ${photo === null ? 'cursor-grab active:cursor-grabbing' : ''}`}
       onPointerDownCapture={(event) => {
         pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
         const distance = pinchDistance()
@@ -216,9 +222,15 @@ export function SignPreview({ selection, visual, theme, photos, zoomLabel, signO
         pinchStart.current = null
       }}
     >
+      <StageBackdrop dark={photo === null && visual.lighting.mode !== 'none'} />
+
       <div ref={fitRef} aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 bottom-[var(--q-strip)] lg:inset-x-6 lg:top-6" />
 
-      <div data-preview-stage className="absolute overflow-hidden lg:rounded-2xl" style={stageStyle}>
+      <div
+        data-preview-stage
+        className={`absolute overflow-hidden lg:rounded-[14px] ${photo === null ? '' : 'lg:shadow-[0_18px_36px_-18px_rgb(40_32_24/0.45),0_4px_10px_-4px_rgb(40_32_24/0.18)]'}`}
+        style={stageStyle}
+      >
         <PhotoStage
           selection={selection}
           visual={visual}

@@ -8,6 +8,7 @@ import { SignBoard } from './SignBoard'
 import { StudioEnvironment } from '../../../core/preview/StudioEnvironment'
 import {
   SET,
+  SIGN_STUDIO_BRIGHT,
   SIGN_STUDIO_LIGHT,
   SIGN_VIEW,
   STUDIO_SHADOW,
@@ -194,8 +195,10 @@ export function SignScene({
   tint,
 }: SignSceneProps) {
   // En modo vista la luz viene de la foto: cada foto dice de donde le pega el sol, para que
-  // el volumen del cartel case con ella. En modo cartel es la luz de estudio del producto.
-  const light = photo === null ? SIGN_STUDIO_LIGHT : photo.light
+  // el volumen del cartel case con ella. En modo cartel es la luz de estudio del producto: con
+  // el cartel apagado, el estudio con las luces prendidas (D104); encendido, el de siempre (D105).
+  const studioBright = photo === null && lightingMode === 'none'
+  const light = photo !== null ? photo.light : studioBright ? SIGN_STUDIO_BRIGHT.light : SIGN_STUDIO_LIGHT
   const keyPosition = useMemo((): [number, number, number] => {
     const az = MathUtils.degToRad(light.keyAzimuthDeg)
     const el = MathUtils.degToRad(light.keyElevationDeg)
@@ -288,7 +291,7 @@ export function SignScene({
         shadow-camera-far={STUDIO_SHADOW.far}
       />
       <StudioEnvironment
-        intensity={photo === null ? 1 : light.ambient}
+        intensity={photo !== null ? light.ambient : studioBright ? SIGN_STUDIO_BRIGHT.environment : 1}
         highlight={photo === null ? null : studioHighlight}
         color={lightTint}
       />

@@ -173,3 +173,20 @@
 .q-swatch {
   box-shadow: 0 0 0 1px var(--q-border);
 }
+
+/* Escenario del preview (SPEC 12, D103 y D105). Es del producto, como la luz de estudio: no sale
+   del JSON del cliente y por eso lleva colores fijos. Claro calido, de blanco arriba a gris perla
+   abajo con una vineta suave, del mismo lado de la paleta que el panel. Con el cartel encendido
+   pasa a grafito: la capa oscura va encima y entra con su opacidad, porque un degradado no se
+   interpola. */
+.q-stage-light {
+  background:
+    radial-gradient(ellipse 120% 95% at 50% 38%, transparent 58%, rgb(74 64 52 / 0.12) 100%),
+    linear-gradient(to bottom, #fcfbf8 0%, #ebe8e2 62%, #dddad3 100%);
+}
+
+.q-stage-dark {
+  background:
+    radial-gradient(ellipse 120% 95% at 50% 38%, transparent 50%, rgb(0 0 0 / 0.38) 100%),
+    linear-gradient(to bottom, #3b3c3f 0%, #2a2b2e 60%, #1f2022 100%);
+}
