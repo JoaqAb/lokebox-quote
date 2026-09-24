@@ -94,7 +94,7 @@ Despues, push.
 
 ## Resultado (23/09/2026)
 
-Estado: entregada. Codigo en 54dc917. Mediciones en `validacion/premium/028/` (`c0-conteo.txt`,
+Estado: cerrada, aceptada con D97. Codigo en 54dc917. Mediciones en `validacion/premium/028/` (`c0-conteo.txt`,
 `contar_sombras.mjs`, `c0-sonda/`, `pantallas.mjs`, `c1-c2-c4.txt`, `validar.mjs`,
 `validar-anclaje/medicion.txt`, `validar-zoom/medicion.txt`, `validar-flujo/`, `validar-hidden/`,
 `carga.txt`) y capturas en `capturas/`.

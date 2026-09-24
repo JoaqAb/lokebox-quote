@@ -39,4 +39,4 @@ ejecutaron, que es el orden del historial: TAREA_013 se ejecuto despues de TAREA
 | TAREA_025 | Detalle del objeto y halo | cerrada | 2360566 |
 | TAREA_026 | Integracion fotografica | cerrada (D83, parte a 027 y 028) | 202caa2 |
 | TAREA_027 | Sombra del totem en vereda y halo de letras sin meseta | cerrada | 443b042 |
-| TAREA_028 | Panel, composicion y control de sombras | entregada | 54dc917 |
+| TAREA_028 | Panel, composicion y control de sombras | cerrada (D97) | 54dc917 |

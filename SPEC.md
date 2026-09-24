@@ -3,7 +3,7 @@
 Fuente de verdad del alcance. Si algo no está acá, no se construye.
 Este documento se edita, no se contradice. Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 
-Versión: 2.8 · 23/09/2026
+Versión: 2.9 · 23/09/2026
 
 ## 1. Objetivo
 
@@ -48,7 +48,7 @@ Fecha de DONE: viernes 18/09/2026.
 
 Se escribe una vez y no conoce ninguna vertical ni ningún cliente concreto.
 
-- Layout responsive. Desktop: preview a la izquierda, panel de opciones a la derecha, precio siempre visible. Mobile: preview arriba, opciones abajo, barra de precio fija al pie. Desde 2.8 (D90): header compacto en una línea, con logo, título y subtítulo más chico; el preview ocupa todo el ancho menos el panel y todo el alto útil (100dvh menos el header); el panel mide 400 px, tiene su propio scroll y deja fijos al pie el precio y el CTA (D93). Desde 2.8 (D95), en mobile el preview queda arriba, sticky, con 42svh de alto, el panel scrollea debajo y la barra fija al pie lleva precio y CTA. En `hidden` la barra lleva solo el CTA.
+- Layout responsive. Desktop: preview a la izquierda, panel de opciones a la derecha, precio siempre visible. Mobile: preview arriba, opciones abajo, barra de precio fija al pie. Desde 2.8 (D90): header compacto en una línea, con logo, título y subtítulo más chico; el preview ocupa todo el ancho menos el panel y todo el alto útil (100dvh menos el header); el panel mide 400 px, tiene su propio scroll y deja fijos al pie el precio y el CTA (D93). Desde 2.8 (D95), en mobile el preview queda arriba, sticky, con 42svh de alto, el panel scrollea debajo y la barra fija al pie lleva precio y CTA. En `hidden` la barra lleva solo el CTA. Desde 2.9 (D98), por debajo de lg el alto del preview lo da el preview, con tope de 42svh: el core le da el ancho y el tope, y la vertical decide el alto. Desde 2.9 (D99), por debajo de lg el header no lleva subtítulo y el título baja a dos líneas como máximo, en un tamaño menor, sin puntos suspensivos.
 - Panel de opciones genérico, renderizado desde el esquema de la vertical. Cinco `kinds` de control: choice, range, boolean, stepper y text. Desde 2.8 (D94) el panel se agrupa en pasos numerados que declara la vertical; el título de cada paso es la etiqueta que ya existe y el número no es texto. El control choice suma un swatch opcional en el descriptor, un color, que la vertical completa; el core no conoce la vertical. No entran claves nuevas en `texts` (D96).
 - Tema del cliente: los cinco colores del JSON como variables CSS, más tres derivadas con `color-mix` en el contenedor raíz: `--q-surface`, `--q-border` y, desde 1.16, `--q-stage`, el escenario del modo cartel. El tema sale siempre del JSON del cliente: no hay tema global del core ni variantes `dark:`, que serían una segunda fuente de verdad del look.
 - Motor de precios. Función pura, contrato en la sección 6.
@@ -469,7 +469,7 @@ Desde 1.12 el viewer tiene dos modos sobre el mismo canvas R3F, que no se remont
 1. Modo cartel, el default al cargar. Sin foto. Fondo `--q-stage` del marco (desde 1.16, antes `--q-surface`): el marco es un escenario y tiene que contrastar con un cartel de material claro, que sobre la superficie casi no se despegaba. En modo vista el marco sigue en `--q-surface`, detrás de la foto. Desde 2.8 (D91) sale el marco 16:9 fijo: en modo cartel el canvas llena la zona del preview; en modo vista foto y canvas van juntos en una caja con la proporción de la foto, entera (contain) y centrada sobre `--q-stage`, así el anclaje sigue siendo relativo al rectángulo de la foto. El cartel solo, con su sombra de apoyo, y el visitante lo gira con el mouse o el dedo.
 2. Modo vista. Una foto del cliente con el cartel compuesto encima, fijo, sin órbita: es el pivote de 1.9 con la cámara nueva.
 
-El selector de vistas es una fila de botones: el primero es el modo cartel, con la etiqueta `viewSignOnly`, seleccionado al cargar; después uno por foto de `photos`, con su `label`. Desde 2.8 (D92) es un control segmentado sobre el preview, abajo al centro.
+El selector de vistas es una fila de botones: el primero es el modo cartel, con la etiqueta `viewSignOnly`, seleccionado al cargar; después uno por foto de `photos`, con su `label`. Desde 2.8 (D92) es un control segmentado sobre el preview, abajo al centro. Desde 2.9 (D98, D100) el selector y el zoom van en una franja de controles al pie de la zona del preview, y nunca quedan encima de la foto. En modo vista la caja contain de la foto se calcula sobre la zona menos esa franja; en escritorio, además, menos un margen de 24 px por lado, así la foto no toca el panel ni el borde de la ventana. En mobile la foto va a todo el ancho y la zona mide el alto de la foto más la franja, con tope de 42svh, el mismo en modo cartel y en modo vista: cambiar de modo no mueve el layout. En modo cartel se usa la proporción de la última foto elegida, o la de la primera. El modo cartel no cambia: el canvas llena la zona y la franja queda sobre el escenario.
 
 Cámara en perspectiva en los dos modos. Motivo: la ortográfica de 1.9 dibujaba el cartel de frente sobre fotos tomadas en tres cuartos, y girar el cartel no reproduce la fuga de una foto. Se orbita la cámara alrededor del cartel; el cartel no se rota nunca.
 
