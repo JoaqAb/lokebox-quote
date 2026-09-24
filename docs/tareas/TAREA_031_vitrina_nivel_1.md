@@ -127,3 +127,31 @@ Más `validacion/vitrina/00-grilla.png`, 1920 x 1080: los cinco `05-cuadrado.png
 ## Cierre
 
 Commit de código, commit de docs con docs/STATE.md, docs/tareas/INDICE.md (fila de TAREA_031 con el hash) y docs/DECISIONES.md con lo que se decidió durante la tarea, una línea cada una. Reporte a Canal B: hash, lista de hallazgos D116 si los hubo, contrastes de afterglow, rutas de las 31 capturas.
+
+## Resultado (24/09/2026)
+
+Estado: entregada. Codigo en 0fd3f8a, en produccion. Capturas en `validacion/vitrina/` (lista en
+`lista.txt`) y mediciones en `validacion/vitrina/validar/` (`validar.mjs`, `sonda.mjs`,
+`validar.txt`, gracias y hojas).
+
+1. Si. Los tres JSON validan; 0 errores de consola en /d/halcyon, /d/afterglow y /d/alba, en local y
+   en produccion.
+2. Si. En src/core y src/verticals solo los seis tests de D127 y LoadingScreen.tsx de D128.
+3. En parte. halcyon y alba: formulario con Vitrina Test, gracias y hoja; filas en leads por
+   contact_name. afterglow: fila en leads por WhatsApp (client_slug y channel), sin gracias ni boton a
+   la hoja por el hallazgo D116 de LeadSection; la hoja abre por URL directa.
+4. Si. alba sin euro ni cifra seguida de euro en la pantalla, en el mensaje de WhatsApp y en la hoja.
+5. En parte. halcyon exacto sin rango, "£378", con £ en la hoja. alba con "2,5" en es-ES; el euro no se
+   ve por hidden (choca con 4).
+6. Si. afterglow, sobre pixeles: text/bg 16,89; muted/bg 6,90; text/surface 14,75; muted/surface
+   6,03; q-on 5,60; selector activo 5,60; CTA 5,60. Pantalla de carga en los cinco: 9,16 y 6,53 sobre
+   el claro, 9,10 y 14,06 sobre el grafito.
+7. Si. Seis webp de 1600x900, de 143,9 a 148,2 kB. Letras sobre la banda en halcyon y afterglow y
+   totem sobre la vereda en alba, en 02 y 03.
+8. Si. Tres SVG sin <text>: 1070, 889 y 874 bytes, legibles a 32 px y en los headers.
+9. Si. 31 archivos, con peso y dimensiones.
+10. Si. clientConfig.test.ts compara el registro con los JSON de src/clients/ y valida cada cliente.
+11. Si. Push a main, Vercel en Ready, las tres rutas y sus assets en 200 en https://quote.lokebox.com.
+12. Si. Build sin avisos, tsc sin errores, lint limpio, 302 tests en verde, sin rayas largas.
+
+Decisiones de ejecucion en DECISIONES (24/09/2026, TAREA_031).
