@@ -79,3 +79,28 @@ Cualquier workaround se frena y se reporta antes de commitear. Sin claves nuevas
 3. docs: cierre de TAREA_029.
 
 Despues, push.
+
+## Resultado (23/09/2026)
+
+Estado: entregada. Codigo en 8b3e409. Mediciones en `validacion/premium/029/` (`pantallas.mjs` y
+`pantallas.txt`, `validar.mjs`, `validar-anclaje/medicion.txt` y `medicion-subpixel.txt`,
+`sonda-fachada/medicion.txt`, `zoom.log`, `carga.txt`, `build.txt`) y capturas en `capturas/`.
+
+- C1. Si. A 390x844 y 360x800, los dos clientes: foto a todo el ancho, bandas de 0 arriba y a los
+  lados, 56 px abajo, que es la franja; controles 5 px debajo de la foto; el preview mide 275,4 en
+  cartel y en vista a 390, y 258,5 a 360. Sin scroll horizontal. D24 sin cambios en el codigo.
+- C2. Si. Titulo en dos lineas, sin recorte ni puntos suspensivos, y sin subtitulo, a 390 y a 360.
+- C3. Si. 1440x900, 1280x720 y 1280x600: la foto a 24 px del panel y del borde izquierdo, 24 o
+  mas arriba y 57 o mas del borde inferior. Selector entero y sin pisar el zoom en los diez casos.
+- C4. En parte. 46 de 48 casos cumplen. Letras hasta 0,67 y totem hasta 0,50. Fachada: 2 de 16
+  en 0,60, northline a 1440x900, dia y noche. Una sonda con la caja de 988 a 996 px de ancho da
+  de -0,76 a +0,06 en diente de sierra, con las filas de la cara en pasos enteros: error del
+  metodo (inferido), el de D97, ahora en fachada.
+- C5. Si. Canvas sin remontar al cambiar de modo, de vista y de tipo. Zoom igual que en 028: 1,35
+  con una vuelta de rueda, 2,025 con pinch, 2,275 con el boton +, tope 2,5 y vuelta a 1.
+- C6. Si. Capturas de 390, 360, 1440, 1280x720 y 1280x600 por cliente, en cartel y en vista.
+  Material regenerado con `scripts/venta.mjs`, `subir.py` y `scripts/og.mjs`.
+- C7. Si. Build sin avisos, tsc sin errores, lint limpio, 302 tests en verde, sin rayas largas.
+  Primer frame en slow 4G 4,0 s, 697 kB.
+
+Decisiones de ejecucion en DECISIONES (23/09/2026, TAREA_029).
