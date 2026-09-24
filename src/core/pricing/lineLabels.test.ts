@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { getClient, listClientSlugs } from '../../clients'
-import { defaultSelection, priceRulesFromClient } from '../clientConfig'
+import { TOTEM_TYPE_ID, defaultSelection, materialsForMode, priceRulesFromClient } from '../clientConfig'
 import type { SignSelection } from '../types'
 import { calculatePrice } from './calculatePrice'
 import { resolveLineLabel } from './lineLabels'
@@ -14,12 +14,14 @@ function clientOrFail(slug: string) {
 }
 
 // Seleccion que activa las cinco lineas del desglose: totem, con luz, con instalacion y cantidad 5.
+// La luz es la ultima del cliente, que en todos es una luz con precio.
 function fullSelection(slug: string): SignSelection {
   const config = clientOrFail(slug)
   return {
     ...defaultSelection(config),
-    type: 'totem',
-    lightingId: 'back',
+    type: TOTEM_TYPE_ID,
+    materialId: materialsForMode(config.options, 'area')[0].id,
+    lightingId: config.options.lighting[config.options.lighting.length - 1].id,
     installation: true,
     quantity: 5,
   }
@@ -27,8 +29,14 @@ function fullSelection(slug: string): SignSelection {
 
 describe('resolveLineLabel', () => {
   // 12.9
-  it('resuelve cada labelKey del motor a un texto no vacio, para los dos clientes', () => {
-    for (const slug of listClientSlugs()) {
+  // D127: corre sobre cada cliente con totem, el tipo que suma la linea de estructura, y exige que
+  // haya al menos uno.
+  it('resuelve cada labelKey del motor a un texto no vacio, para cada cliente con totem', () => {
+    const conTotem = listClientSlugs().filter((slug) =>
+      clientOrFail(slug).options.types.some((item) => item.id === TOTEM_TYPE_ID),
+    )
+    expect(conTotem.length).toBeGreaterThan(0)
+    for (const slug of conTotem) {
       const config = clientOrFail(slug)
       const result = calculatePrice(priceRulesFromClient(config), fullSelection(slug))
       expect(result.lines).toHaveLength(5)

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { getClient, listClientSlugs } from '../../clients'
-import { defaultSelection } from '../clientConfig'
-import type { ClientConfig, SignSelection } from '../types'
+import { defaultSelection, materialsForMode } from '../clientConfig'
+import type { ClientConfig, PricingMode, SignSelection } from '../types'
 import { decodeQuoteParams, encodeQuoteParams } from './quoteParams'
 
 function clientOrFail(slug: string): ClientConfig {
@@ -42,13 +42,29 @@ describe('encodeQuoteParams', () => {
 
 describe('decodeQuoteParams', () => {
   // 13.2
-  it('ida y vuelta: devuelve la misma seleccion para los dos clientes', () => {
+  // D127: cada cliente, con el primer tipo de cada modo que ofrece, elegido por su pricing y no
+  // por posicion. Cada modo tiene que aparecer en al menos un cliente.
+  it('ida y vuelta: devuelve la misma seleccion para cada cliente y cada modo que ofrece', () => {
+    const modes: PricingMode[] = ['area', 'letters']
+    const cubiertos = new Set<PricingMode>()
     for (const slug of listClientSlugs()) {
       const config = clientOrFail(slug)
-      const selection = defaultSelection(config)
-      const params = new URLSearchParams(encodeQuoteParams(selection, 'area'))
-      expect(decodeQuoteParams(config.options, params)).toEqual(selection)
+      for (const mode of modes) {
+        const type = config.options.types.find((item) => item.pricing === mode)
+        if (type === undefined) {
+          continue
+        }
+        cubiertos.add(mode)
+        const selection: SignSelection = {
+          ...defaultSelection(config),
+          type: type.id,
+          materialId: materialsForMode(config.options, mode)[0].id,
+        }
+        const params = new URLSearchParams(encodeQuoteParams(selection, mode))
+        expect(decodeQuoteParams(config.options, params), `${slug} ${mode}`).toEqual(selection)
+      }
     }
+    expect([...cubiertos].sort()).toEqual(['area', 'letters'])
   })
 
   // 13.2

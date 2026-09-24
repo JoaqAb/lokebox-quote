@@ -21,8 +21,15 @@ function clientOrFail(slug: string) {
 }
 
 describe('getClient', () => {
-  it('lista los dos clientes de la demo', () => {
-    expect(listClientSlugs().sort()).toEqual(['norte', 'northline'])
+  // D127: el registro lista exactamente los JSON de src/clients/, y entre ellos los dos de la demo.
+  it('lista todos los JSON de src/clients/, con los dos clientes de la demo', () => {
+    // Listado de archivos de Vite, sin cargar los modulos: lo que hay en la carpeta.
+    const files = Object.keys(import.meta.glob('../clients/*.json'))
+      .map((path) => path.slice(path.lastIndexOf('/') + 1, -'.json'.length))
+      .sort()
+    expect(listClientSlugs()).toEqual(files)
+    expect(listClientSlugs()).toContain('northline')
+    expect(listClientSlugs()).toContain('norte')
   })
 
   it('northline devuelve una config valida', () => {
@@ -259,7 +266,7 @@ describe('priceRulesFromClient y defaultSelection', () => {
     })
   })
 
-  it('la seleccion por defecto de los dos clientes calcula precio sin lanzar', () => {
+  it('la seleccion por defecto de cada cliente calcula precio sin lanzar', () => {
     for (const slug of listClientSlugs()) {
       const client = clientOrFail(slug)
       const result = calculatePrice(priceRulesFromClient(client), defaultSelection(client))
@@ -277,20 +284,39 @@ const CLAVES_DE_LA_HOJA = [
   'quoteBack',
 ] as const
 
-describe('claves de texto de los dos clientes', () => {
-  // 13.16
-  it('los dos JSON tienen las mismas 47 claves, ninguna vacia', () => {
-    const juegos = listClientSlugs().map((slug) => {
-      const texts = clientOrFail(slug).texts
-      for (const [key, value] of Object.entries(texts)) {
+// Las dos plantillas sin precio de SPEC 10: opcionales en la forma, fuera de las 47.
+const CLAVES_DE_HIDDEN = ['whatsappMessageHidden', 'whatsappMessageHiddenLetters']
+
+describe('claves de texto de los clientes', () => {
+  // 13.16. D127: las 47 claves son un piso comun a todos los clientes. Las dos de hidden solo
+  // aparecen con pricing.display hidden, y ahi se exigen si el CTA incluye WhatsApp (SPEC 10).
+  it('todos los JSON tienen las mismas 47 claves, ninguna vacia, y las de hidden segun SPEC 10', () => {
+    const base = Object.keys(clientOrFail('northline').texts).sort()
+    expect(base).toHaveLength(47)
+    let conHidden = 0
+    for (const slug of listClientSlugs()) {
+      const config = clientOrFail(slug)
+      for (const [key, value] of Object.entries(config.texts)) {
         expect(value.trim(), `${slug}.texts.${key}`).not.toBe('')
       }
-      return Object.keys(texts).sort()
-    })
-    expect(juegos[0]).toHaveLength(47)
-    for (const juego of juegos) {
-      expect(juego).toEqual(juegos[0])
+      const keys = Object.keys(config.texts)
+      const extra = keys.filter((key) => !base.includes(key)).sort()
+      expect(keys.filter((key) => base.includes(key)).sort(), slug).toEqual(base)
+      const hidden = priceDisplayOf(config) === 'hidden'
+      if (!hidden) {
+        expect(extra, slug).toEqual([])
+      } else {
+        for (const key of extra) {
+          expect(CLAVES_DE_HIDDEN, `${slug}.texts.${key}`).toContain(key)
+        }
+        if (config.cta !== 'form') {
+          expect(extra, slug).toEqual(CLAVES_DE_HIDDEN)
+          conHidden += 1
+        }
+      }
     }
+    // Que la rama de hidden no pase en vacio.
+    expect(conHidden).toBeGreaterThan(0)
   })
 
   // 13.17
@@ -425,8 +451,9 @@ describe('validateClientConfig: pricing.display', () => {
     return raw
   }
 
+  // D127: es propio de la demo, se fija por slug.
   it('los dos clientes de la demo no traen pricing y sirven range', () => {
-    for (const slug of listClientSlugs()) {
+    for (const slug of ['northline', 'norte']) {
       const config = clientOrFail(slug)
       expect(config.pricing).toBeUndefined()
       expect(priceDisplayOf(config)).toBe('range')

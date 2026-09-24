@@ -46,9 +46,19 @@ describe('signLeadTokens', () => {
     expect(es.installation).toBe(clientOrFail('norte').texts.installationNo)
     expect(es.min).toMatch(/\d/)
 
-    // Las diez claves de SPEC 10, siempre presentes y no vacias.
-    for (const slug of listClientSlugs()) {
-      const tokens = tokensOf(slug)
+    // Las diez claves de SPEC 10, siempre presentes y no vacias. D127: con el primer tipo de area de
+    // cada cliente, elegido por su pricing, y al menos un cliente con tipo de area.
+    const conArea = listClientSlugs().filter((slug) =>
+      clientOrFail(slug).options.types.some((item) => item.pricing === 'area'),
+    )
+    expect(conArea.length).toBeGreaterThan(0)
+    for (const slug of conArea) {
+      const config = clientOrFail(slug)
+      const areaType = config.options.types.find((item) => item.pricing === 'area')
+      if (areaType === undefined) {
+        throw new Error(`${slug} sin tipo de area`)
+      }
+      const tokens = tokensOf(slug, { type: areaType.id, materialId: config.options.materials[0].id })
       expect(Object.keys(tokens).sort()).toEqual([
         'height',
         'installation',

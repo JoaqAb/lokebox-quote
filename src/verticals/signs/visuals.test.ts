@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { getClient, listClientSlugs } from '../../clients'
-import { defaultSelection } from '../../core/clientConfig'
+import { defaultSelection, materialsForMode } from '../../core/clientConfig'
 import type { SignSelection } from '../../core/types'
 import northline from '../../clients/northline.json'
 import { areaUnitSymbol, lengthToMeters, resolveSignVisual } from './visuals'
@@ -24,7 +24,7 @@ describe('resolveSignVisual', () => {
   })
 
   // 12.2
-  it('para los tres materiales de los dos clientes devuelve exactamente el visual del JSON', () => {
+  it('para cada material de cada cliente devuelve exactamente el visual del JSON', () => {
     for (const slug of listClientSlugs()) {
       const config = clientOrFail(slug)
       for (const material of config.options.materials) {
@@ -35,14 +35,21 @@ describe('resolveSignVisual', () => {
   })
 
   // 12.3
-  it('para los tres modos de luz de los dos clientes devuelve none, front y back', () => {
-    for (const slug of listClientSlugs()) {
+  // D127: cada cliente devuelve los modos de su JSON, en su orden; los dos de la demo, por slug,
+  // siguen ofreciendo exactamente none, front y back.
+  it('para cada luz de cada cliente devuelve el modo de su JSON, y none, front y back en la demo', () => {
+    const modesOf = (slug: string) => {
       const config = clientOrFail(slug)
-      const modes = config.options.lighting.map((lighting) => {
+      return config.options.lighting.map((lighting) => {
         const selection: SignSelection = { ...defaultSelection(config), lightingId: lighting.id }
         return resolveSignVisual(config, selection).lighting.mode
       })
-      expect(modes).toEqual(['none', 'front', 'back'])
+    }
+    for (const slug of listClientSlugs()) {
+      expect(modesOf(slug), slug).toEqual(clientOrFail(slug).options.lighting.map((lighting) => lighting.visual.mode))
+    }
+    for (const slug of ['northline', 'norte']) {
+      expect(modesOf(slug), slug).toEqual(['none', 'front', 'back'])
     }
   })
 
@@ -57,11 +64,29 @@ describe('resolveSignVisual', () => {
 
 describe('resolveSignVisual: mount', () => {
   // Version 2.4, D68: el montaje sale del tipo, y letters no monta un panel.
-  it('facade con standoff, totem al ras y letters sin montaje, en los dos clientes', () => {
+  // D127: cada tipo de cada cliente monta como dice su JSON y letters no monta; los dos de la demo,
+  // por slug, siguen con facade standoff, totem al ras y letters sin montaje. Cada caso (standoff,
+  // flush y sin montaje) aparece en al menos un cliente.
+  it('cada tipo monta segun su JSON, y facade con standoff, totem al ras y letters sin montaje en la demo', () => {
+    const vistos = new Set<string>()
     for (const slug of listClientSlugs()) {
       const config = clientOrFail(slug)
+      for (const type of config.options.types) {
+        const selection = {
+          ...defaultSelection(config),
+          type: type.id,
+          materialId: materialsForMode(config.options, type.pricing)[0].id,
+        }
+        const expected = type.pricing === 'letters' ? null : (type.visual?.mount ?? null)
+        expect(resolveSignVisual(config, selection).mount, `${slug} ${type.id}`).toBe(expected)
+        vistos.add(String(expected))
+      }
+    }
+    expect([...vistos].sort()).toEqual(['flush', 'null', 'standoff'])
+    for (const slug of ['northline', 'norte']) {
+      const config = clientOrFail(slug)
       const mountOf = (type: string) => resolveSignVisual(config, { ...defaultSelection(config), type }).mount
-      expect([mountOf('facade'), mountOf('totem'), mountOf('letters')]).toEqual(['standoff', 'flush', null])
+      expect([mountOf('facade'), mountOf('totem'), mountOf('letters')], slug).toEqual(['standoff', 'flush', null])
     }
   })
 })

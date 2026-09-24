@@ -1,0 +1,293 @@
+{
+  "slug": "afterglow",
+  "locale": "en",
+  "vertical": "signs",
+  "currency": {
+    "code": "USD",
+    "symbol": "$",
+    "decimals": 0
+  },
+  "units": {
+    "length": "ft",
+    "area": "sqft"
+  },
+  "brand": {
+    "name": "Afterglow Signs",
+    "logo": "/clients/afterglow/logo.svg",
+    "colors": {
+      "bg": "#101114",
+      "primary": "#1C1E24",
+      "accent": "#FF3D7F",
+      "text": "#F2F2F4",
+      "muted": "#9A9CA6"
+    },
+    "phone": "+1 555 014 7788",
+    "whatsapp": "15550147788",
+    "email": "hey@afterglowsigns.example"
+  },
+  "photos": [
+    {
+      "id": "front-day",
+      "label": "Front",
+      "src": "/assets/quote/backgrounds/afterglow-front-day.webp",
+      "anchor": {
+        "x": 0.5,
+        "y": 0.122,
+        "metersToWidth": 0.158,
+        "cameraYawDeg": 0,
+        "cameraPitchDeg": 0,
+        "fovDeg": 40
+      },
+      "light": {
+        "ambient": 0.9,
+        "keyIntensity": 1.4,
+        "keyAzimuthDeg": 30,
+        "keyElevationDeg": 25
+      }
+    },
+    {
+      "id": "front-night",
+      "label": "Night",
+      "src": "/assets/quote/backgrounds/afterglow-front-night.webp",
+      "anchor": {
+        "x": 0.5,
+        "y": 0.122,
+        "metersToWidth": 0.158,
+        "cameraYawDeg": 0,
+        "cameraPitchDeg": 0,
+        "fovDeg": 40
+      },
+      "light": {
+        "ambient": 0.35,
+        "keyIntensity": 0.4,
+        "keyAzimuthDeg": 0,
+        "keyElevationDeg": 20
+      }
+    }
+  ],
+  "cta": "whatsapp",
+  "poweredBy": true,
+  "prices_placeholder": false,
+  "options": {
+    "signText": {
+      "default": "AFTERGLOW",
+      "maxLength": 18
+    },
+    "types": [
+      {
+        "id": "letters",
+        "label": "Channel letters",
+        "priceFixed": 0,
+        "pricing": "letters"
+      },
+      {
+        "id": "facade",
+        "label": "Wall sign",
+        "priceFixed": 0,
+        "pricing": "area",
+        "visual": {
+          "mount": "standoff"
+        }
+      }
+    ],
+    "width": {
+      "min": 2,
+      "max": 20,
+      "step": 0.5,
+      "default": 8
+    },
+    "height": {
+      "min": 1,
+      "max": 8,
+      "step": 0.5,
+      "default": 3
+    },
+    "letterHeight": {
+      "min": 0.5,
+      "max": 3,
+      "step": 0.25,
+      "default": 1
+    },
+    "depths": [
+      {
+        "id": "d2",
+        "label": "2 in",
+        "factor": 1,
+        "visual": {
+          "depthMeters": 0.0508
+        }
+      },
+      {
+        "id": "d4",
+        "label": "4 in",
+        "factor": 1.2,
+        "visual": {
+          "depthMeters": 0.1016
+        }
+      },
+      {
+        "id": "d6",
+        "label": "6 in",
+        "factor": 1.4,
+        "visual": {
+          "depthMeters": 0.1524
+        }
+      }
+    ],
+    "materials": [
+      {
+        "id": "pvc",
+        "label": "PVC",
+        "pricePerArea": 15,
+        "pricePerLetterHeight": 40,
+        "visual": {
+          "color": "#E8E8E4",
+          "finish": "foam",
+          "metalness": 0,
+          "roughness": 0.9,
+          "specularIntensity": 0.3,
+          "clearcoat": 0,
+          "clearcoatRoughness": 0,
+          "anisotropy": 0,
+          "normalScale": 0.3,
+          "translucency": 0
+        }
+      },
+      {
+        "id": "acrylic",
+        "label": "Acrylic",
+        "pricePerArea": 35,
+        "pricePerLetterHeight": 95,
+        "visual": {
+          "color": "#F2F5F7",
+          "finish": "polished",
+          "metalness": 0,
+          "roughness": 0.2,
+          "specularIntensity": 1,
+          "clearcoat": 1,
+          "clearcoatRoughness": 0.05,
+          "anisotropy": 0,
+          "normalScale": 0.1,
+          "translucency": 0.4
+        }
+      },
+      {
+        "id": "pink-acrylic",
+        "label": "Pink acrylic",
+        "pricePerArea": 35,
+        "pricePerLetterHeight": 95,
+        "visual": {
+          "color": "#FF3D7F",
+          "finish": "polished",
+          "metalness": 0,
+          "roughness": 0.2,
+          "specularIntensity": 1,
+          "clearcoat": 1,
+          "clearcoatRoughness": 0.05,
+          "anisotropy": 0,
+          "normalScale": 0.1,
+          "translucency": 0.4
+        }
+      }
+    ],
+    "lighting": [
+      {
+        "id": "none",
+        "label": "None",
+        "pricePerArea": 0,
+        "pricePerLetter": 0,
+        "visual": {
+          "mode": "none"
+        }
+      },
+      {
+        "id": "front",
+        "label": "Front-lit",
+        "pricePerArea": 60,
+        "pricePerLetter": 70,
+        "visual": {
+          "mode": "front"
+        }
+      },
+      {
+        "id": "back",
+        "label": "Back-lit",
+        "pricePerArea": 80,
+        "pricePerLetter": 120,
+        "visual": {
+          "mode": "back"
+        }
+      }
+    ],
+    "installation": {
+      "fixed": 350,
+      "perArea": 10,
+      "perLetter": 45
+    },
+    "quantity": {
+      "min": 1,
+      "max": 10,
+      "default": 1
+    },
+    "discounts": [
+      {
+        "minQty": 2,
+        "pct": 5
+      },
+      {
+        "minQty": 5,
+        "pct": 10
+      }
+    ],
+    "rangePct": 8
+  },
+  "texts": {
+    "headline": "Light it up. Price it now.",
+    "subheadline": "Pick the size, the material and the glow. See it in 3D and get a price on the spot.",
+    "configureTitle": "Build your sign",
+    "typeLabel": "Sign type",
+    "widthLabel": "Width",
+    "heightLabel": "Height",
+    "materialLabel": "Material",
+    "lightingLabel": "Lighting",
+    "installationLabel": "Installation",
+    "installationYes": "Yes, install it",
+    "installationNo": "No, I got it",
+    "quantityLabel": "Quantity",
+    "signTextLabel": "Your text",
+    "letterHeightLabel": "Letter height",
+    "depthLabel": "Letter depth",
+    "viewSignOnly": "The sign",
+    "previewZoomLabel": "Zoom",
+    "loadingLabel": "Warming up the lights",
+    "priceLabel": "Your price",
+    "priceRangeNote": "Estimated range",
+    "disclaimer": "Estimate only. Afterglow Signs confirms the final price.",
+    "ctaWhatsapp": "Text us on WhatsApp",
+    "ctaForm": "Request this quote",
+    "formTitle": "Where do we send the quote?",
+    "formName": "Your name",
+    "formContact": "Email or phone",
+    "formNote": "Anything we should know?",
+    "formSubmit": "Send request",
+    "formSending": "Sending",
+    "thanksTitle": "Got it, thanks",
+    "thanksBody": "We will text you back today.",
+    "viewQuote": "View my quote",
+    "quoteTitle": "Your sign quote",
+    "quoteValidity": "This quote is valid for 15 days.",
+    "quoteDateLabel": "Date",
+    "quoteSelectionTitle": "Your sign",
+    "quoteBreakdownTitle": "Price breakdown",
+    "quotePrint": "Print or save as PDF",
+    "quoteBack": "Back to the sign builder",
+    "lineMaterial": "Material",
+    "lineLighting": "Lighting",
+    "lineType": "Sign structure",
+    "lineInstallation": "Installation",
+    "lineDiscount": "Quantity discount",
+    "poweredBy": "Powered by Lokebox",
+    "whatsappMessage": "Hey! Quote for a {type}, {width} x {height} {unit}, {material}, lighting: {lighting}, install: {installation}, qty {quantity}. Range {min} to {max}.",
+    "whatsappMessageLetters": "Hey! Quote for {type} saying \"{text}\": {letters} letters, {letterHeight} {unit} tall, {material}, depth {depth}, lighting: {lighting}, install: {installation}, qty {quantity}. Range {min} to {max}."
+  }
+}

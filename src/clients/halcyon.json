@@ -1,0 +1,287 @@
+{
+  "slug": "halcyon",
+  "locale": "en-GB",
+  "vertical": "signs",
+  "currency": {
+    "code": "GBP",
+    "symbol": "£",
+    "decimals": 0
+  },
+  "units": {
+    "length": "m",
+    "area": "m2"
+  },
+  "brand": {
+    "name": "Halcyon Signworks",
+    "logo": "/clients/halcyon/logo.svg",
+    "colors": {
+      "bg": "#F4F3F0",
+      "primary": "#C9C4BA",
+      "accent": "#A8823A",
+      "text": "#14181F",
+      "muted": "#5E6570"
+    },
+    "phone": "+44 20 7946 0321",
+    "whatsapp": "442079460321",
+    "email": "studio@halcyonsignworks.example"
+  },
+  "photos": [
+    {
+      "id": "front-day",
+      "label": "Front",
+      "src": "/assets/quote/backgrounds/halcyon-front-day.webp",
+      "anchor": {
+        "x": 0.5,
+        "y": 0.1,
+        "metersToWidth": 0.176,
+        "cameraYawDeg": 0,
+        "cameraPitchDeg": 0,
+        "fovDeg": 40
+      },
+      "light": {
+        "ambient": 0.9,
+        "keyIntensity": 1.2,
+        "keyAzimuthDeg": -25,
+        "keyElevationDeg": 35
+      }
+    },
+    {
+      "id": "front-night",
+      "label": "Night",
+      "src": "/assets/quote/backgrounds/halcyon-front-night.webp",
+      "anchor": {
+        "x": 0.5,
+        "y": 0.1,
+        "metersToWidth": 0.176,
+        "cameraYawDeg": 0,
+        "cameraPitchDeg": 0,
+        "fovDeg": 40
+      },
+      "light": {
+        "ambient": 0.35,
+        "keyIntensity": 0.4,
+        "keyAzimuthDeg": 0,
+        "keyElevationDeg": 20
+      }
+    }
+  ],
+  "cta": "form",
+  "poweredBy": true,
+  "prices_placeholder": false,
+  "pricing": {
+    "display": "exact"
+  },
+  "options": {
+    "signText": {
+      "default": "HALCYON",
+      "maxLength": 18
+    },
+    "types": [
+      {
+        "id": "letters",
+        "label": "Built-up letters",
+        "priceFixed": 0,
+        "pricing": "letters"
+      },
+      {
+        "id": "facade",
+        "label": "Fascia sign",
+        "priceFixed": 0,
+        "pricing": "area",
+        "visual": {
+          "mount": "standoff"
+        }
+      }
+    ],
+    "width": {
+      "min": 0.6,
+      "max": 6,
+      "step": 0.1,
+      "default": 2.5
+    },
+    "height": {
+      "min": 0.3,
+      "max": 2.5,
+      "step": 0.1,
+      "default": 1
+    },
+    "letterHeight": {
+      "min": 0.15,
+      "max": 0.9,
+      "step": 0.05,
+      "default": 0.3
+    },
+    "depths": [
+      {
+        "id": "d5",
+        "label": "5 cm",
+        "factor": 1,
+        "visual": {
+          "depthMeters": 0.05
+        }
+      },
+      {
+        "id": "d10",
+        "label": "10 cm",
+        "factor": 1.2,
+        "visual": {
+          "depthMeters": 0.1
+        }
+      },
+      {
+        "id": "d15",
+        "label": "15 cm",
+        "factor": 1.4,
+        "visual": {
+          "depthMeters": 0.15
+        }
+      }
+    ],
+    "materials": [
+      {
+        "id": "aluminium",
+        "label": "Aluminium",
+        "pricePerArea": 210,
+        "pricePerLetterHeight": 180,
+        "visual": {
+          "color": "#B8BDC4",
+          "finish": "brushed",
+          "metalness": 1,
+          "roughness": 0.4,
+          "specularIntensity": 1,
+          "clearcoat": 0,
+          "clearcoatRoughness": 0,
+          "anisotropy": 0.8,
+          "normalScale": 0.15,
+          "translucency": 0
+        }
+      },
+      {
+        "id": "brass",
+        "label": "Brass",
+        "pricePerArea": 335,
+        "pricePerLetterHeight": 290,
+        "visual": {
+          "color": "#B08D57",
+          "finish": "polished",
+          "metalness": 1,
+          "roughness": 0.25,
+          "specularIntensity": 1,
+          "clearcoat": 0,
+          "clearcoatRoughness": 0,
+          "anisotropy": 0,
+          "normalScale": 0.1,
+          "translucency": 0
+        }
+      },
+      {
+        "id": "acrylic",
+        "label": "Acrylic",
+        "pricePerArea": 295,
+        "pricePerLetterHeight": 245,
+        "visual": {
+          "color": "#F2F5F7",
+          "finish": "polished",
+          "metalness": 0,
+          "roughness": 0.2,
+          "specularIntensity": 1,
+          "clearcoat": 1,
+          "clearcoatRoughness": 0.05,
+          "anisotropy": 0,
+          "normalScale": 0.1,
+          "translucency": 0.4
+        }
+      }
+    ],
+    "lighting": [
+      {
+        "id": "none",
+        "label": "Unlit",
+        "pricePerArea": 0,
+        "pricePerLetter": 0,
+        "visual": {
+          "mode": "none"
+        }
+      },
+      {
+        "id": "back",
+        "label": "Halo-lit",
+        "pricePerArea": 670,
+        "pricePerLetter": 95,
+        "visual": {
+          "mode": "back"
+        }
+      }
+    ],
+    "installation": {
+      "fixed": 275,
+      "perArea": 85,
+      "perLetter": 35
+    },
+    "quantity": {
+      "min": 1,
+      "max": 10,
+      "default": 1
+    },
+    "discounts": [
+      {
+        "minQty": 2,
+        "pct": 5
+      },
+      {
+        "minQty": 5,
+        "pct": 10
+      }
+    ],
+    "rangePct": 8
+  },
+  "texts": {
+    "headline": "Your sign, priced in a minute",
+    "subheadline": "Choose the size, the material and the lighting. See it in 3D and receive a precise price.",
+    "configureTitle": "Specify your sign",
+    "typeLabel": "Sign type",
+    "widthLabel": "Width",
+    "heightLabel": "Height",
+    "materialLabel": "Material",
+    "lightingLabel": "Lighting",
+    "installationLabel": "Installation",
+    "installationYes": "Yes, please install it",
+    "installationNo": "No, we will install it",
+    "quantityLabel": "Quantity",
+    "signTextLabel": "Lettering",
+    "letterHeightLabel": "Letter height",
+    "depthLabel": "Letter depth",
+    "viewSignOnly": "The sign",
+    "previewZoomLabel": "Zoom",
+    "loadingLabel": "Preparing your sign",
+    "priceLabel": "Price",
+    "priceRangeNote": "Estimated range",
+    "disclaimer": "This price is indicative. Halcyon Signworks confirms the final price after a site survey.",
+    "ctaWhatsapp": "Send on WhatsApp",
+    "ctaForm": "Request a formal quotation",
+    "formTitle": "Where should we send your quotation?",
+    "formName": "Your name",
+    "formContact": "Email or telephone",
+    "formNote": "Anything we should know about the site?",
+    "formSubmit": "Send enquiry",
+    "formSending": "Sending",
+    "thanksTitle": "Thank you, we have received your enquiry",
+    "thanksBody": "A member of our studio will reply within one working day.",
+    "viewQuote": "View your quotation",
+    "quoteTitle": "Sign quotation",
+    "quoteValidity": "This quotation is valid for 30 days.",
+    "quoteDateLabel": "Date",
+    "quoteSelectionTitle": "Your specification",
+    "quoteBreakdownTitle": "Price breakdown",
+    "quotePrint": "Print or save as PDF",
+    "quoteBack": "Back to the sign builder",
+    "lineMaterial": "Material",
+    "lineLighting": "Lighting",
+    "lineType": "Sign structure",
+    "lineInstallation": "Installation",
+    "lineDiscount": "Quantity discount",
+    "poweredBy": "Powered by Lokebox",
+    "whatsappMessage": "Good afternoon, I would like a quotation for a {type}, {width} x {height} {unit}, {material}, lighting: {lighting}, installation: {installation}, quantity {quantity}. Estimated range {min} to {max}.",
+    "whatsappMessageLetters": "Good afternoon, I would like a quotation for {type} reading \"{text}\": {letters} letters, {letterHeight} {unit} high, {material}, depth {depth}, lighting: {lighting}, installation: {installation}, quantity {quantity}. Estimated range {min} to {max}."
+  }
+}

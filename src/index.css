@@ -178,14 +178,19 @@
    del JSON del cliente y por eso lleva colores fijos. Claro calido, de blanco arriba a gris perla
    abajo con una vineta suave, del mismo lado de la paleta que el panel. Con el cartel encendido
    pasa a grafito: la capa oscura va encima y entra con su opacidad, porque un degradado no se
-   interpola. */
+   interpola.
+   --q-stage-ink es la tinta del texto sobre cada escenario (D128): fija, porque el fondo es fijo y
+   un color del cliente no garantiza contraste sobre el. 4,5:1 o mas contra los dos extremos de su
+   degradado. */
 .q-stage-light {
+  --q-stage-ink: #4a4540;
   background:
     radial-gradient(ellipse 120% 95% at 50% 38%, transparent 58%, rgb(74 64 52 / 0.12) 100%),
     linear-gradient(to bottom, #fcfbf8 0%, #ebe8e2 62%, #dddad3 100%);
 }
 
 .q-stage-dark {
+  --q-stage-ink: #ebe9e5;
   background:
     radial-gradient(ellipse 120% 95% at 50% 38%, transparent 50%, rgb(0 0 0 / 0.38) 100%),
     linear-gradient(to bottom, #3b3c3f 0%, #2a2b2e 60%, #1f2022 100%);

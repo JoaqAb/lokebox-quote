@@ -1,0 +1,319 @@
+{
+  "slug": "alba",
+  "locale": "es-ES",
+  "vertical": "signs",
+  "currency": {
+    "code": "EUR",
+    "symbol": "€",
+    "decimals": 0
+  },
+  "units": {
+    "length": "m",
+    "area": "m2"
+  },
+  "brand": {
+    "name": "Rótulos Alba",
+    "logo": "/clients/alba/logo.svg",
+    "colors": {
+      "bg": "#FBF6F0",
+      "primary": "#E7D6C3",
+      "accent": "#C4552D",
+      "text": "#2A1E17",
+      "muted": "#7A6A5E"
+    },
+    "phone": "+34 600 000 000",
+    "whatsapp": "34600000000",
+    "email": "hola@rotulosalba.example"
+  },
+  "photos": [
+    {
+      "id": "front-day",
+      "label": "Frente",
+      "src": "/assets/quote/backgrounds/alba-front-day.webp",
+      "anchor": {
+        "x": 0.5,
+        "y": 0.144,
+        "metersToWidth": 0.134,
+        "cameraYawDeg": 0,
+        "cameraPitchDeg": 0,
+        "fovDeg": 40
+      },
+      "anchorGround": {
+        "x": 0.21,
+        "y": 0.86,
+        "metersToWidth": 0.16,
+        "wallY": 0.802
+      },
+      "light": {
+        "ambient": 0.9,
+        "keyIntensity": 1.4,
+        "keyAzimuthDeg": -35,
+        "keyElevationDeg": 40
+      }
+    },
+    {
+      "id": "front-night",
+      "label": "Noche",
+      "src": "/assets/quote/backgrounds/alba-front-night.webp",
+      "anchor": {
+        "x": 0.5,
+        "y": 0.144,
+        "metersToWidth": 0.134,
+        "cameraYawDeg": 0,
+        "cameraPitchDeg": 0,
+        "fovDeg": 40
+      },
+      "anchorGround": {
+        "x": 0.21,
+        "y": 0.86,
+        "metersToWidth": 0.16,
+        "wallY": 0.802
+      },
+      "light": {
+        "ambient": 0.35,
+        "keyIntensity": 0.4,
+        "keyAzimuthDeg": 0,
+        "keyElevationDeg": 20
+      }
+    }
+  ],
+  "cta": "both",
+  "poweredBy": true,
+  "prices_placeholder": false,
+  "options": {
+    "signText": {
+      "default": "ALBA",
+      "maxLength": 18
+    },
+    "types": [
+      {
+        "id": "facade",
+        "label": "Rótulo de fachada",
+        "priceFixed": 0,
+        "pricing": "area",
+        "visual": {
+          "mount": "standoff"
+        }
+      },
+      {
+        "id": "totem",
+        "label": "Tótem",
+        "priceFixed": 370,
+        "pricing": "area",
+        "visual": {
+          "mount": "flush"
+        }
+      },
+      {
+        "id": "letters",
+        "label": "Letras corpóreas",
+        "priceFixed": 0,
+        "pricing": "letters"
+      }
+    ],
+    "width": {
+      "min": 0.6,
+      "max": 6,
+      "step": 0.1,
+      "default": 2.5
+    },
+    "height": {
+      "min": 0.3,
+      "max": 2.5,
+      "step": 0.1,
+      "default": 1
+    },
+    "letterHeight": {
+      "min": 0.15,
+      "max": 0.9,
+      "step": 0.05,
+      "default": 0.3
+    },
+    "depths": [
+      {
+        "id": "d5",
+        "label": "5 cm",
+        "factor": 1,
+        "visual": {
+          "depthMeters": 0.05
+        }
+      },
+      {
+        "id": "d10",
+        "label": "10 cm",
+        "factor": 1.2,
+        "visual": {
+          "depthMeters": 0.1
+        }
+      },
+      {
+        "id": "d15",
+        "label": "15 cm",
+        "factor": 1.4,
+        "visual": {
+          "depthMeters": 0.15
+        }
+      }
+    ],
+    "materials": [
+      {
+        "id": "pvc",
+        "label": "PVC",
+        "pricePerArea": 150,
+        "pricePerLetterHeight": 120,
+        "visual": {
+          "color": "#E8E8E4",
+          "finish": "foam",
+          "metalness": 0,
+          "roughness": 0.9,
+          "specularIntensity": 0.3,
+          "clearcoat": 0,
+          "clearcoatRoughness": 0,
+          "anisotropy": 0,
+          "normalScale": 0.3,
+          "translucency": 0
+        }
+      },
+      {
+        "id": "aluminio",
+        "label": "Aluminio",
+        "pricePerArea": 245,
+        "pricePerLetterHeight": 210,
+        "visual": {
+          "color": "#B8BDC4",
+          "finish": "brushed",
+          "metalness": 1,
+          "roughness": 0.4,
+          "specularIntensity": 1,
+          "clearcoat": 0,
+          "clearcoatRoughness": 0,
+          "anisotropy": 0.8,
+          "normalScale": 0.15,
+          "translucency": 0
+        }
+      },
+      {
+        "id": "metacrilato",
+        "label": "Metacrilato",
+        "pricePerArea": 345,
+        "pricePerLetterHeight": 285,
+        "visual": {
+          "color": "#F2F5F7",
+          "finish": "polished",
+          "metalness": 0,
+          "roughness": 0.2,
+          "specularIntensity": 1,
+          "clearcoat": 1,
+          "clearcoatRoughness": 0.05,
+          "anisotropy": 0,
+          "normalScale": 0.1,
+          "translucency": 0.4
+        }
+      }
+    ],
+    "lighting": [
+      {
+        "id": "none",
+        "label": "Sin luz",
+        "pricePerArea": 0,
+        "pricePerLetter": 0,
+        "visual": {
+          "mode": "none"
+        }
+      },
+      {
+        "id": "front",
+        "label": "Frontal",
+        "pricePerArea": 595,
+        "pricePerLetter": 65,
+        "visual": {
+          "mode": "front"
+        }
+      },
+      {
+        "id": "back",
+        "label": "Retroiluminado",
+        "pricePerArea": 790,
+        "pricePerLetter": 110,
+        "visual": {
+          "mode": "back"
+        }
+      }
+    ],
+    "installation": {
+      "fixed": 320,
+      "perArea": 100,
+      "perLetter": 40
+    },
+    "quantity": {
+      "min": 1,
+      "max": 10,
+      "default": 1
+    },
+    "discounts": [
+      {
+        "minQty": 2,
+        "pct": 5
+      },
+      {
+        "minQty": 5,
+        "pct": 10
+      }
+    ],
+    "rangePct": 8
+  },
+  "texts": {
+    "headline": "El precio de tu rótulo en 60 segundos",
+    "subheadline": "Elige la medida, el material y la iluminación. Míralo en 3D y pídenos presupuesto.",
+    "configureTitle": "Diseña tu rótulo",
+    "typeLabel": "Tipo de rótulo",
+    "widthLabel": "Ancho",
+    "heightLabel": "Alto",
+    "materialLabel": "Material",
+    "lightingLabel": "Iluminación",
+    "installationLabel": "Instalación",
+    "installationYes": "Sí, quiero que lo instaléis",
+    "installationNo": "No, lo instalo yo",
+    "quantityLabel": "Cantidad",
+    "signTextLabel": "Texto del rótulo",
+    "letterHeightLabel": "Alto de letra",
+    "depthLabel": "Profundidad",
+    "viewSignOnly": "Solo el rótulo",
+    "previewZoomLabel": "Acercar",
+    "loadingLabel": "Preparando tu rótulo",
+    "priceLabel": "Precio estimado",
+    "priceRangeNote": "Rango estimado",
+    "disclaimer": "Es una estimación. El presupuesto final lo confirma Rótulos Alba.",
+    "ctaWhatsapp": "Enviar por WhatsApp",
+    "ctaForm": "Pedir presupuesto",
+    "formTitle": "¿Dónde te enviamos el presupuesto?",
+    "formName": "Tu nombre",
+    "formContact": "Email o teléfono",
+    "formNote": "¿Algo que debamos saber?",
+    "formSubmit": "Enviar pedido",
+    "formSending": "Enviando",
+    "thanksTitle": "Gracias, hemos recibido tu petición",
+    "thanksBody": "Te respondemos en un día laborable.",
+    "viewQuote": "Ver mi presupuesto",
+    "quoteTitle": "Presupuesto de rótulo",
+    "quoteValidity": "Este presupuesto tiene 15 días de validez.",
+    "quoteDateLabel": "Fecha",
+    "quoteSelectionTitle": "Tu rótulo",
+    "quoteBreakdownTitle": "Detalle del precio",
+    "quotePrint": "Imprimir o guardar en PDF",
+    "quoteBack": "Volver al configurador",
+    "lineMaterial": "Material",
+    "lineLighting": "Iluminación",
+    "lineType": "Estructura",
+    "lineInstallation": "Instalación",
+    "lineDiscount": "Descuento por cantidad",
+    "poweredBy": "Powered by Lokebox",
+    "whatsappMessage": "Hola, quiero presupuesto de un {type}, {width} x {height} {unit}, {material}, iluminación: {lighting}, instalación: {installation}, cantidad {quantity}.",
+    "whatsappMessageLetters": "Hola, quiero presupuesto de {type} con el texto \"{text}\": {letters} letras de {letterHeight} {unit} de alto, {material}, profundidad {depth}, iluminación: {lighting}, instalación: {installation}, cantidad {quantity}.",
+    "whatsappMessageHidden": "Hola, quiero presupuesto de un {type}, {width} x {height} {unit}, {material}, iluminación: {lighting}, instalación: {installation}, cantidad {quantity}.",
+    "whatsappMessageHiddenLetters": "Hola, quiero presupuesto de {type} con el texto \"{text}\": {letters} letras de {letterHeight} {unit} de alto, {material}, profundidad {depth}, iluminación: {lighting}, instalación: {installation}, cantidad {quantity}."
+  },
+  "pricing": {
+    "display": "hidden"
+  }
+}

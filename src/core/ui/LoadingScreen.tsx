@@ -1,7 +1,7 @@
 import { useProgress } from '@react-three/drei'
 
 // Pantalla de carga del preview (SPEC 12, version 2.0, D47). Ocupa el marco entero sobre
-// el escenario claro del core (D103), con el logo del cliente y su loadingLabel. El progreso es el real del
+// el escenario claro del core (D103), con su tinta fija (D128), con el logo del cliente y su loadingLabel. El progreso es el real del
 // LoadingManager de three, sin animacion simulada ni minimos: la barra va donde va la carga.
 // Queda montada en posicion absoluta y se apaga con opacidad, asi al terminar no mueve nada
 // del layout. aria-busy dice si la escena todavia no dibujo.
@@ -43,7 +43,7 @@ export function LoadingScreen({ brand, done }: LoadingScreenProps) {
         >
           <div className="h-full rounded-full bg-[var(--q-accent)]" style={{ width: `${String(pct)}%` }} />
         </div>
-        <span className="text-xs font-semibold tracking-[0.18em] text-[var(--q-muted)] uppercase">{brand.label}</span>
+        <span className="text-xs font-semibold tracking-[0.18em] text-[var(--q-stage-ink)] uppercase">{brand.label}</span>
       </div>
     </div>
   )
