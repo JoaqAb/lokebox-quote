@@ -2,15 +2,17 @@ import { useEffect, useMemo, useRef, type ReactNode } from 'react'
 import { themeFromClient } from '../theme'
 import type { ClientConfig } from '../types'
 
-// Layout de SPEC 4.1, version 2.8 (D90, D93, D95). No conoce ninguna vertical: recibe preview,
+// Layout de SPEC 4.1, version 2.9 (D90, D93, D95, D98, D99). No conoce ninguna vertical: recibe preview,
 // panel, precio y CTA como nodos.
 // - Header compacto en una linea: logo, titulo y subtitulo mas chico. El nombre de la marca no se
-//   repite al lado del logo: viaja en el alt de la imagen.
+//   repite al lado del logo: viaja en el alt de la imagen. Por debajo de lg (D99) sale el
+//   subtitulo y el titulo baja a dos lineas como maximo, en un tamano menor, sin truncar.
 // - Desktop (1024 px o mas): el preview ocupa todo el ancho menos el panel y todo el alto util
 //   (100dvh menos el header). El panel mide 400 px, con scroll propio, y deja fijos al pie el precio
 //   y el CTA.
-// - Menos de 1024 px: el preview queda arriba, sticky, con 42svh de alto, y el panel scrollea
-//   debajo. La barra fija al pie lleva precio y CTA.
+// - Menos de 1024 px: el preview queda arriba, sticky, y el panel scrollea debajo. La barra fija
+//   al pie lleva precio y CTA. El alto del preview lo da el preview (D98), con tope de 42svh: el
+//   area es un contenedor de consulta, asi el preview puede derivar su alto del ancho que le toca.
 // El relleno inferior del panel en mobile se deriva de la altura real de la barra, medida con
 // ResizeObserver y publicada en --q-price-h: la barra crece si el disclaimer ocupa mas de una linea
 // o si se abre el formulario, y un valor fijo tapaba el ultimo control.
@@ -58,16 +60,16 @@ export function QuoteLayout({ config, preview, panel, price, cta }: QuoteLayoutP
     >
       <header className="q-hairline flex shrink-0 items-center gap-3 border-b px-4 py-2.5 sm:px-6 lg:gap-4">
         <img src={brand.logo} alt={brand.name} className="h-7 w-auto shrink-0" />
-        <h1 className="min-w-0 truncate text-base leading-tight font-semibold tracking-tight sm:text-lg md:shrink-0">
+        <h1 className="min-w-0 text-sm leading-snug font-semibold tracking-tight text-balance sm:text-base lg:shrink-0 lg:truncate lg:text-lg lg:leading-tight">
           {texts.headline}
         </h1>
-        <p className="hidden min-w-0 flex-1 truncate text-sm text-[var(--q-muted)] md:block">{texts.subheadline}</p>
+        <p className="hidden min-w-0 flex-1 truncate text-sm text-[var(--q-muted)] lg:block">{texts.subheadline}</p>
       </header>
 
       <main className="flex flex-1 flex-col lg:min-h-0 lg:flex-row">
         <div
           data-preview-area
-          className="sticky top-0 z-10 h-[42svh] shrink-0 lg:static lg:h-auto lg:min-h-0 lg:min-w-0 lg:flex-1"
+          className="@container sticky top-0 z-10 max-h-[42svh] shrink-0 lg:static lg:max-h-none lg:min-h-0 lg:min-w-0 lg:flex-1"
         >
           {preview}
         </div>

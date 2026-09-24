@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import type { ClientPhoto, SignSelection } from '../../core/types'
 import type { LoadingBrand } from '../../core/ui/LoadingScreen'
 import { PhotoStage } from './PhotoStage'
-import { containBox, signZoomFactor, zoomBy, zoomFromPinch, type Size } from './scene/sceneGeometry'
+import { containBox, signZoomFactor, zoomBy, zoomFromPinch } from './scene/sceneGeometry'
 import type { SignVisual } from './visuals'
 
 // Viewer del cotizador (SPEC 12, version 1.12), en dos modos sobre el mismo canvas:
@@ -21,11 +21,28 @@ import type { SignVisual } from './visuals'
 //   y dos botones + y -, con aria-label derivado de previewZoomLabel. Los rangos y los dos
 //   mecanismos de SPEC 12 no cambian: en modo cartel acerca la camara, en modo vista escala foto y
 //   canvas por CSS.
+// Desde la version 2.9:
+// - D98, D100: selector y zoom van en una franja al pie de la zona, --q-strip de alto, y nunca
+//   encima de la foto. La caja contain de vista se calcula sobre un area de ajuste: la zona menos
+//   la franja, y en lg ademas menos 24 px por lado. Ese margen lo pone CSS y el area se mide con
+//   ResizeObserver: la vertical no repite el breakpoint del core. El modo cartel no cambia.
+//   En la franja el selector va al centro entre dos rellenos de base 0; el de la derecha no baja
+//   del ancho del zoom, asi en una pantalla angosta el selector se corre a la izquierda antes de
+//   tocarlo, y solo si tampoco entra scrollea.
+// - D98: por debajo de lg la zona mide el ancho dividido por la proporcion de la foto mas la
+//   franja, con tope de 42svh; el ancho sale de 100cqw del area del core. La proporcion es la de
+//   la foto elegida, o en modo cartel la de la ultima elegida o la primera: cambiar de modo no
+//   cambia el alto.
 
 const ZOOM = { min: 1, max: 2.5, step: 0.25 }
 
 // Proporcion de una foto hasta que carga: la de las fotos de la demo.
 const DEFAULT_PHOTO_ASPECT = 16 / 9
+
+// Alto de la franja de controles: el selector y el zoom miden 46 px con su borde.
+const CONTROL_STRIP = '3.5rem'
+
+type Box = { left: number; top: number; width: number; height: number }
 
 // La vista elegida. El modo cartel no es una foto y va en su propia rama, asi ningun id de
 // foto del JSON puede chocar con el.
@@ -86,25 +103,36 @@ export function SignPreview({ selection, visual, theme, photos, zoomLabel, signO
   const reducedMotion = useReducedMotion() === true
   const [view, setView] = useState<View>({ kind: 'sign' })
   const [zoom, setZoom] = useState(ZOOM.min)
-  const [zone, setZone] = useState<Size>({ width: 0, height: 0 })
+  const [fit, setFit] = useState<Box>({ left: 0, top: 0, width: 0, height: 0 })
+  // La ultima foto elegida: da la proporcion del alto mobile tambien en modo cartel.
+  const [lastPhotoId, setLastPhotoId] = useState<string | null>(null)
   const zoneRef = useRef<HTMLDivElement>(null)
+  const fitRef = useRef<HTMLDivElement>(null)
   // Punteros activos sobre la zona, para el pinch con dos dedos.
   const pointers = useRef(new Map<number, { x: number; y: number }>())
   const pinchStart = useRef<{ distance: number; zoom: number } | null>(null)
 
   const photo = view.kind === 'photo' ? (photos.find((item) => item.id === view.id) ?? null) : null
-  const aspect = usePhotoAspect(photo)
+  const framePhoto = photo ?? photos.find((item) => item.id === lastPhotoId) ?? photos.at(0) ?? null
+  const aspect = usePhotoAspect(framePhoto)
 
-  // Tamano de la zona, para la caja contain del modo vista.
+  // El area de ajuste, relativa a la zona, para la caja contain del modo vista. Se mide con
+  // getBoundingClientRect y no con offset: los offset son enteros y la caja tiene que seguir el
+  // rectangulo real para el anclaje.
   useEffect(() => {
-    const element = zoneRef.current
-    if (element === null) {
+    const zoneElement = zoneRef.current
+    const fitElement = fitRef.current
+    if (zoneElement === null || fitElement === null) {
       return undefined
     }
-    const observer = new ResizeObserver(() => {
-      setZone({ width: element.clientWidth, height: element.clientHeight })
-    })
-    observer.observe(element)
+    const measure = (): void => {
+      const outer = zoneElement.getBoundingClientRect()
+      const inner = fitElement.getBoundingClientRect()
+      setFit({ left: inner.left - outer.left, top: inner.top - outer.top, width: inner.width, height: inner.height })
+    }
+    const observer = new ResizeObserver(measure)
+    observer.observe(zoneElement)
+    observer.observe(fitElement)
     return () => {
       observer.disconnect()
     }
@@ -128,19 +156,25 @@ export function SignPreview({ selection, visual, theme, photos, zoomLabel, signO
   }, [])
 
   const options = [
-    { key: 'sign', label: signOnlyLabel, active: photo === null, pick: (): View => ({ kind: 'sign' }) },
+    { key: 'sign', label: signOnlyLabel, active: photo === null, photoId: null, pick: (): View => ({ kind: 'sign' }) },
     ...photos.map((item) => ({
       key: `photo-${item.id}`,
       label: item.label,
       active: photo?.id === item.id,
+      photoId: item.id,
       pick: (): View => ({ kind: 'photo', id: item.id }),
     })),
   ]
 
-  const box = containBox(zone, aspect)
-  // Modo cartel: la caja llena la zona. Modo vista: la caja contain de la foto.
+  const box = containBox(fit, aspect)
+  // Modo cartel: la caja llena la zona. Modo vista: la caja contain de la foto en el area de ajuste.
+  // La posicion va a pixel entero: centrada en el area puede caer en medio pixel, y la foto se
+  // dibujaria remuestreada y blanda. El tamano no se toca, asi la proporcion sigue siendo la de la foto.
   const stageStyle: CSSProperties =
-    photo === null ? { inset: 0 } : { left: box.left, top: box.top, width: box.width, height: box.height }
+    photo === null
+      ? { inset: 0 }
+      : { left: Math.round(fit.left + box.left), top: Math.round(fit.top + box.top), width: box.width, height: box.height }
+  const zoneStyle = { ...theme, '--q-photo-aspect': String(aspect), '--q-strip': CONTROL_STRIP } as CSSProperties
 
   function step(direction: 1 | -1): void {
     setZoom((current) => Math.min(ZOOM.max, Math.max(ZOOM.min, current + direction * ZOOM.step)))
@@ -155,8 +189,8 @@ export function SignPreview({ selection, visual, theme, photos, zoomLabel, signO
     <div
       ref={zoneRef}
       data-preview-zone
-      style={theme}
-      className={`relative h-full w-full touch-none overflow-hidden bg-[var(--q-stage)] ${photo === null ? 'cursor-grab active:cursor-grabbing' : ''}`}
+      style={zoneStyle}
+      className={`relative h-[min(42svh,calc(100cqw/var(--q-photo-aspect)_+_var(--q-strip)))] w-full touch-none lg:h-full overflow-hidden bg-[var(--q-stage)] ${photo === null ? 'cursor-grab active:cursor-grabbing' : ''}`}
       onPointerDownCapture={(event) => {
         pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
         const distance = pinchDistance()
@@ -182,7 +216,9 @@ export function SignPreview({ selection, visual, theme, photos, zoomLabel, signO
         pinchStart.current = null
       }}
     >
-      <div data-preview-stage className="absolute overflow-hidden rounded-2xl" style={stageStyle}>
+      <div ref={fitRef} aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 bottom-[var(--q-strip)] lg:inset-x-6 lg:top-6" />
+
+      <div data-preview-stage className="absolute overflow-hidden lg:rounded-2xl" style={stageStyle}>
         <PhotoStage
           selection={selection}
           visual={visual}
@@ -196,48 +232,58 @@ export function SignPreview({ selection, visual, theme, photos, zoomLabel, signO
       </div>
 
       <div
-        role="group"
-        data-view-selector
-        className="q-panel q-hairline absolute bottom-3 left-1/2 z-10 flex max-w-[calc(100%-7rem)] -translate-x-1/2 gap-1 overflow-x-auto rounded-full border p-1 shadow-sm"
+        data-controls
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex h-[var(--q-strip)] items-center gap-2 px-3"
       >
-        {options.map((option) => (
-          <button
-            key={option.key}
-            type="button"
-            aria-pressed={option.active}
-            className={`${option.active ? 'q-on' : 'text-[var(--q-text)]'} min-h-9 shrink-0 rounded-full px-3 text-xs font-medium whitespace-nowrap transition-colors sm:text-sm`}
-            onClick={() => {
-              setView(option.pick())
-            }}
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
-
-      <div data-zoom className="q-panel q-hairline absolute right-3 bottom-3 z-10 flex flex-col overflow-hidden rounded-2xl border shadow-sm">
-        <button
-          type="button"
-          aria-label={`${zoomLabel} +`}
-          disabled={zoom >= ZOOM.max}
-          className="flex size-9 items-center justify-center text-[var(--q-text)] disabled:opacity-40"
-          onClick={() => {
-            step(1)
-          }}
+        <div className="min-w-0 flex-1 basis-0" />
+        <div
+          role="group"
+          data-view-selector
+          className="q-panel q-hairline pointer-events-auto flex min-w-0 gap-1 overflow-x-auto rounded-full border p-1 shadow-sm"
         >
-          <PlusIcon />
-        </button>
-        <button
-          type="button"
-          aria-label={`${zoomLabel} -`}
-          disabled={zoom <= ZOOM.min}
-          className="q-hairline flex size-9 items-center justify-center border-t text-[var(--q-text)] disabled:opacity-40"
-          onClick={() => {
-            step(-1)
-          }}
-        >
-          <MinusIcon />
-        </button>
+          {options.map((option) => (
+            <button
+              key={option.key}
+              type="button"
+              aria-pressed={option.active}
+              className={`${option.active ? 'q-on' : 'text-[var(--q-text)]'} min-h-9 shrink-0 rounded-full px-3 text-xs font-medium whitespace-nowrap transition-colors sm:text-sm`}
+              onClick={() => {
+                setView(option.pick())
+                if (option.photoId !== null) {
+                  setLastPhotoId(option.photoId)
+                }
+              }}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-1 basis-0 justify-end">
+          <div data-zoom className="q-panel q-hairline pointer-events-auto flex shrink-0 overflow-hidden rounded-full border shadow-sm">
+            <button
+              type="button"
+              aria-label={`${zoomLabel} -`}
+              disabled={zoom <= ZOOM.min}
+              className="flex size-9 items-center justify-center text-[var(--q-text)] disabled:opacity-40"
+              onClick={() => {
+                step(-1)
+              }}
+            >
+              <MinusIcon />
+            </button>
+            <button
+              type="button"
+              aria-label={`${zoomLabel} +`}
+              disabled={zoom >= ZOOM.max}
+              className="q-hairline flex size-9 items-center justify-center border-l text-[var(--q-text)] disabled:opacity-40"
+              onClick={() => {
+                step(1)
+              }}
+            >
+              <PlusIcon />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )

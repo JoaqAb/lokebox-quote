@@ -120,8 +120,9 @@ function QuoteScreen({ config }: QuoteScreenProps) {
         // El modo de calibracion es de desarrollo: import.meta.env.DEV vale false en el
         // build de produccion, asi que esta rama y su modulo quedan fuera del bundle.
         import.meta.env.DEV && searchParams.get('calibrate') === '1' ? (
-          // El area del preview tiene alto fijo desde la version 2.8 (D90): la herramienta scrollea.
-          <div className="h-full overflow-y-auto p-4">
+          // En lg el area del preview tiene alto fijo desde la version 2.8 (D90), y por debajo de lg
+          // el alto lo da el preview desde 2.9 (D98): la herramienta toma 42svh y scrollea.
+          <div className="h-[42svh] overflow-y-auto p-4 lg:h-full">
             <CalibrationPreview
               selection={selection}
               visual={visual}
