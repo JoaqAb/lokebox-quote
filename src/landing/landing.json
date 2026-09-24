@@ -31,7 +31,10 @@
   },
   "demos": [
     { "id": "en", "label": "See the English demo", "href": "/d/northline" },
-    { "id": "es", "label": "See the Spanish demo", "href": "/d/norte" }
+    { "id": "es", "label": "See the Spanish demo", "href": "/d/norte" },
+    { "id": "halcyon", "label": "Halcyon: premium, UK, exact price", "href": "/d/halcyon" },
+    { "id": "afterglow", "label": "Afterglow: dark theme, WhatsApp", "href": "/d/afterglow" },
+    { "id": "alba", "label": "Alba: Spain, price on request", "href": "/d/alba" }
   ],
   "offer": {
     "price": { "setup": 250, "monthly": 29 },

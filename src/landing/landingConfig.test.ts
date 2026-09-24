@@ -10,7 +10,7 @@ function copy(): Record<string, unknown> & typeof landing {
 describe('validateLandingConfig', () => {
   it('el JSON de la landing valida y conserva sus valores', () => {
     const config = validateLandingConfig(landing)
-    expect(config.demos.map((demo) => demo.href)).toEqual(['/d/northline', '/d/norte'])
+    expect(config.demos.map((demo) => demo.href)).toEqual(['/d/northline', '/d/norte', '/d/halcyon', '/d/afterglow', '/d/alba'])
     expect([config.offer.price.setup, config.offer.price.monthly]).toEqual([250, 29])
     expect(config.offer.setup).toHaveLength(7)
     expect(config.offer.monthly).toHaveLength(7)

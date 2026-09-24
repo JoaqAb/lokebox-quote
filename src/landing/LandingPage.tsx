@@ -131,7 +131,7 @@ function Landing({ landing }: { landing: LandingConfig }) {
           <p className="mt-8 text-xs font-semibold tracking-[0.18em] text-[var(--q-muted)] uppercase">
             {texts.demosTitle}
           </p>
-          <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             {landing.demos.map((demo, index) => (
               <a
                 key={demo.id}
