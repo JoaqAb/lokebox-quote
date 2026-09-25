@@ -34,16 +34,13 @@ Sin tareas de código salvo arreglos bloqueantes. Los pasos, con el cómo comple
 
 Corre en paralelo con el bloque 9: Code trabaja mientras Joaquín hace el Canal C comercial. Decisiones D114 a D118.
 
-- C1 Seis fotos en incoming/vitrina/ según docs/comercial/CANAL_C_VITRINA_FOTOS.md (prerrequisito).
-- T1 TAREA_031 cerrada con sus 12 criterios.
-- R1 Canal B revisa las 31 capturas de validacion/vitrina/ y los hallazgos D116.
-- Cierre: docs/STATE.md con el resultado y el material elegido para el portfolio y la web nueva.
+Cerrado el 24/09 (D129). Las tres demos de la vitrina entraron a la landing (D137, reemplaza a D118 en ese punto). Tres observaciones visibles pasan a la fase 0 de TAREA_032 (D130). Material elegido para portfolio y web nueva: la grilla 00 y las 01 a 06 de halcyon y alba, y de afterglow las que salgan de la fase 0 de TAREA_032.
 
 ## Bloque 12 · Segunda vertical: cajas
 
 Arranca con TAREA_031 aceptada. Decisiones D119 a D125. Corre en paralelo con el bloque 9. La tarea se escribe en el chat que acepta la anterior, con el código leído, y ese chat edita SPEC 4, 6, 8, 10 y 16 con el contrato real.
 
-- T1 TAREA_032, contrato de vertical y motor genérico. Refactor sin cambio visible ni de datos, con la vara de D122: JSON sin editar, motor idéntico contra snapshot, URLs de hoja publicadas válidas, capturas de vitrina iguales dentro del ruido medido, cero vocabulario de carteles en src/core.
+- T1 TAREA_032, contrato de vertical y motor genérico (SPEC 2.13: 4.4, 6.3). Fase 0 con los hallazgos visibles de la vitrina (D130 a D132): WhatsApp llega a gracias, escenario grafito con tema oscuro, alba y halcyon por JSON, pares mirados por Joaquín. Después, refactor sin cambio visible ni de datos con la vara de D122 contra la línea base de la fase 1: JSON sin editar, motor idéntico contra snapshot, URLs de hoja publicadas válidas, capturas de vitrina iguales dentro del ruido medido, cero vocabulario de carteles en src/core.
 - T2 TAREA_033, vertical boxes con foldline y cajasur (D123 a D125). Flujo completo en los dos, precio por escalones con tests, logo en la tapa, tapa que abre y cierra, capturas de vitrina de los dos clientes con scripts/vitrina.mjs.
 - R1 Canal B revisa las capturas de cajas contra las de carteles: tienen que parecer del mismo producto.
 - Cierre: docs/STATE.md, y en docs/DECISIONES.md la lista de lo que la segunda vertical obligó a cambiar en el contrato, que es la entrada del bloque 13.

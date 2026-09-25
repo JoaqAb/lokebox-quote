@@ -42,4 +42,5 @@ ejecutaron, que es el orden del historial: TAREA_013 se ejecuto despues de TAREA
 | TAREA_028 | Panel, composicion y control de sombras | cerrada (D97) | 54dc917 |
 | TAREA_029 | Pulido de composicion y material de venta | cerrada (24/09) | 8b3e409 |
 | TAREA_030 | Escenario claro y cartel que se lee blanco | cerrada (D108) | ed79a4e |
-| TAREA_031 | Vitrina nivel 1: tres clientes nuevos de carteleria | entregada | 0fd3f8a |
+| TAREA_031 | Vitrina nivel 1: tres clientes nuevos de carteleria | cerrada (D129) | 0fd3f8a |
+| TAREA_032 | Contrato de vertical y motor generico | abierta | |

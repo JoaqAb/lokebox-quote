@@ -3,7 +3,7 @@
 Fuente de verdad del alcance. Si algo no está acá, no se construye.
 Este documento se edita, no se contradice. Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 
-Versión: 2.12 · 24/09/2026
+Versión: 2.13 · 24/09/2026
 
 ## 1. Objetivo
 
@@ -46,19 +46,21 @@ Fecha de DONE: viernes 18/09/2026.
 
 ### 4.1 Core
 
-Se escribe una vez y no conoce ninguna vertical ni ningún cliente concreto.
+Se escribe una vez y no conoce ninguna vertical ni ningún cliente concreto. Desde 2.13 (D133) habla con las verticales solo por el contrato de 4.4.
 
 - Layout responsive. Desktop: preview a la izquierda, panel de opciones a la derecha, precio siempre visible. Mobile: preview arriba, opciones abajo, barra de precio fija al pie. Desde 2.8 (D90): header compacto en una línea, con logo, título y subtítulo más chico; el preview ocupa todo el ancho menos el panel y todo el alto útil (100dvh menos el header); el panel mide 400 px, tiene su propio scroll y deja fijos al pie el precio y el CTA (D93). Desde 2.8 (D95), en mobile el preview queda arriba, sticky, con 42svh de alto, el panel scrollea debajo y la barra fija al pie lleva precio y CTA. En `hidden` la barra lleva solo el CTA. Desde 2.9 (D98), por debajo de lg el alto del preview lo da el preview, con tope de 42svh: el core le da el ancho y el tope, y la vertical decide el alto. Desde 2.9 (D99), por debajo de lg el header no lleva subtítulo y el título baja a dos líneas como máximo, en un tamaño menor, sin puntos suspensivos.
 - Panel de opciones genérico, renderizado desde el esquema de la vertical. Cinco `kinds` de control: choice, range, boolean, stepper y text. Desde 2.8 (D94) el panel se agrupa en pasos numerados que declara la vertical; el título de cada paso es la etiqueta que ya existe y el número no es texto. El control choice suma un swatch opcional en el descriptor, un color, que la vertical completa; el core no conoce la vertical. No entran claves nuevas en `texts` (D96).
 - Tema del cliente: los cinco colores del JSON como variables CSS, más tres derivadas con `color-mix` en el contenedor raíz: `--q-surface`, `--q-border` y, desde 1.16, `--q-stage`, el escenario del modo cartel. El tema sale siempre del JSON del cliente: no hay tema global del core ni variantes `dark:`, que serían una segunda fuente de verdad del look.
-- Motor de precios. Función pura, contrato en la sección 6.
+- Composición del precio: función pura, contrato en 6.3. El cálculo de cada rubro es de su vertical; el de carteles está en 6.1.
 - Contador de precio animado y rango.
 - Captura de lead y CTA configurable: WhatsApp con mensaje armado, formulario con guardado en Supabase, o los dos.
-- Hoja de cotización imprimible en HTML con estilos de impresión.
-- i18n por JSON. Todo texto visible sale de la config del cliente. No hay strings de UI hardcodeados.
+- Hoja de cotización imprimible en HTML con estilos de impresión, con las claves de URL y las filas de selección que da la vertical (sección 8).
+- i18n por JSON. Todo texto visible sale de la config del cliente. No hay strings de UI hardcodeados. Desde 2.13 (D135) el core valida solo las claves de `texts` que consume (sección 10).
 - Registro de visitas por slug de cliente.
 
 ### 4.2 Vertical: cartelería
+
+Desde 2.13 es el módulo `src/verticals/signs/`, que implementa el contrato de 4.4: su parte del JSON (sección 10), su selección, su cálculo (6.1), sus claves de la hoja (sección 8) y su preview (sección 12).
 
 - Esquema de opciones y validaciones. Los descriptores del panel se arman con `buildPanelFields(config, selection)`: dependen del tipo elegido, porque los controles del modo area y del modo letters no son los mismos.
 - Componente de preview 3D específico, con la interfaz de la sección 12: recibe `selection`, `visual` y `theme`, y no hace nada más.
@@ -68,7 +70,28 @@ Se escribe una vez y no conoce ninguna vertical ni ningún cliente concreto.
 
 Un archivo por cliente en `src/clients/<slug>.json`. Ruta pública `/d/<slug>`. Contiene marca, idioma, unidades, moneda, opciones habilitadas, precios, textos, CTA y contacto.
 
-El registro descubre los JSON de la carpeta por nombre de archivo. Agregar un cliente es agregar el JSON y el logo, sin editar código.
+El registro descubre los JSON de la carpeta por nombre de archivo. Agregar un cliente es agregar el JSON y el logo, sin editar código. El campo `vertical` elige el módulo del registro de 4.4; un valor que no está en el registro es error de config y muestra la pantalla de error.
+
+### 4.4 Contrato de vertical (desde 2.13, D133)
+
+Una vertical es un módulo en `src/verticals/<id>/`, en dos partes.
+
+- Lógica, pura, sin React ni three, importada de forma estática. Implementa:
+  - `validate(raw, ctx)`: lee del JSON todo lo que no es del core (sección 10) y devuelve la config de la vertical, o lanza con el slug y la clave, con el mismo formato de error que la validación del core. `ctx` trae slug, locale, moneda, `cta` y `pricing.display` ya validados, para las reglas condicionales.
+  - `defaultSelection(config)` y la traducción entre selección y valores del panel: `valuesFromSelection`, `selectionFromValues` y `applyFieldChange`.
+  - `panelFields(config, selection)`: los descriptores del panel de 4.1.
+  - `price(config, selection)`: arma sus componentes y compone con `composePrice` del core (6.3). Devuelve el `PriceResult` del core, más las claves propias que la vertical necesite.
+  - `quantityOf(selection)`.
+  - `lineDetail(config, line)`: el detalle visible de cada línea que emite la vertical, y `breakdownCaption(config, result)`: una línea opcional encima del desglose (en carteles, el área).
+  - `encodeQuery(config, selection)` y `decodeQuery(config, params)`: las claves de la hoja (sección 8).
+  - `sheetRows(config, selection)`: las filas de selección de la hoja.
+  - `leadSelection(config, selection)`: lo que va a la columna `selection` de `leads`.
+  - `whatsappMessage(config, selection, result, display)`: la plantilla y los tokens de la vertical, armados con `buildWhatsappMessage` del core.
+- Vista: el componente de preview, cargado con `React.lazy`. Recibe la config de la vertical, la selección, el tema y lo de la pantalla de carga. Lo que haga adentro es de la vertical; en carteles la escena conserva la interfaz de la sección 12.
+
+El registro de verticales vive fuera de `src/core`, en `src/app/`, y mapea el campo `vertical` del JSON a las dos partes (D121). `src/core` define los tipos del contrato y no importa de `src/verticals`, `src/clients` ni `src/app`. Las páginas `/d/<slug>` y `/d/<slug>/quote` son las mismas para toda vertical.
+
+El core no tiene vocabulario de ningún rubro: en `src/core`, tests incluidos, no aparecen `totem`, `letters`, `facade`, `signText` ni identificadores `Sign*` (D122).
 
 ## 5. Vertical cartelería
 
@@ -192,9 +215,9 @@ Si hay precio en pantalla lo decide el modo de visibilidad de la sección 6.2. C
 
 ## 6. Motor de precios
 
-### 6.1 Contrato
+### 6.1 Cálculo de carteles (vertical signs)
 
-Archivo: `src/core/pricing/calculatePrice.ts`. Función pura. Sin React, sin Supabase, sin fetch, sin Date.now, sin Math.random, sin formateo de moneda adentro.
+Desde 2.13 (D133, D134) este contrato es de la vertical de carteles y no del core. Archivo: `src/verticals/signs/pricing/calculateSignPrice.ts` (hasta 2.12, `src/core/pricing/calculatePrice.ts`). Arma sus componentes por unidad y compone con `composePrice` de 6.3. Su resultado es idéntico al de 2.12, verificado contra un snapshot tomado antes del refactor (D122). Función pura. Sin React, sin Supabase, sin fetch, sin Date.now, sin Math.random, sin formateo de moneda adentro.
 
 ```ts
 type SignSelection = {
@@ -251,8 +274,10 @@ type PriceResult = {
   lines: PriceLine[];
 };
 
-function calculatePrice(rules: PriceRules, selection: SignSelection): PriceResult;
+function calculateSignPrice(rules: PriceRules, selection: SignSelection): SignPriceResult;
 ```
+
+`SignPriceResult` es el `PriceResult` de 6.3 más `area`, `letters` y `letterHeight`, con la forma de arriba. Los tipos `SignSelection`, `PriceRules`, `PriceDetailValues` y los ids de `lines` de este bloque viven en la vertical. Qué líneas se muestran lo decide la vertical: iluminación siempre, tipo e instalación solo cuando suman, y el descuento lo agrega `composePrice`.
 
 Reglas de cálculo:
 
@@ -279,13 +304,61 @@ Formato fijo de `detail` en modo letters: material `letras x altura x precio x f
 
 `detail` es un string técnico y determinista, sin locale y sin moneda. No se muestra en pantalla: el desglose visible se arma en la UI con `detailValues` y el locale del cliente. Se conserva porque es la forma legible del cálculo en los tests y en un volcado de datos.
 
-El formateo de moneda vive aparte, en `src/core/pricing/format.ts`, con `Intl.NumberFormat` y el locale del cliente.
+El formateo de moneda vive aparte, en `src/core/pricing/format.ts`, con `Intl.NumberFormat` y el locale del cliente. Desde 2.13 el detalle visible de las líneas de carteles (área por precio, letras por alto por precio por factor) lo arma la vertical con los formateadores del core; el core formatea solo el porcentaje del descuento.
 
 `CurrencyConfig` de la sección 10 tiene una clave más que el `currency` de `PriceRules`: `display`, opcional, `"symbol" | "code"`. El bloque de tipos de arriba no la lleva a propósito. El motor no formatea, así que no tiene nada que hacer con ella: `priceRulesFromClient` la omite al armar las reglas y `display` viaja solo hasta `formatCurrency`. Es la misma razón por la que `symbol` y `decimals` están en las reglas pero no se usan para calcular.
 
+### 6.3 Composición del precio (core, desde 2.13, D134)
+
+Archivo: `src/core/pricing/composePrice.ts`. Pura, con las mismas prohibiciones que 6.1. Es la parte del cálculo que comparten todos los rubros; la vertical le pasa componentes ya calculados.
+
+```ts
+type PriceLine = {
+  id: string;              // lo define la vertical, salvo "discount"
+  labelKey: string;        // clave de texts
+  detail: string;          // string técnico, no se muestra
+  amount: number;          // redondeado a decimals; negativo en discount
+  detailValues?: unknown;  // números crudos, los tipa y formatea la vertical
+};
+
+type PriceComponent = { line: Omit<PriceLine, "amount">; cost: number };  // cost en precisión completa
+
+type PriceInput = {
+  decimals: number;
+  quantity: number;
+  unit: PriceComponent[];                      // por unidad, en el orden del desglose
+  discounts: { minQty: number; pct: number }[]; // puede estar vacía
+  order: PriceComponent[];                     // por pedido; puede estar vacía
+  rangePct: number;
+};
+
+type PriceResult = {
+  unitTotal: number;
+  subtotal: number;
+  discountPct: number;
+  total: number;
+  min: number;
+  max: number;
+  lines: PriceLine[];
+};
+
+function composePrice(input: PriceInput): PriceResult;
+```
+
+Reglas:
+
+- `quantity` menor o igual a 0, o no finito, lanza.
+- `unitTotal` es la suma de los `cost` de `unit`, en su orden y sin redondear. `subtotal` es `unitTotal` por `quantity`.
+- `discountPct` es el `pct` del tramo de mayor `minQty` con `quantity >= minQty`, o 0. Nunca dos tramos.
+- `total` es `subtotal` por (1 - discountPct/100) más la suma de los `cost` de `order`, redondeado a `decimals`. Los componentes por pedido no se multiplican por la cantidad ni se descuentan.
+- `min` y `max` son `total` por (1 - rangePct/100) y por (1 + rangePct/100), redondeados.
+- `lines`: primero `unit`, con `amount` redondeado; después, si `discountPct` es mayor que 0, la línea `discount` con `labelKey` `lineDiscount`, `detail` `pct%`, `detailValues` `{ id: "discount", pct }` y `amount` igual a menos `unitTotal` por pct/100 redondeado, por unidad como las demás; al final `order`, con `amount` redondeado.
+- Una línea entra si la vertical la pasa, aunque su costo sea 0. Qué se muestra es de la vertical.
+- La vertical puede sumar claves propias al resultado. El core no las lee. Una clave opcional ausente va ausente, nunca en `undefined`.
+
 ### 6.2 Visibilidad de precio
 
-El motor no cambia. `calculatePrice` sigue siendo la función pura de 6.1 y sigue devolviendo `total`, `min`, `max` y `lines` en todos los casos. Lo que se agrega decide quién ve ese resultado, no cómo se calcula.
+El motor no cambia. El cálculo de la vertical (6.1) con `composePrice` (6.3) sigue siendo puro y sigue devolviendo `total`, `min`, `max` y `lines` en todos los casos. Lo que se agrega decide quién ve ese resultado, no cómo se calcula.
 
 El JSON de cliente trae `pricing.display`, con cinco valores fijos:
 
@@ -326,18 +399,19 @@ Etapas de implementación:
    - `form`: formulario con nombre, contacto (email o teléfono) y comentario.
    - `both`: muestra los dos.
 3. En los dos casos se intenta guardar el lead en Supabase antes de continuar. Si el insert falla, se sigue igual y nunca se bloquea al usuario. El error va a consola, no a la pantalla.
-4. Pantalla de confirmación con botón para ver la cotización, que abre la hoja imprimible.
+4. Pantalla de confirmación con botón para ver la cotización, que abre la hoja imprimible. Vale para los dos canales: con WhatsApp, el clic abre `wa.me` en otra pestaña y el bloque pasa a la confirmación en la del cotizador (desde 2.13, D131; hasta 2.12 solo el formulario llegaba a esta pantalla).
 
 ## 8. Hoja de cotización imprimible
 
-- Ruta propia, `/d/<slug>/quote`, con el estado de la selección en la query y sin dependencia del servidor. Orden fijo de claves: `t` (tipo), `x` (texto del cartel, URL-encoded), `w` (ancho), `h` (alto), `lh` (alto de letra), `d` (profundidad), `m` (material), `l` (iluminación), `i` (instalación, 0 o 1), `q` (cantidad). Se escriben solo las del modo del tipo: `w` y `h` en modo area, `lh` y `d` en modo letters, el resto siempre. Los números van con punto decimal, iguales en todos los idiomas: la URL es canónica y el idioma vive en el JSON.
+- Desde 2.13 (D133) las claves de la query son de la vertical: `encodeQuery` y `decodeQuery` del contrato de 4.4. El core fija la ruta y las reglas de esta sección: URL canónica, sin datos personales, sin completar con defaults, y un link inválido va a la pantalla de error. Las claves de carteles, las de abajo, no cambian, y los links ya publicados siguen valiendo (D122).
+- Ruta propia, `/d/<slug>/quote`, con el estado de la selección en la query y sin dependencia del servidor. Claves de carteles, en orden fijo: `t` (tipo), `x` (texto del cartel, URL-encoded), `w` (ancho), `h` (alto), `lh` (alto de letra), `d` (profundidad), `m` (material), `l` (iluminación), `i` (instalación, 0 o 1), `q` (cantidad). Se escriben solo las del modo del tipo: `w` y `h` en modo area, `lh` y `d` en modo letters, el resto siempre. Los números van con punto decimal, iguales en todos los idiomas: la URL es canónica y el idioma vive en el JSON.
 - Una clave del otro modo presente en la URL es un error, igual que una faltante. Un link ambiguo no se cotiza.
 - En la URL no viaja ningún dato personal. La hoja muestra el contacto del negocio, no el del visitante.
-- El precio se recalcula en el cliente con `calculatePrice` a partir del JSON y de la query. No hay una segunda fuente de verdad de precios.
+- El precio se recalcula en el cliente con el `price` de la vertical a partir del JSON y de la query. No hay una segunda fuente de verdad de precios.
 - Parámetros faltantes o inválidos (clave ausente, id que no existe, medida fuera de rango, cantidad no entera) muestran la pantalla de error. No se completan con los defaults del cliente: una hoja con un precio que el visitante nunca configuró es peor que un error. El paso del slider no se valida: un valor intermedio se cotiza tal cual.
 - La hoja no escribe nada: ni lead ni visita.
 - Marca del cliente: logo, nombre, contacto.
-- Selección completa con nombres legibles y desglose por concepto, total y rango.
+- Selección completa con nombres legibles, en las filas que arma la vertical con `sheetRows`, y desglose por concepto, total y rango.
 - Fecha, validez (texto del JSON) y disclaimer.
 - Una página A4 o carta, estilos `@media print`, sin librerías de PDF. La exportación la hace el navegador con imprimir a PDF. Los controles de la hoja (imprimir, volver) no se imprimen.
 - Dos plantillas, según el modo de visibilidad de la sección 6.2: con precio, y brief de pedido sin precio. Las dos comparten marca, selección, fecha y validez; la segunda no lleva desglose, total ni rango.
@@ -352,6 +426,8 @@ Tabla `visits`: `id`, `created_at`, `client_slug`, `user_agent`, `referrer`.
 La forma de `leads` sigue la que usaría Lokebox para un pedido en gestación. Solo inserts desde el frontend con la anon key. RLS activo, policy de insert para `anon`, sin select ni update ni delete.
 
 ## 10. JSON de cliente (forma)
+
+Desde 2.13 (D133, D135, D136) el JSON sigue siendo un solo archivo plano y la validación se parte en dos. El core valida `slug`, `locale`, `vertical`, `currency`, `brand`, `cta`, `poweredBy`, `prices_placeholder`, `pricing` y sus 27 claves de `texts`. La vertical valida todo lo demás con su `validate` de 4.4: en carteles `units`, `photos`, `options`, sus 20 claves de `texts` y las dos plantillas condicionales de `hidden`. Ningún JSON de cliente cambia por esto. Una clave de `texts` es del core si y solo si la consume `src/core` o las páginas genéricas. `units` pasa a la vertical porque qué se mide y en qué unidad es del rubro; los formateadores de números siguen en el core. El ejemplo de abajo es de carteles.
 
 ```json
 {
@@ -433,6 +509,8 @@ Las 47 claves de `texts` requeridas, iguales en los dos idiomas:
 
 `headline`, `subheadline`, `configureTitle`, `typeLabel`, `widthLabel`, `heightLabel`, `materialLabel`, `lightingLabel`, `installationLabel`, `installationYes`, `installationNo`, `quantityLabel`, `priceLabel`, `priceRangeNote`, `disclaimer`, `ctaWhatsapp`, `ctaForm`, `formTitle`, `formName`, `formContact`, `formNote`, `formSubmit`, `formSending`, `thanksTitle`, `thanksBody`, `viewQuote`, `quoteTitle`, `quoteValidity`, `quoteDateLabel`, `quoteSelectionTitle`, `quoteBreakdownTitle`, `quotePrint`, `quoteBack`, `lineMaterial`, `lineLighting`, `lineType`, `lineInstallation`, `lineDiscount`, `poweredBy`, `whatsappMessage`, `signTextLabel`, `letterHeightLabel`, `depthLabel`, `whatsappMessageLetters`, `previewZoomLabel`, `viewSignOnly`, `loadingLabel`.
 
+Desde 2.13 (D135) se reparten así. Del core, 27: `headline`, `subheadline`, `configureTitle`, `priceLabel`, `priceRangeNote`, `disclaimer`, `ctaWhatsapp`, `ctaForm`, `formTitle`, `formName`, `formContact`, `formNote`, `formSubmit`, `formSending`, `thanksTitle`, `thanksBody`, `viewQuote`, `quoteTitle`, `quoteValidity`, `quoteDateLabel`, `quoteSelectionTitle`, `quoteBreakdownTitle`, `quotePrint`, `quoteBack`, `lineDiscount`, `poweredBy`, `loadingLabel`. De carteles, 20: `typeLabel`, `widthLabel`, `heightLabel`, `materialLabel`, `lightingLabel`, `installationLabel`, `installationYes`, `installationNo`, `quantityLabel`, `signTextLabel`, `letterHeightLabel`, `depthLabel`, `previewZoomLabel`, `viewSignOnly`, `lineMaterial`, `lineLighting`, `lineType`, `lineInstallation`, `whatsappMessage`, `whatsappMessageLetters`. Si al refactorizar un archivo del core consume una clave de la segunda lista, se frena y se reporta: la lista se corrige acá, no en el código por su cuenta.
+
 `previewZoomLabel` es la etiqueta del zoom del viewer. `viewSignOnly` (desde 1.12) es la etiqueta del botón del modo cartel en el selector de vistas: EN "The sign", ES "Solo el cartel". `loadingLabel` (desde 2.0, D47) es el texto de la pantalla de carga del preview: EN "Preparing your sign", ES "Preparando tu cartel".
 
 Los números visibles se formatean con `Intl` y el locale del cliente: `8.5` en `en`, `2,5` en `es-AR`. Eso vale para las medidas (ancho y alto) en el panel, en el mensaje de WhatsApp y en la hoja de cotización, y también para el desglose y la línea de área, que además llevan la unidad y la moneda del cliente.
@@ -458,7 +536,7 @@ Validación: al cargar un cliente se valida la forma en runtime. Si falta una cl
 - EN: slug `northline`, marca ficticia Northline Signs. Paleta clara, tipografía grande, acento cálido.
 - ES: slug `norte`, marca ficticia Norte Carteles. Paleta clara y mismo esquema, con idioma, unidades, moneda y precios cambiados.
 
-Desde 2.11 (D114, D115), tres clientes de vitrina, sin cambios de código, para portfolio y material de venta. No son demos de la landing (D118):
+Desde 2.11 (D114, D115), tres clientes de vitrina, sin cambios de código, para portfolio y material de venta. Desde 2.13 (D137) también son demos de la landing, junto con las dos de la salida comercial:
 
 - `halcyon`, Halcyon Signworks: en-GB, GBP, metros, precio `exact`, CTA formulario, premium sobrio.
 - `afterglow`, Afterglow Signs: en, USD, pies, precio `range`, CTA WhatsApp, tema oscuro.
@@ -472,7 +550,7 @@ Sin marcas reales, sin fotos reales, sin logos de terceros.
 
 Desde 1.12 el viewer tiene dos modos sobre el mismo canvas R3F, que no se remonta al cambiar de modo ni de vista y no reinicia la selección.
 
-1. Modo cartel, el default al cargar. Sin foto. Fondo `--q-stage` del marco (desde 1.16, antes `--q-surface`): el marco es un escenario y tiene que contrastar con un cartel de material claro, que sobre la superficie casi no se despegaba. En modo vista el marco sigue en `--q-surface`, detrás de la foto. Desde 2.8 (D91) sale el marco 16:9 fijo: en modo cartel el canvas llena la zona del preview; en modo vista foto y canvas van juntos en una caja con la proporción de la foto, entera (contain) y centrada sobre `--q-stage`, así el anclaje sigue siendo relativo al rectángulo de la foto. Desde 2.10 (D103) el fondo del preview, en los dos modos, es el escenario del core: estudio claro cálido, degradado vertical con viñeta, fijo del producto y no del JSON; el canvas es transparente y el fondo lo pone CSS, sin plano de fondo en la escena. En modo cartel con iluminación front o back pasa a grafito con una transición de 375 ms, sin remontar el canvas (D105). Desde 2.10 (D107) en escritorio la foto de vista lleva radio de 14 px y sombra suave; en mobile va a todo el ancho, sin radio ni sombra. El cartel solo, con su sombra de apoyo, y el visitante lo gira con el mouse o el dedo.
+1. Modo cartel, el default al cargar. Sin foto. Fondo `--q-stage` del marco (desde 1.16, antes `--q-surface`): el marco es un escenario y tiene que contrastar con un cartel de material claro, que sobre la superficie casi no se despegaba. En modo vista el marco sigue en `--q-surface`, detrás de la foto. Desde 2.8 (D91) sale el marco 16:9 fijo: en modo cartel el canvas llena la zona del preview; en modo vista foto y canvas van juntos en una caja con la proporción de la foto, entera (contain) y centrada sobre `--q-stage`, así el anclaje sigue siendo relativo al rectángulo de la foto. Desde 2.10 (D103) el fondo del preview, en los dos modos, es el escenario del core: estudio claro cálido, degradado vertical con viñeta, fijo del producto y no del JSON; el canvas es transparente y el fondo lo pone CSS, sin plano de fondo en la escena. En modo cartel con iluminación front o back pasa a grafito con una transición de 375 ms, sin remontar el canvas (D105). Desde 2.13 (D132), con un tema oscuro, luminancia relativa de `brand.colors.bg` menor a 0,2, el escenario es grafito en los dos modos desde la carga y no cambia con la iluminación: el estudio claro al lado de un panel oscuro se leía como otro producto. Se deriva del tema, sin campo nuevo en el JSON. Desde 2.10 (D107) en escritorio la foto de vista lleva radio de 14 px y sombra suave; en mobile va a todo el ancho, sin radio ni sombra. El cartel solo, con su sombra de apoyo, y el visitante lo gira con el mouse o el dedo.
 2. Modo vista. Una foto del cliente con el cartel compuesto encima, fijo, sin órbita: es el pivote de 1.9 con la cámara nueva.
 
 El selector de vistas es una fila de botones: el primero es el modo cartel, con la etiqueta `viewSignOnly`, seleccionado al cargar; después uno por foto de `photos`, con su `label`. Desde 2.8 (D92) es un control segmentado sobre el preview, abajo al centro. Desde 2.9 (D98, D100) el selector y el zoom van en una franja de controles al pie de la zona del preview, y nunca quedan encima de la foto. En modo vista la caja contain de la foto se calcula sobre la zona menos esa franja; en escritorio, además, menos un margen de 24 px por lado, así la foto no toca el panel ni el borde de la ventana. En mobile la foto va a todo el ancho y la zona mide el alto de la foto más la franja, con tope de 42svh, el mismo en modo cartel y en modo vista: cambiar de modo no mueve el layout. En modo cartel se usa la proporción de la última foto elegida, o la de la primera. El modo cartel no cambia: el canvas llena la zona y la franja queda sobre el escenario.
@@ -537,10 +615,10 @@ Pantalla de carga (desde 2.0, D47): ocupa el marco del preview sobre `--q-stage`
 
 Una página en `/` con identidad Lokebox, en inglés y sin selector de idioma. Corta. Reescrita en 1.19.
 
-- JSON propio en `src/landing/landing.json`, validado en runtime como el de cliente. No es un cliente: no entra al registro de `src/clients` y no tiene ruta `/d/`. Forma: `locale`; `currency` con `code`, `symbol` y `decimals`; `brand` con `name` y `logo`; `colors` con `bg`, `text`, `muted` y `accent` en hexadecimal de seis dígitos; `texts` con todos los textos visibles, más `how` y `forWho` como listas de tres; `demos`, exactamente dos, con `id`, `label` y `href`; `offer` con `price`, `setup`, `monthly` y `more`; `contact` con `email` y `placeholder`.
+- JSON propio en `src/landing/landing.json`, validado en runtime como el de cliente. No es un cliente: no entra al registro de `src/clients` y no tiene ruta `/d/`. Forma: `locale`; `currency` con `code`, `symbol` y `decimals`; `brand` con `name` y `logo`; `colors` con `bg`, `text`, `muted` y `accent` en hexadecimal de seis dígitos; `texts` con todos los textos visibles, más `how` y `forWho` como listas de tres; `demos`, exactamente cinco desde 2.13 (D137), con `id`, `label` y `href`: las dos de la salida comercial y las tres de la vitrina; `offer` con `price`, `setup`, `monthly` y `more`; `contact` con `email` y `placeholder`.
 - `contact.placeholder` avisa a Canal C que el email todavía no es el público, igual que `prices_placeholder`. No tiene efecto visible.
 - Identidad: la landing lleva el logo horizontal de Lokebox, `public/lokebox-logo-horizontal.svg`, en el encabezado y en el pie, con su ruta en `brand.logo` y validada en runtime. Es el único lugar del producto donde aparece la identidad Lokebox: las demos `/d/<slug>` siguen white label con el tema de su JSON. La paleta y las variables siguen como en 1.17 y no se tocan en esta versión: cuando cierre la identidad visual, entra como edición del JSON. Sin fuente propia.
-- Orden de secciones: encabezado con el logo; hero con headline, subheadline y los dos botones a las demos; how it works con tres pasos numerados; who it is for con tres puntos; oferta; contacto; footer con el logo y la línea de `texts.footer`. El nombre de la marca viaja en el `alt` del logo, como en el encabezado del cotizador: no se repite al lado de la imagen.
+- Orden de secciones: encabezado con el logo; hero con headline, subheadline y los botones a las demos; how it works con tres pasos numerados; who it is for con tres puntos; oferta; contacto; footer con el logo y la línea de `texts.footer`. El nombre de la marca viaja en el `alt` del logo, como en el encabezado del cotizador: no se repite al lado de la imagen.
 - Oferta, en lugar de la tabla de tiers: un solo precio presentado como piso, con el título y la línea de precio de `texts`, y tres listas que salen del JSON. `offer.setup` es lo que incluye el setup, `offer.monthly` lo que incluye el abono con su propio título, y `offer.more` lo que se construye por más y se cotiza caso por caso, también con su título. El precio no se compara contra ningún plan y no hay precios de add-ons.
 - `offer.price.setup` y `offer.price.monthly` son números en el JSON y se formatean con el formateo de moneda del core, con la moneda y el locale de la landing. La línea de precio se arma con esos dos números y las palabras de `texts`.
 - Los botones de demo son enlaces nativos a los `href` del JSON. Cada `href` tiene que ser `/d/<slug>` con un slug del registro de clientes: si no, la validación falla nombrando el `href` y el slug. Debajo de los botones va una línea que aclara que es una demostración y no está preparada para el trabajo diario del visitante. En la landing no se usa la palabra gratis ni ninguna promesa de prueba.
@@ -579,7 +657,7 @@ El cliente entrega antes de empezar: logo, colores, WhatsApp o mail, y sus regla
 
 CRM, auth, usuarios, multi-tenant, panel de administración, permisos, integraciones, email transaccional, generación de PDF en servidor, modelos 3D importados, editor visual del JSON, un cuarto tipo de cartel, más de dos verticales.
 
-Desde 2.12 (D119) la segunda vertical, cajas, está en alcance del bloque 12. Su forma y el contrato de vertical entran en las secciones 4, 6, 8 y 10 cuando se escriba TAREA_032.
+Desde 2.12 (D119) la segunda vertical, cajas, está en alcance del bloque 12. Desde 2.13 el contrato de vertical está en 4.4, la composición del precio en 6.3, las claves de la hoja en 8 y la partición del JSON en 10. La forma de cajas entra con TAREA_033.
 
 Desde 2.0 (D45) no están fuera de alcance el postprocesado, los assets descargados en runtime ni los typefaces: los regula la sección 12.
 
@@ -607,7 +685,7 @@ Desde 2.0 (D44). El nivel visual del preview vive en core, para que las próxima
 
 - Viven en `src/core/`: el pipeline de render y el canvas que lo monta (`src/core/preview/`), los perfiles de calidad (`src/core/preview/quality.ts`), la pantalla de carga (`src/core/ui/LoadingScreen.tsx`), los controles del panel (`src/core/ui/controls/`) y, desde 2.1, los generadores de mapas por acabado y la capa de bloom (`src/core/preview/`). Desde 2.2, también el entorno de estudio generado (`src/core/preview/`). Desde 2.5, el tone mapping por cobertura y la medición del tinte de la foto (`photoTint`); desde 2.6 (D79), la capa de atenuación de las sombras de vista. Desde 2.8, el control de los mapas de sombra por cuadro (D88), el layout de escritorio y mobile (D90, D95), el panel en pasos y el swatch del control choice (D94).
 - No conocen la vertical. La vertical entrega su escena como contenido del canvas del core y decide qué objetos proyectan sombra, cuáles emiten y, desde 2.6, cuáles reciben sombra como atenuación, marcándolos con la capa que exporta el core. El core decide cómo se renderiza.
-- `src/core` sigue sin importar de `src/verticals` ni de `src/clients`.
+- `src/core` sigue sin importar de `src/verticals`, de `src/clients` ni, desde 2.13, de `src/app`.
 - La pantalla de carga necesita el logo del cliente y `loadingLabel`: el preview de la vertical los recibe como props, junto con las etiquetas de la sección 12.
 
 ## 19. Plan por días
