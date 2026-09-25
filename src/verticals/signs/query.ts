@@ -1,6 +1,9 @@
-import type { PricingMode, SignOptions, SignSelection } from '../types'
+import type { PricingMode, SignOptions, SignSelection } from './types'
 
-// Serializacion de la seleccion en la query de la hoja de cotizacion (SPEC 8).
+// Serializacion de la seleccion en la query de la hoja de cotizacion (SPEC 8). Desde la version
+// 2.13 (D133) las claves son de la vertical: son encodeQuery y decodeQuery del contrato de 4.4.
+// Hasta 2.12 era src/core/quote/quoteParams.ts. Las claves no cambian y los links ya publicados
+// siguen valiendo (D122).
 // Pura, sin React. La URL es canonica: numeros con String(n) y punto decimal, sin importar
 // el locale del cliente. El idioma vive en el JSON, no en el link.
 // En la URL no va ningun dato personal.

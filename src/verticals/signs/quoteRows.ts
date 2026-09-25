@@ -1,14 +1,14 @@
-import { pricingModeOf } from '../../core/clientConfig'
 import { formatLength } from '../../core/pricing/format'
 import type { QuoteSheetRow } from '../../core/ui/QuoteSheet'
-import type { ClientConfig, SignSelection } from '../../core/types'
+import { pricingModeOf } from './config'
+import type { SignSelection, SignsConfig } from './types'
 import { depthLabelOf, signIdLabels } from './leadTokens'
 
 // Adaptador de la vertical carteleria para la hoja de cotizacion. Puro, sin React.
 // El core recibe las filas ya armadas y no sabe que existen materiales ni carteles.
 // Las tres etiquetas de id salen de signIdLabels: aca no se busca por id.
 
-export function signQuoteRows(config: ClientConfig, selection: SignSelection): QuoteSheetRow[] {
+export function signQuoteRows(config: SignsConfig, selection: SignSelection): QuoteSheetRow[] {
   const { texts, units, locale } = config
   const labels = signIdLabels(config, selection)
   const length = (value: number): string => `${formatLength(value, locale)} ${units.length}`

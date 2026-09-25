@@ -1,6 +1,6 @@
 import { useReducedMotion } from 'framer-motion'
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
-import type { ClientPhoto, SignSelection } from '../../core/types'
+import type { ClientPhoto, SignSelection } from './types'
 import type { LoadingBrand } from '../../core/ui/LoadingScreen'
 import { StageBackdrop } from '../../core/ui/StageBackdrop'
 import { PhotoStage } from './PhotoStage'

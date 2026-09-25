@@ -5,7 +5,7 @@ import type { FontData } from 'three/examples/jsm/loaders/FontLoader.js'
 import { AssetBoundary } from '../../core/preview/AssetBoundary'
 import { PreviewCanvas } from '../../core/preview/PreviewCanvas'
 import type { LoadingBrand } from '../../core/ui/LoadingScreen'
-import type { ClientPhoto, SignSelection } from '../../core/types'
+import type { ClientPhoto, SignSelection } from './types'
 import { SignScene } from './scene/SignScene'
 import {
   layoutLetters,

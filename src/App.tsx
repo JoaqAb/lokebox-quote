@@ -4,9 +4,10 @@ import { LandingPage } from './landing/LandingPage'
 import { ErrorScreen } from './pages/ErrorScreen'
 
 // Las dos rutas de cliente se cargan con React.lazy (SPEC 3): asi / no descarga el vendor 3D.
-// La regla de no lazy loading es del preview dentro del cotizador, no de la ruta: la ruta
-// entera es un chunk y el preview llega junto con su panel. El fallback es un div vacio del
-// alto de la ventana, sin texto ni color propio. / y la ruta comodin quedan estaticas.
+// Desde la version 2.13 (D121) la vista de cada vertical tambien llega con React.lazy, desde el
+// registro de src/app, y el cotizador muestra la pantalla de carga mientras baja. El fallback de
+// la ruta es un div vacio del alto de la ventana, sin texto ni color propio. / y la ruta comodin
+// quedan estaticas.
 const QuotePage = lazy(async () => ({ default: (await import('./pages/QuotePage')).QuotePage }))
 const QuoteSheetPage = lazy(async () => ({ default: (await import('./pages/QuoteSheetPage')).QuoteSheetPage }))
 

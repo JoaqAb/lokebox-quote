@@ -1,9 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import northline from '../../clients/northline.json'
 import { buildWhatsappMessage, whatsappLink } from './whatsapp'
 
 const TOKENS: Record<string, string> = {
-  type: 'Facade sign',
+  type: 'Panel',
   width: '8',
   height: '3',
   unit: 'ft',
@@ -16,13 +15,9 @@ const TOKENS: Record<string, string> = {
 }
 
 describe('buildWhatsappMessage', () => {
-  // 11.8
-  it('reemplaza los diez placeholders de la plantilla real y los repetidos tambien', () => {
-    const message = buildWhatsappMessage(northline.texts.whatsappMessage, TOKENS)
-    expect(message).not.toMatch(/[{}]/)
-    for (const value of Object.values(TOKENS)) {
-      expect(message).toContain(value)
-    }
+  // 11.8, la parte generica. El caso con la plantilla real de un cliente esta en
+  // src/verticals/signs/leadTokens.test.ts: el core no importa de src/clients.
+  it('reemplaza los placeholders repetidos tambien', () => {
     const repetido = buildWhatsappMessage('{unit} y {unit}', TOKENS)
     expect(repetido).toBe('ft y ft')
   })

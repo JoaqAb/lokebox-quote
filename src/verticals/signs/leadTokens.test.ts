@@ -1,28 +1,24 @@
 import { describe, expect, it } from 'vitest'
-import { getClient, listClientSlugs } from '../../clients'
+import { listClientSlugs } from '../../clients'
 import northline from '../../clients/northline.json'
-import { defaultSelection, priceRulesFromClient, validateClientConfig } from '../../core/clientConfig'
+import { defaultSelection, priceRulesFromClient } from './config'
 import { buildWhatsappMessage } from '../../core/lead/whatsapp'
-import { calculatePrice } from '../../core/pricing/calculatePrice'
+import { calculateSignPrice } from './pricing/calculateSignPrice'
 import { formatCurrency } from '../../core/pricing/format'
-import type { PriceDisplay, SignSelection } from '../../core/types'
+import type { PriceDisplay } from '../../core/types'
+import type { SignSelection } from './types'
 import { signLeadSelection, signLeadTokens, signWhatsappTemplate } from './leadTokens'
 import { signQuoteRows } from './quoteRows'
+import { signsClientOf, validateSignsJson } from './testing'
 
-function clientOrFail(slug: string) {
-  const client = getClient(slug)
-  if (client === null) {
-    throw new Error(`cliente no encontrado en el test: ${slug}`)
-  }
-  return client
-}
+const clientOrFail = signsClientOf
 
 // El modo de visibilidad entra como parametro desde TAREA_021. range es el default del
 // producto y el de los dos clientes de la demo, asi que es el default del helper.
 function tokensOf(slug: string, patch: Partial<SignSelection> = {}, display: PriceDisplay = 'range') {
   const config = clientOrFail(slug)
   const selection: SignSelection = { ...defaultSelection(config), ...patch }
-  const result = calculatePrice(priceRulesFromClient(config), selection)
+  const result = calculateSignPrice(priceRulesFromClient(config), selection)
   return signLeadTokens(config, selection, result, display)
 }
 
@@ -131,7 +127,7 @@ describe('WhatsApp y hoja en modo letters', () => {
     it(`${slug}: el mensaje de letters sale completo, sin placeholders ni huecos`, () => {
       const config = clientOrFail(slug)
       const selection = { ...defaultSelection(config), type: 'letters', text: 'MI CAFÉ', installation: true }
-      const result = calculatePrice(priceRulesFromClient(config), selection)
+      const result = calculateSignPrice(priceRulesFromClient(config), selection)
       const template = signWhatsappTemplate(config, selection, 'range')
       expect(template).toBe(config.texts.whatsappMessageLetters)
       const message = buildWhatsappMessage(template, signLeadTokens(config, selection, result, 'range'))
@@ -155,7 +151,7 @@ describe('WhatsApp y hoja en modo letters', () => {
     const tokens = signLeadTokens(
       config,
       selection,
-      calculatePrice(priceRulesFromClient(config), selection),
+      calculateSignPrice(priceRulesFromClient(config), selection),
       'range',
     )
     expect(tokens.letterHeight).toBe('0,45')
@@ -201,7 +197,7 @@ describe('mensaje de WhatsApp en el modo hidden', () => {
     const raw = structuredClone(northline) as Record<string, unknown>
     raw.pricing = { display: 'hidden' }
     raw.texts = { ...(raw.texts as Record<string, string>), ...HIDDEN_TEXTS }
-    return validateClientConfig(raw)
+    return validateSignsJson(raw)
   }
 
   it('usa la plantilla sin precio de cada modo, y no la que lleva {min} y {max}', () => {
@@ -218,7 +214,7 @@ describe('mensaje de WhatsApp en el modo hidden', () => {
     const config = hiddenClient()
     for (const type of ['facade', 'letters']) {
       const selection = { ...defaultSelection(config), type, installation: true }
-      const result = calculatePrice(priceRulesFromClient(config), selection)
+      const result = calculateSignPrice(priceRulesFromClient(config), selection)
       const tokens = signLeadTokens(config, selection, result, 'hidden')
       const message = buildWhatsappMessage(signWhatsappTemplate(config, selection, 'hidden'), tokens)
       expect(message).not.toMatch(/[{}]/)
@@ -239,5 +235,33 @@ describe('mensaje de WhatsApp en el modo hidden', () => {
     const config = hiddenClient()
     const broken = { ...config, texts: { ...config.texts, whatsappMessageHidden: undefined } }
     expect(() => signWhatsappTemplate(broken, defaultSelection(config), 'hidden')).toThrow(/northline/)
+  })
+})
+
+// Movido de src/core/lead/whatsapp.test.ts (11.8): la plantilla real de carteles, con los diez
+// placeholders del modo area.
+const TOKENS: Record<string, string> = {
+  type: 'Facade sign',
+  width: '8',
+  height: '3',
+  unit: 'ft',
+  material: 'PVC',
+  lighting: 'None',
+  installation: 'No, I install it',
+  quantity: '1',
+  min: '$331',
+  max: '$389',
+}
+
+describe('buildWhatsappMessage con la plantilla de carteles', () => {
+  // 11.8
+  it('reemplaza los diez placeholders de la plantilla real y los repetidos tambien', () => {
+    const message = buildWhatsappMessage(northline.texts.whatsappMessage, TOKENS)
+    expect(message).not.toMatch(/[{}]/)
+    for (const value of Object.values(TOKENS)) {
+      expect(message).toContain(value)
+    }
+    const repetido = buildWhatsappMessage('{unit} y {unit}', TOKENS)
+    expect(repetido).toBe('ft y ft')
   })
 })

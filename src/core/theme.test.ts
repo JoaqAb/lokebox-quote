@@ -1,65 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { getClient, listClientSlugs } from '../clients'
-import { DARK_THEME_LUMINANCE, relativeLuminance, stageToneOf, themeFromClient } from './theme'
+import { DARK_THEME_LUMINANCE, relativeLuminance, stageToneOf } from './theme'
 
-function clientOrFail(slug: string) {
-  const client = getClient(slug)
-  if (client === null) {
-    throw new Error(`cliente no encontrado en el test: ${slug}`)
-  }
-  return client
-}
-
-describe('themeFromClient', () => {
-  // 12.8 (editada en TAREA_009: compara contra el JSON en vez de contra hexadecimales
-  // pinchados, que es lo que la prueba siempre quiso decir, y suma las dos derivadas.)
-  it('espeja los cinco colores del JSON, para los dos clientes', () => {
-    for (const slug of ['northline', 'norte']) {
-      const config = clientOrFail(slug)
-      const theme = themeFromClient(config)
-      expect(theme['--q-bg'], slug).toBe(config.brand.colors.bg)
-      expect(theme['--q-primary'], slug).toBe(config.brand.colors.primary)
-      expect(theme['--q-accent'], slug).toBe(config.brand.colors.accent)
-      expect(theme['--q-text'], slug).toBe(config.brand.colors.text)
-      expect(theme['--q-muted'], slug).toBe(config.brand.colors.muted)
-    }
-  })
-
-  // 9.1
-  it('deriva superficie y borde con color-mix sobre el texto y el fondo', () => {
-    const theme = themeFromClient(clientOrFail('northline'))
-    for (const key of ['--q-surface', '--q-border']) {
-      expect(theme[key]).toMatch(/^color-mix\(in srgb, var\(--q-text\) \d+%, var\(--q-bg\)\)$/)
-    }
-    // El borde entra mas que la superficie: si no, no se distinguen entre si.
-    const pct = (v: string): number => Number(/(\d+)%/.exec(v)?.[1])
-    expect(pct(theme['--q-border'])).toBeGreaterThan(pct(theme['--q-surface']))
-  })
-
-  it('deriva el escenario del modo cartel con color-mix sobre el texto y el fondo, en los dos clientes', () => {
-    for (const slug of ['northline', 'norte']) {
-      const theme = themeFromClient(clientOrFail(slug))
-      expect(theme['--q-stage'], slug).toBe('color-mix(in srgb, var(--q-text) 82%, var(--q-bg))')
-    }
-  })
-
-  it('superficie y borde no cambian con el escenario: siguen en 6 y 16', () => {
-    const theme = themeFromClient(clientOrFail('northline'))
-    expect(theme['--q-surface']).toBe('color-mix(in srgb, var(--q-text) 6%, var(--q-bg))')
-    expect(theme['--q-border']).toBe('color-mix(in srgb, var(--q-text) 16%, var(--q-bg))')
-  })
-
-  // 9.1
-  it('ninguna variable del tema lleva un hexadecimal escrito en el codigo', () => {
-    const theme = themeFromClient(clientOrFail('norte'))
-    const delJson = Object.values(clientOrFail('norte').brand.colors)
-    for (const value of Object.values(theme)) {
-      if (value.startsWith('#')) {
-        expect(delJson).toContain(value)
-      }
-    }
-  })
-})
+// Los tests del tema sobre los clientes del registro estan en src/app/clients.test.ts: el core no
+// importa de src/clients.
 
 // D132: el tono del escenario sale de la luminancia relativa del fondo del tema.
 describe('relativeLuminance y stageToneOf', () => {
@@ -92,10 +35,4 @@ describe('relativeLuminance y stageToneOf', () => {
     expect(stageToneOf('#FFFFFF')).toBe('light')
   })
 
-  it('en los clientes del registro solo afterglow tiene tema oscuro', () => {
-    const slugs = listClientSlugs()
-    expect(slugs).toEqual(['afterglow', 'alba', 'halcyon', 'norte', 'northline'])
-    const dark = slugs.filter((slug) => stageToneOf(clientOrFail(slug).brand.colors.bg) === 'dark')
-    expect(dark).toEqual(['afterglow'])
-  })
 })

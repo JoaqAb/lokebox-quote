@@ -1,7 +1,7 @@
 import { Color, PerspectiveCamera, Vector3 } from 'three'
 import { describe, expect, it } from 'vitest'
-import { getClient, listClientSlugs } from '../../../clients'
-import { defaultSelection } from '../../../core/clientConfig'
+import { listClientSlugs } from '../../../clients'
+import { defaultSelection } from '../config'
 import { themeFromClient } from '../../../core/theme'
 import { lengthToMeters } from '../visuals'
 import {
@@ -61,14 +61,9 @@ import {
   totemStructureColor,
 } from './sceneGeometry'
 import { hasWebGL } from './webgl'
+import { signsClientOf } from '../testing'
 
-function clientOrFail(slug: string) {
-  const client = getClient(slug)
-  if (client === null) {
-    throw new Error(`cliente no encontrado en el test: ${slug}`)
-  }
-  return client
-}
+const clientOrFail = signsClientOf
 
 function factorOf(slug: string): number {
   return lengthToMeters(clientOrFail(slug).units.length)

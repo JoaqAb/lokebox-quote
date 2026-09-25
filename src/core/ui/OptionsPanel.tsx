@@ -1,3 +1,4 @@
+import { resolveTextKey } from '../textKeys'
 import type { ClientTexts } from '../types'
 import { BooleanChoice } from './controls/BooleanChoice'
 import { ChoiceGroup } from './controls/ChoiceGroup'
@@ -152,10 +153,10 @@ export function OptionsPanel({
         {groupSteps(fields).map((step) => (
           <li key={step[0].step} className="q-step flex flex-col gap-3" data-step={step[0].step}>
             <h3 className="q-step-title text-sm font-semibold text-[var(--q-text)]">
-              {texts[step[0].stepTitleKey ?? step[0].labelKey]}
+              {resolveTextKey(step[0].stepTitleKey ?? step[0].labelKey, texts)}
             </h3>
             {step.map((field) => {
-              const label = texts[field.labelKey]
+              const label = resolveTextKey(field.labelKey, texts)
               // La etiqueta que ya es el titulo del paso no se repite.
               const titled = field.labelKey === (step[0].stepTitleKey ?? step[0].labelKey)
               return (

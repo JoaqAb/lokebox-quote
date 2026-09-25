@@ -16,7 +16,8 @@ import {
   type ShadowMaterial,
 } from 'three'
 import { ATTENUATION_LAYER, BLOOM_LAYER } from '../../../core/preview/render'
-import type { MaterialVisual, Mount, PhotoLight } from '../../../core/types'
+import type { MaterialVisual } from '../../../core/types'
+import type { Mount, PhotoLight } from '../types'
 import { haloCellGeometry } from './haloGeometry'
 import { letterHaloGrid } from './letterHalo'
 import { SignText3D, type LetterPart } from './SignText3D'

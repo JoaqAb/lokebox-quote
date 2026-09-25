@@ -1,15 +1,9 @@
-import type {
-  ClientConfig,
-  LightingVisual,
-  MaterialVisual,
-  Mount,
-  PricingMode,
-  SignSelection,
-} from '../../core/types'
-import { TOTEM_TYPE_ID } from '../../core/clientConfig'
+import type { MaterialVisual } from '../../core/types'
+import { TOTEM_TYPE_ID } from './config'
+import type { LightingVisual, Mount, PricingMode, SignSelection, SignsConfig } from './types'
 
 // Lo que el preview necesita para dibujar, y nada mas. Funcion pura, sin React.
-// El preview no recibe ClientConfig y no busca nada por id: eso se resuelve aca.
+// El preview no recibe la config y no busca nada por id: eso se resuelve aca.
 
 export type SignVisual = {
   mode: PricingMode
@@ -57,7 +51,7 @@ function findById<T extends { id: string }>(list: T[], id: string, what: string)
   return found
 }
 
-export function resolveSignVisual(config: ClientConfig, selection: SignSelection): SignVisual {
+export function resolveSignVisual(config: SignsConfig, selection: SignSelection): SignVisual {
   const material = findById(config.options.materials, selection.materialId, 'material')
   const lighting = findById(config.options.lighting, selection.lightingId, 'iluminacion')
   const signType = findById(config.options.types, selection.type, 'tipo de cartel')

@@ -1,16 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { getClient } from '../../clients'
-import { defaultSelection } from '../../core/clientConfig'
-import type { ClientConfig, SignSelection } from '../../core/types'
+import { defaultSelection } from './config'
+import type { SignSelection } from './types'
 import { signQuoteRows } from './quoteRows'
+import { signsClientOf } from './testing'
 
-function clientOrFail(slug: string): ClientConfig {
-  const client = getClient(slug)
-  if (client === null) {
-    throw new Error(`cliente no encontrado en el test: ${slug}`)
-  }
-  return client
-}
+const clientOrFail = signsClientOf
 
 function rowsOf(slug: string, overrides: Partial<SignSelection> = {}) {
   const config = clientOrFail(slug)

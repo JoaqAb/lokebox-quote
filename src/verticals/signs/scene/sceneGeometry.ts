@@ -1,5 +1,5 @@
 import { Color, MathUtils } from 'three'
-import type { Mount, PhotoLight, SignSelection } from '../../../core/types'
+import type { Mount, PhotoLight, SignSelection } from '../types'
 
 // Medidas y colores del cartel. Puro, sin React y sin JSX.
 // Desde el pivote de TAREA_010 no hay set: la fachada, la vereda, la vidriera y el poste

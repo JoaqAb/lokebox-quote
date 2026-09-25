@@ -42,25 +42,24 @@ const server = await createServer({ server: { middlewareMode: true }, appType: '
 try {
   const load = (path) => server.ssrLoadModule(path)
   const { getClient, listClientSlugs } = await load('/src/clients/index.ts')
-  const { materialsForMode, priceDisplayOf, priceRulesFromClient, pricingModeOf } = await load('/src/core/clientConfig.ts')
-  const { calculatePrice } = await load('/src/core/pricing/calculatePrice.ts')
-  const { decodeQuoteParams, encodeQuoteParams } = await load('/src/core/quote/quoteParams.ts')
-  const { formatArea, formatCurrency, formatLineDetail } = await load('/src/core/pricing/format.ts')
-  const { resolveLineLabel } = await load('/src/core/pricing/lineLabels.ts')
+  const { verticalContextOf } = await load('/src/core/clientConfig.ts')
   const { buildLeadRow } = await load('/src/core/lead/leadRow.ts')
-  const { buildWhatsappMessage } = await load('/src/core/lead/whatsapp.ts')
-  const { signLeadSelection, signLeadTokens, signWhatsappTemplate } = await load('/src/verticals/signs/leadTokens.ts')
-  const { signQuoteRows } = await load('/src/verticals/signs/quoteRows.ts')
-  const { areaUnitSymbol } = await load('/src/verticals/signs/visuals.ts')
+  const { DISCOUNT_LINE_ID } = await load('/src/core/pricing/composePrice.ts')
+  const { formatCurrency, formatPercent } = await load('/src/core/pricing/format.ts')
+  const { resolveTextKey } = await load('/src/core/textKeys.ts')
+  const { materialsForMode } = await load('/src/verticals/signs/config.ts')
+  const { signsLogic } = await load('/src/verticals/signs/logic.ts')
+  // Desde el refactor de TAREA_032 el script corre sobre el contrato de la vertical (SPEC 4.4). Su
+  // salida tiene que ser identica al fixture, que se genero con el codigo de 2.12.
+  const signsOf = (client) => signsLogic.validate(client.json, verticalContextOf(client))
 
   const snapshot = { generatedFrom: 'TAREA_032 fase 1', totals: {}, cases: [], published: [], views: [] }
 
   for (const slug of listClientSlugs()) {
-    const config = getClient(slug)
+    const client = getClient(slug)
+    const config = signsOf(client)
     const { options } = config
-    const rules = priceRulesFromClient(config)
-    const display = priceDisplayOf(config)
-    const areaUnit = areaUnitSymbol(config.units.area)
+    const display = config.display
     const quantities = unique([options.quantity.min, 2, 5, options.quantity.max]).filter(
       (q) => q >= options.quantity.min && q <= options.quantity.max,
     )
@@ -102,8 +101,8 @@ try {
     }
 
     for (const selection of cases) {
-      const result = calculatePrice(rules, selection)
-      const query = encodeQuoteParams(selection, pricingModeOf(options, selection.type))
+      const result = signsLogic.price(config, selection)
+      const query = signsLogic.encodeQuery(config, selection)
       snapshot.cases.push({ slug, selection, result, query })
       count += 1
     }
@@ -127,24 +126,21 @@ try {
               installation,
               quantity,
             }
-            const result = calculatePrice(rules, selection)
+            const result = signsLogic.price(config, selection)
             const breakdown = result.lines.map((line) => ({
-              label: resolveLineLabel(line.labelKey, config.texts),
-              detail: formatLineDetail(line.detailValues, config.currency, config.locale, areaUnit, config.units.length),
+              label: resolveTextKey(line.labelKey, client.texts),
+              detail: line.id === DISCOUNT_LINE_ID ? formatPercent(result.discountPct, config.locale) : signsLogic.lineDetail(config, line),
               amount: formatCurrency(line.amount, config.currency, config.locale),
             }))
-            const caption = result.letters === undefined ? formatArea(result.area, config.locale, areaUnit) : null
-            const leadSelection = signLeadSelection(config, selection)
-            const whatsapp =
-              config.cta === 'form'
-                ? null
-                : buildWhatsappMessage(signWhatsappTemplate(config, selection, display), signLeadTokens(config, selection, result, display))
+            const caption = signsLogic.breakdownCaption(config, result)
+            const leadSelection = signsLogic.leadSelection(config, selection)
+            const whatsapp = config.cta === 'form' ? null : signsLogic.whatsappMessage(config, selection, result, display)
             snapshot.views.push({
               slug,
               selection,
               caption,
               breakdown,
-              sheetRows: signQuoteRows(config, selection),
+              sheetRows: signsLogic.sheetRows(config, selection),
               leadRow: buildLeadRow({ clientSlug: slug, channel: 'whatsapp', selection: leadSelection, result }),
               whatsapp,
             })
@@ -155,12 +151,12 @@ try {
   }
 
   for (const entry of PUBLISHED) {
-    const config = getClient(entry.slug)
-    const selection = decodeQuoteParams(config.options, new URLSearchParams(entry.query))
+    const config = signsOf(getClient(entry.slug))
+    const selection = signsLogic.decodeQuery(config, new URLSearchParams(entry.query))
     if (selection === null) {
       throw new Error(`URL publicada que no decodifica: ${entry.query}`)
     }
-    const result = calculatePrice(priceRulesFromClient(config), selection)
+    const result = signsLogic.price(config, selection)
     snapshot.published.push({ ...entry, selection, result })
   }
 

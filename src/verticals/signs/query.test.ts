@@ -1,16 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { getClient, listClientSlugs } from '../../clients'
-import { defaultSelection, materialsForMode } from '../clientConfig'
-import type { ClientConfig, PricingMode, SignSelection } from '../types'
-import { decodeQuoteParams, encodeQuoteParams } from './quoteParams'
+import { listClientSlugs } from '../../clients'
+import { defaultSelection, materialsForMode } from './config'
+import type { PricingMode, SignSelection } from './types'
+import { decodeQuoteParams, encodeQuoteParams } from './query'
+import { signsClientOf } from './testing'
 
-function clientOrFail(slug: string): ClientConfig {
-  const client = getClient(slug)
-  if (client === null) {
-    throw new Error(`cliente no encontrado en el test: ${slug}`)
-  }
-  return client
-}
+const clientOrFail = signsClientOf
 
 const northline = clientOrFail('northline')
 

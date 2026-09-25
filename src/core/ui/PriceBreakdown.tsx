@@ -1,39 +1,39 @@
-import { resolveLineLabel } from '../pricing/lineLabels'
-import { formatArea, formatCurrency, formatLineDetail } from '../pricing/format'
-import type { ClientConfig, PriceResult } from '../types'
+import { DISCOUNT_LINE_ID } from '../pricing/composePrice'
+import { formatCurrency, formatPercent } from '../pricing/format'
+import { resolveTextKey } from '../textKeys'
+import type { ClientTexts, CurrencyConfig, PriceLine, PriceResult } from '../types'
 
 // Desglose del precio. Los importes son por unidad (DECISIONES 11/09/2026).
-// El descuento llega negativo desde el motor y se muestra tal cual.
-// El detalle de cada linea se formatea aca con detailValues: el string tecnico del motor
-// (line.detail) no se muestra nunca. El simbolo de la unidad lo pone la vertical.
-// En modo letters no hay area: el motor la deja en 0 y la linea de area no se muestra.
+// El descuento llega negativo desde composePrice y se muestra tal cual.
+// El detalle de cada linea no es el string tecnico del calculo (line.detail), que no se muestra
+// nunca. Desde la version 2.13 (D133) el detalle de las lineas de la vertical y la linea de encima
+// del desglose los arma la vertical (lineDetail y breakdownCaption de SPEC 4.4); el core formatea
+// solo el porcentaje del descuento.
 
 type PriceBreakdownProps = {
   result: PriceResult
-  config: ClientConfig
-  areaUnit: string
+  texts: ClientTexts
+  currency: CurrencyConfig
+  locale: string
+  caption: string | null
+  lineDetail: (line: PriceLine) => string | null
 }
 
-export function PriceBreakdown({ result, config, areaUnit }: PriceBreakdownProps) {
-  const { texts, currency, locale, units } = config
+export function PriceBreakdown({ result, texts, currency, locale, caption, lineDetail }: PriceBreakdownProps) {
   return (
     <section className="mt-8">
-      {result.letters === undefined ? (
-        <p className="text-xs font-semibold tracking-[0.18em] text-[var(--q-muted)] uppercase">
-          {formatArea(result.area, locale, areaUnit)}
-        </p>
-      ) : null}
+      {caption === null ? null : (
+        <p className="text-xs font-semibold tracking-[0.18em] text-[var(--q-muted)] uppercase">{caption}</p>
+      )}
       <ul className="mt-2">
         {result.lines.map((line) => (
           <li
             key={line.id}
             className="flex items-baseline justify-between gap-3 q-hairline border-t py-2"
           >
-            <span className="min-w-0 text-sm">{resolveLineLabel(line.labelKey, texts)}</span>
+            <span className="min-w-0 text-sm">{resolveTextKey(line.labelKey, texts)}</span>
             <span className="ml-auto shrink-0 text-xs text-[var(--q-muted)] tabular-nums">
-              {line.detailValues === undefined
-                ? null
-                : formatLineDetail(line.detailValues, currency, locale, areaUnit, units.length)}
+              {line.id === DISCOUNT_LINE_ID ? formatPercent(result.discountPct, locale) : lineDetail(line)}
             </span>
             <span className="w-28 shrink-0 text-right text-sm font-medium tabular-nums">
               {formatCurrency(line.amount, currency, locale)}

@@ -1,6 +1,7 @@
-import { formatCurrency, formatLineDetail } from '../pricing/format'
-import { resolveLineLabel } from '../pricing/lineLabels'
-import type { BrandConfig, ClientTexts, CurrencyConfig, PriceDisplay, PriceResult } from '../types'
+import { DISCOUNT_LINE_ID } from '../pricing/composePrice'
+import { formatCurrency, formatPercent } from '../pricing/format'
+import { resolveTextKey } from '../textKeys'
+import type { BrandConfig, ClientTexts, CurrencyConfig, PriceDisplay, PriceLine, PriceResult } from '../types'
 
 // Hoja de cotizacion imprimible (SPEC 8). Presentacional: sin estado, sin fetch,
 // sin three. No conoce ninguna vertical: recibe las filas ya armadas.
@@ -9,6 +10,8 @@ import type { BrandConfig, ClientTexts, CurrencyConfig, PriceDisplay, PriceResul
 // La segunda es la de hidden y comparte marca, seleccion, fecha, validez y disclaimer;
 // no lleva desglose, total ni rango. Sacar dos secciones la deja mas corta, nunca mas
 // larga, asi que sigue entrando en una pagina.
+// Desde la version 2.13 (D133) el detalle de las lineas de la vertical lo arma la vertical
+// (lineDetail de SPEC 4.4); el core formatea solo el porcentaje del descuento.
 
 export type QuoteSheetRow = { label: string; value: string }
 
@@ -22,8 +25,7 @@ type QuoteSheetProps = {
   date: string
   poweredBy: boolean
   backHref: string
-  areaUnit: string
-  lengthUnit: string
+  lineDetail: (line: PriceLine) => string | null
   display: PriceDisplay
 }
 
@@ -37,8 +39,7 @@ export function QuoteSheet({
   date,
   poweredBy,
   backHref,
-  areaUnit,
-  lengthUnit,
+  lineDetail,
   display,
 }: QuoteSheetProps) {
   const withPrice = display !== 'hidden'
@@ -93,11 +94,9 @@ export function QuoteSheet({
               key={line.id}
               className="flex items-baseline justify-between gap-4 q-hairline border-t py-2"
             >
-              <span className="min-w-0 text-sm">{resolveLineLabel(line.labelKey, texts)}</span>
+              <span className="min-w-0 text-sm">{resolveTextKey(line.labelKey, texts)}</span>
               <span className="ml-auto shrink-0 text-xs text-[var(--q-muted)] tabular-nums print:text-black">
-                {line.detailValues === undefined
-                  ? null
-                  : formatLineDetail(line.detailValues, currency, locale, areaUnit, lengthUnit)}
+                {line.id === DISCOUNT_LINE_ID ? formatPercent(price.discountPct, locale) : lineDetail(line)}
               </span>
               <span className="w-32 shrink-0 text-right text-sm font-medium tabular-nums">
                 {formatCurrency(line.amount, currency, locale)}

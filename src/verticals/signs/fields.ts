@@ -1,7 +1,7 @@
 import type { PanelField, SelectionValue } from '../../core/ui/panelTypes'
-import { countLetters } from '../../core/pricing/calculatePrice'
-import { materialsForMode, pricingModeOf } from '../../core/clientConfig'
-import type { ClientConfig, SignSelection } from '../../core/types'
+import { materialsForMode, pricingModeOf } from './config'
+import { countLetters } from './pricing/calculateSignPrice'
+import type { RequiredSignTextKey, SignSelection, SignsConfig } from './types'
 
 // Adaptador de la vertical carteleria. Arma los descriptores del panel desde el JSON
 // del cliente y traduce entre la seleccion del dominio y los valores del panel.
@@ -18,10 +18,13 @@ function labeledChoices(list: { id: string; label: string }[]): { id: string; la
   return list.map((item) => ({ id: item.id, label: item.label }))
 }
 
-export function buildPanelFields(config: ClientConfig, selection: SignSelection): PanelField[] {
+// Las etiquetas son claves de las 20 de carteles: el core las resuelve contra el texts del cliente.
+type SignPanelField = PanelField & { labelKey: RequiredSignTextKey; stepTitleKey?: RequiredSignTextKey }
+
+export function buildPanelFields(config: SignsConfig, selection: SignSelection): SignPanelField[] {
   const { options, texts, units } = config
   const mode = pricingModeOf(options, selection.type)
-  const measures: PanelField[] =
+  const measures: SignPanelField[] =
     mode === 'area'
       ? [
           {
@@ -193,7 +196,7 @@ export function selectionFromValues(values: Record<string, SelectionValue>): Sig
 // - Al cambiar de tipo, si el material elegido no se ofrece en el modo nuevo, pasa al
 //   primero que si. Con los dos clientes de la demo no ocurre, pero el JSON lo permite.
 export function applyFieldChange(
-  config: ClientConfig,
+  config: SignsConfig,
   values: Record<string, SelectionValue>,
   fieldId: string,
   value: SelectionValue,

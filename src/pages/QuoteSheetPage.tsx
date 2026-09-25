@@ -1,50 +1,46 @@
 import { useMemo } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
-import { priceDisplayOf, priceRulesFromClient } from '../core/clientConfig'
-import { calculatePrice } from '../core/pricing/calculatePrice'
-import { decodeQuoteParams } from '../core/quote/quoteParams'
+import { priceDisplayOf } from '../core/clientConfig'
 import { formatQuoteDate } from '../core/quote/quoteDate'
 import { themeFromClient } from '../core/theme'
 import { QuoteSheet } from '../core/ui/QuoteSheet'
 import { useHtmlLang } from '../core/ui/useHtmlLang'
-import type { ClientConfig, PriceResult, SignSelection } from '../core/types'
-import { signQuoteRows } from '../verticals/signs/quoteRows'
-import { areaUnitSymbol } from '../verticals/signs/visuals'
+import type { PriceResult } from '../core/types'
 import { ErrorScreen } from './ErrorScreen'
-import { resolveClient } from './resolveClient'
+import { resolveClient, type ResolvedClient } from './resolveClient'
 
-// La hoja de cotizacion. El nombre es distinto de QuotePage a proposito: QuotePage es el
-// cotizador, esta es la hoja. La seleccion viaja en la query y no se recalcula con los
-// defaults del cliente: si algo no valida, ErrorScreen.
+// La hoja de cotizacion: la pagina /d/<slug>/quote, la misma para toda vertical (SPEC 4.4 y 8).
+// El nombre es distinto de QuotePage a proposito: QuotePage es el cotizador, esta es la hoja. La
+// seleccion viaja en la query con las claves de la vertical y no se completa con los defaults del
+// cliente: si algo no valida, ErrorScreen.
 // No llama a useVisitOnce ni a insertRow: la hoja no escribe nada, ni lead ni visita.
-// No monta el canvas: aca no se importa nada de three.
+// No monta la vista de la vertical: aca no se descarga three.
 
-type QuoteSheetScreenProps = {
-  config: ClientConfig
+type QuoteSheetScreenProps = ResolvedClient & {
   params: URLSearchParams
 }
 
-type Priced = { selection: SignSelection; price: PriceResult } | null
+type Priced = { selection: unknown; price: PriceResult } | null
 
-function priceFrom(config: ClientConfig, params: URLSearchParams): Priced {
-  const selection = decodeQuoteParams(config.options, params)
+function priceFrom({ vertical, verticalConfig }: ResolvedClient, params: URLSearchParams): Priced {
+  const selection = vertical.logic.decodeQuery(verticalConfig, params)
   if (selection === null) {
     return null
   }
   try {
-    return { selection, price: calculatePrice(priceRulesFromClient(config), selection) }
+    return { selection, price: vertical.logic.price(verticalConfig, selection) }
   } catch {
     return null
   }
 }
 
-function QuoteSheetScreen({ config, params }: QuoteSheetScreenProps) {
+function QuoteSheetScreen({ params, config, vertical, verticalConfig }: QuoteSheetScreenProps) {
   useHtmlLang(config.locale)
   const theme = useMemo(() => themeFromClient(config), [config])
   // Una sola lectura del reloj, al montar: reimprimir no cambia la fecha de la hoja.
   const today = useMemo(() => new Date(), [])
 
-  const priced = priceFrom(config, params)
+  const priced = priceFrom({ config, vertical, verticalConfig }, params)
   if (priced === null) {
     return <ErrorScreen detail={`/d/${config.slug}/quote`} />
   }
@@ -59,13 +55,12 @@ function QuoteSheetScreen({ config, params }: QuoteSheetScreenProps) {
         texts={config.texts}
         locale={config.locale}
         currency={config.currency}
-        rows={signQuoteRows(config, priced.selection)}
+        rows={vertical.logic.sheetRows(verticalConfig, priced.selection)}
         price={priced.price}
         date={formatQuoteDate(today, config.locale)}
         poweredBy={config.poweredBy}
         backHref={`/d/${config.slug}`}
-        areaUnit={areaUnitSymbol(config.units.area)}
-        lengthUnit={config.units.length}
+        lineDetail={(line) => vertical.logic.lineDetail(verticalConfig, line)}
         display={priceDisplayOf(config)}
       />
     </div>
@@ -80,5 +75,13 @@ export function QuoteSheetPage() {
   if (!resolved.ok) {
     return <ErrorScreen detail={resolved.detail} />
   }
-  return <QuoteSheetScreen key={slug} config={resolved.config} params={searchParams} />
+  return (
+    <QuoteSheetScreen
+      key={slug}
+      config={resolved.config}
+      vertical={resolved.vertical}
+      verticalConfig={resolved.verticalConfig}
+      params={searchParams}
+    />
+  )
 }

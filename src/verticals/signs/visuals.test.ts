@@ -1,17 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { getClient, listClientSlugs } from '../../clients'
-import { defaultSelection, materialsForMode } from '../../core/clientConfig'
-import type { SignSelection } from '../../core/types'
+import { listClientSlugs } from '../../clients'
+import { defaultSelection, materialsForMode } from './config'
+import type { SignSelection } from './types'
 import northline from '../../clients/northline.json'
 import { areaUnitSymbol, lengthToMeters, resolveSignVisual } from './visuals'
+import { signsClientOf } from './testing'
 
-function clientOrFail(slug: string) {
-  const client = getClient(slug)
-  if (client === null) {
-    throw new Error(`cliente no encontrado en el test: ${slug}`)
-  }
-  return client
-}
+const clientOrFail = signsClientOf
 
 describe('resolveSignVisual', () => {
   // 12.1

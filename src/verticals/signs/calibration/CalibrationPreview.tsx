@@ -1,5 +1,5 @@
 import { useState, type MouseEvent } from 'react'
-import type { ClientPhoto, PhotoAnchor, PhotoGroundAnchor, SignSelection } from '../../../core/types'
+import type { ClientPhoto, PhotoAnchor, PhotoGroundAnchor, SignSelection } from '../types'
 import type { LoadingBrand } from '../../../core/ui/LoadingScreen'
 import { PhotoStage } from '../PhotoStage'
 import type { SignVisual } from '../visuals'

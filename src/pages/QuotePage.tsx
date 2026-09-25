@@ -1,53 +1,34 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
-import { defaultSelection, priceDisplayOf, pricingModeOf, priceRulesFromClient } from '../core/clientConfig'
+import { Suspense, useEffect, useMemo, useState } from 'react'
+import { useParams } from 'react-router-dom'
+import { priceDisplayOf } from '../core/clientConfig'
 import { insertRow } from '../core/data/insertRow'
 import { useVisitOnce } from '../core/data/useVisitOnce'
 import { buildLeadRow, type LeadContact } from '../core/lead/leadRow'
-import { buildWhatsappMessage } from '../core/lead/whatsapp'
-import { calculatePrice } from '../core/pricing/calculatePrice'
-import { encodeQuoteParams } from '../core/quote/quoteParams'
 import { stageToneOf, themeFromClient } from '../core/theme'
 import { LeadSection } from '../core/ui/LeadSection'
+import { LoadingScreen } from '../core/ui/LoadingScreen'
 import { OptionsPanel } from '../core/ui/OptionsPanel'
 import { PriceBar } from '../core/ui/PriceBar'
 import { PriceBreakdown } from '../core/ui/PriceBreakdown'
 import { QuoteLayout } from '../core/ui/QuoteLayout'
 import { useHtmlLang } from '../core/ui/useHtmlLang'
 import type { SelectionValue } from '../core/ui/panelTypes'
-import type { ClientConfig } from '../core/types'
-import { SignPreview } from '../verticals/signs/SignPreview'
-import { CalibrationPreview } from '../verticals/signs/calibration/CalibrationPreview'
-import {
-  applyFieldChange,
-  buildPanelFields,
-  selectionFromValues,
-  valuesFromSelection,
-} from '../verticals/signs/fields'
-import { signLeadSelection, signLeadTokens, signWhatsappTemplate } from '../verticals/signs/leadTokens'
-import { areaUnitSymbol, resolveSignVisual } from '../verticals/signs/visuals'
 import { ErrorScreen } from './ErrorScreen'
-import { resolveClient } from './resolveClient'
+import { resolveClient, type ResolvedClient } from './resolveClient'
 
-// Punto de composicion del cotizador: junta core, vertical y cliente. Decide vertical
-// junto con QuoteSheetPage, las dos unicas paginas que lo hacen. La resolucion del
-// cliente vive en ./resolveClient, compartida por las dos.
+// El cotizador: la pagina /d/<slug>, la misma para toda vertical (SPEC 4.4, D133). Junta el core
+// con la vertical del cliente solo por el contrato: no importa nada de src/verticals. La
+// resolucion del cliente vive en ./resolveClient, compartida con QuoteSheetPage.
 
-type QuoteScreenProps = {
-  config: ClientConfig
-}
-
-function QuoteScreen({ config }: QuoteScreenProps) {
+function QuoteScreen({ config, vertical, verticalConfig }: ResolvedClient) {
+  const { logic, View } = vertical
   const [values, setValues] = useState<Record<string, SelectionValue>>(() =>
-    valuesFromSelection(defaultSelection(config)),
+    logic.valuesFromSelection(logic.defaultSelection(verticalConfig)),
   )
-  const rules = useMemo(() => priceRulesFromClient(config), [config])
   // El modo de visibilidad de SPEC 6.2 se lee del config una sola vez y baja como prop:
   // sin contexto y sin estado global. Es config, no estado: no cambia mientras se navega.
   const display = useMemo(() => priceDisplayOf(config), [config])
   const theme = useMemo(() => themeFromClient(config), [config])
-  const areaUnit = useMemo(() => areaUnitSymbol(config.units.area), [config])
-  const [searchParams] = useSearchParams()
 
   const brandName = config.brand.name
   const loading = useMemo(
@@ -68,28 +49,24 @@ function QuoteScreen({ config }: QuoteScreenProps) {
   // Una visita por sesion y por slug. No espera el insert y no renderiza nada.
   useVisitOnce(config.slug)
 
-  // Sin useEffect, sin debounce y sin estado derivado: el precio y el visual de la
-  // escena se calculan en el render, sobre la misma seleccion.
-  const selection = selectionFromValues(values)
-  const result = calculatePrice(rules, selection)
-  const visual = resolveSignVisual(config, selection)
-  // Los controles dependen del tipo elegido: el panel muestra solo los de su modo.
-  const fields = buildPanelFields(config, selection)
+  // Sin useEffect, sin debounce y sin estado derivado: el precio se calcula en el render, sobre
+  // la misma seleccion que recibe la vista.
+  const selection = logic.selectionFromValues(values)
+  const result = logic.price(verticalConfig, selection)
+  // Los controles dependen de la seleccion: la vertical decide cuales van.
+  const fields = logic.panelFields(verticalConfig, selection)
 
-  // El mensaje de WhatsApp se arma aca: la vertical traduce ids a etiquetas y el core
-  // solo reemplaza los placeholders de la plantilla del cliente.
-  const tokens = signLeadTokens(config, selection, result, display)
+  // El mensaje de WhatsApp lo arma la vertical, con la plantilla y los tokens de su rubro.
   // Solo si el CTA incluye WhatsApp: en hidden la plantilla sin precio es obligatoria solo con
   // WhatsApp (SPEC 10), y un cliente hidden con cta form no la trae (TAREA_028).
-  const whatsappMessage =
-    config.cta === 'form' ? '' : buildWhatsappMessage(signWhatsappTemplate(config, selection, display), tokens)
+  const whatsappMessage = config.cta === 'form' ? '' : logic.whatsappMessage(verticalConfig, selection, result, display)
 
   // La hoja se abre con un enlace nativo, no con window.open: asi el navegador no lo
   // bloquea y la pestana del cotizador conserva el estado del visitante.
-  const quoteHref = `/d/${config.slug}/quote?${encodeQuoteParams(selection, pricingModeOf(config.options, selection.type))}`
+  const quoteHref = `/d/${config.slug}/quote?${logic.encodeQuery(verticalConfig, selection)}`
 
   function handleChange(fieldId: string, value: SelectionValue): void {
-    setValues((current) => applyFieldChange(config, current, fieldId, value))
+    setValues((current) => logic.applyFieldChange(verticalConfig, current, fieldId, value))
   }
 
   // El insert se dispara y no se espera: el navegador abre wa.me con el gesto del click.
@@ -99,7 +76,7 @@ function QuoteScreen({ config }: QuoteScreenProps) {
       buildLeadRow({
         clientSlug: config.slug,
         channel: 'whatsapp',
-        selection: signLeadSelection(config, selection),
+        selection: logic.leadSelection(verticalConfig, selection),
         result,
       }),
     )
@@ -111,7 +88,7 @@ function QuoteScreen({ config }: QuoteScreenProps) {
       buildLeadRow({
         clientSlug: config.slug,
         channel: 'form',
-        selection: signLeadSelection(config, selection),
+        selection: logic.leadSelection(verticalConfig, selection),
         result,
         contact,
       }),
@@ -122,31 +99,18 @@ function QuoteScreen({ config }: QuoteScreenProps) {
     <QuoteLayout
       config={config}
       preview={
-        // El modo de calibracion es de desarrollo: import.meta.env.DEV vale false en el
-        // build de produccion, asi que esta rama y su modulo quedan fuera del bundle.
-        import.meta.env.DEV && searchParams.get('calibrate') === '1' ? (
-          // En lg el area del preview tiene alto fijo desde la version 2.8 (D90), y por debajo de lg
-          // el alto lo da el preview desde 2.9 (D98): la herramienta toma 42svh y scrollea.
-          <div className="h-[42svh] overflow-y-auto p-4 lg:h-full">
-            <CalibrationPreview
-              selection={selection}
-              visual={visual}
-              theme={theme}
-              photos={config.photos}
-              loading={loading}
-            />
-          </div>
-        ) : (
-          <SignPreview
-            selection={selection}
-            visual={visual}
-            theme={theme}
-            photos={config.photos}
-            zoomLabel={config.texts.previewZoomLabel}
-            signOnlyLabel={config.texts.viewSignOnly}
-            loading={loading}
-          />
-        )
+        // La vista llega con React.lazy (D121). Mientras baja, la pantalla de carga del core ocupa
+        // el area del preview sobre el escenario del tema, la misma que muestra la vista hasta que
+        // la escena dibuja.
+        <Suspense
+          fallback={
+            <div className="relative h-[42svh] w-full lg:h-full">
+              <LoadingScreen brand={loading} done={false} />
+            </div>
+          }
+        >
+          <View config={verticalConfig} selection={selection} theme={theme} loading={loading} />
+        </Suspense>
       }
       panel={
         <>
@@ -161,7 +125,14 @@ function QuoteScreen({ config }: QuoteScreenProps) {
           {/* En hidden no se muestra precio en ninguna parte del cotizador: ni el
               desglose ni el bloque de abajo. La salida es el pedido estructurado. */}
           {display === 'hidden' ? null : (
-            <PriceBreakdown result={result} config={config} areaUnit={areaUnit} />
+            <PriceBreakdown
+              result={result}
+              texts={config.texts}
+              currency={config.currency}
+              locale={config.locale}
+              caption={logic.breakdownCaption(verticalConfig, result)}
+              lineDetail={(line) => logic.lineDetail(verticalConfig, line)}
+            />
           )}
         </>
       }
@@ -189,5 +160,12 @@ export function QuotePage() {
     return <ErrorScreen detail={resolved.detail} />
   }
   // La key reinicia el estado del cotizador cuando se pasa de un cliente a otro.
-  return <QuoteScreen key={slug} config={resolved.config} />
+  return (
+    <QuoteScreen
+      key={slug}
+      config={resolved.config}
+      vertical={resolved.vertical}
+      verticalConfig={resolved.verticalConfig}
+    />
+  )
 }

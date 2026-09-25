@@ -1,7 +1,8 @@
-import { pricingModeOf } from '../../core/clientConfig'
-import { countLetters } from '../../core/pricing/calculatePrice'
 import { formatCurrency, formatLength } from '../../core/pricing/format'
-import type { ClientConfig, PriceDisplay, PriceResult, SignSelection } from '../../core/types'
+import type { PriceDisplay, PriceResult } from '../../core/types'
+import { pricingModeOf } from './config'
+import { countLetters } from './pricing/calculateSignPrice'
+import type { SignSelection, SignsConfig } from './types'
 
 // Unico lugar que traduce ids de la vertical a etiquetas legibles. Puro, sin React.
 // El core no sabe que existen materiales ni carteles: recibe el mensaje ya armado.
@@ -27,7 +28,7 @@ function labelOf(list: { id: string; label: string }[], id: string, what: string
 // WhatsApp y las filas de la hoja de cotizacion, asi la busqueda por id no se duplica.
 export type SignIdLabels = { type: string; material: string; lighting: string }
 
-export function signIdLabels(config: ClientConfig, selection: SignSelection): SignIdLabels {
+export function signIdLabels(config: SignsConfig, selection: SignSelection): SignIdLabels {
   const { options } = config
   return {
     type: labelOf(options.types, selection.type, 'tipo de cartel'),
@@ -36,7 +37,7 @@ export function signIdLabels(config: ClientConfig, selection: SignSelection): Si
   }
 }
 
-export function depthLabelOf(config: ClientConfig, selection: SignSelection): string {
+export function depthLabelOf(config: SignsConfig, selection: SignSelection): string {
   return labelOf(config.options.depths, selection.depthId, 'profundidad')
 }
 
@@ -44,7 +45,7 @@ export function depthLabelOf(config: ClientConfig, selection: SignSelection): st
 // y la plantilla que los consume tampoco se usa. Un token de precio que quedara en el mapa
 // se colaria en el mensaje en cuanto alguien lo escribiera en la plantilla sin precio.
 export function signLeadTokens(
-  config: ClientConfig,
+  config: SignsConfig,
   selection: SignSelection,
   result: PriceResult,
   display: PriceDisplay,
@@ -85,7 +86,7 @@ export function signLeadTokens(
 // ya garantizo que las dos plantillas sin precio existen cuando el modo es hidden y el
 // cliente tiene boton de WhatsApp: aca no hay default silencioso.
 export function signWhatsappTemplate(
-  config: ClientConfig,
+  config: SignsConfig,
   selection: SignSelection,
   display: PriceDisplay,
 ): string {
@@ -103,7 +104,7 @@ export function signWhatsappTemplate(
 
 // Lo que va a la columna selection: ids, etiquetas legibles y unidad.
 export function signLeadSelection(
-  config: ClientConfig,
+  config: SignsConfig,
   selection: SignSelection,
 ): Record<string, unknown> {
   const { options, units } = config

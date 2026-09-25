@@ -1,5 +1,3 @@
-import type { RequiredTextKey } from '../types'
-
 // Descriptores del panel de opciones. El core renderiza estos descriptores y nada mas:
 // no sabe que existen materiales, iluminacion ni carteles. La vertical los arma.
 
@@ -19,12 +17,13 @@ export type FieldControl =
 
 export type PanelField = {
   id: string
-  labelKey: RequiredTextKey
+  // Clave de texts, que el core resuelve contra el texts del cliente (D135).
+  labelKey: string
   control: FieldControl
   // Paso del panel (version 2.8, D94): los campos seguidos con el mismo paso van juntos, en un
   // paso numerado cuyo titulo es la etiqueta del primero. Lo declara la vertical.
   step: string
   // Titulo del paso, si no es la etiqueta del primer campo. El campo con esa etiqueta no la
   // repite.
-  stepTitleKey?: RequiredTextKey
+  stepTitleKey?: string
 }

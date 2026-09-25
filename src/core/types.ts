@@ -1,5 +1,7 @@
-// Tipos del dominio de Lokebox Quote. Sin logica, sin dependencias.
-// Contrato del motor de precios: SPEC seccion 6. Forma del JSON de cliente: SPEC seccion 10.
+// Tipos del core de Lokebox Quote. Sin logica, sin dependencias, sin vocabulario de ningun rubro.
+// Desde la version 2.13 (D133) lo de cada vertical vive en su modulo: aca quedan la moneda, la
+// marca, los colores, el cta, la visibilidad de precio, los textos del core y la composicion del
+// precio de SPEC 6.3. Los tipos del contrato de vertical de SPEC 4.4 estan en ./vertical.ts.
 
 export type CurrencyConfig = {
   code: string
@@ -8,11 +10,6 @@ export type CurrencyConfig = {
   // Como se nombra la moneda al formatear: "symbol" da $250 y "code" da USD 250.
   // Opcional, y sin la clave vale "symbol": los JSON de cliente no la traen.
   display?: 'symbol' | 'code'
-}
-
-export type UnitsConfig = {
-  length: string
-  area: string
 }
 
 export type ColorsConfig = {
@@ -32,78 +29,14 @@ export type BrandConfig = {
   email: string
 }
 
-// Una foto de fondo del preview, por angulo (SPEC 12, version 1.12).
-// El anclaje dice donde y de que tamano cae el cartel sobre esa foto y desde donde la
-// tomo la camara; la luz dice de donde viene el sol en ella, para que el volumen case.
-export type PhotoAnchor = {
-  // Centro del cartel, en fraccion del ancho y del alto, origen arriba a la izquierda.
-  x: number
-  y: number
-  // Que fraccion del ancho de la foto ocupa un metro de cartel. Se expresa asi, y no
-  // como un factor abstracto, para calcularlo contra una medida conocida de la foto.
-  metersToWidth: number
-  // La camara orbita alrededor del cartel, que no rota: yaw positivo a la derecha del
-  // frente del cartel, pitch negativo por debajo de su centro, fov vertical en grados.
-  cameraYawDeg: number
-  cameraPitchDeg: number
-  fovDeg: number
-}
-
-// Anclaje del totem en una foto (SPEC 10, version 1.15). x e y son el punto de apoyo de la
-// base, en fraccion del ancho y del alto, origen arriba a la izquierda. metersToWidth es la
-// fraccion del ancho que ocupa un metro a la distancia del totem, mas cerca que la fachada.
-// La camara no esta aca: sigue saliendo del anchor de la foto.
-export type PhotoGroundAnchor = {
-  x: number
-  y: number
-  metersToWidth: number
-  // Fraccion del alto de la foto donde la fachada toca la vereda en la columna del apoyo
-  // (SPEC 10, version 2.7, D85). El receptor de piso del totem termina ahi.
-  wallY: number
-}
-
-export type PhotoLight = {
-  ambient: number
-  keyIntensity: number
-  keyAzimuthDeg: number
-  keyElevationDeg: number
-}
-
-export type ClientPhoto = {
-  id: string
-  // Etiqueta visible del angulo. Vive aca y no en texts porque la cantidad de fotos
-  // varia por cliente: es el mismo criterio que el label de types y de materials.
-  label: string
-  src: string
-  anchor: PhotoAnchor
-  // Obligatorio si el cliente ofrece el tipo totem: lo exige la validacion.
-  anchorGround?: PhotoGroundAnchor
-  light: PhotoLight
-}
-
-// Modo de precio de un tipo de cartel (SPEC 5.1): el motor ramifica por aca.
-export type PricingMode = 'area' | 'letters'
-
-// Como se monta el panel de un tipo de area (SPEC 10, version 2.4, D68): al ras o con
-// separadores. Es dato del negocio, no del codigo.
-export type Mount = 'flush' | 'standoff'
-
-export type SignTypeOption = {
-  id: string
-  label: string
-  priceFixed: number
-  pricing: PricingMode
-  // Obligatorio en los tipos de area, ausente en los de letters: lo exige la validacion.
-  visual?: { mount: Mount }
-}
-
-// Acabado del material: elige el generador de mapas (SPEC 10, version 2.1, D52).
+// Acabado de un material: elige el generador de mapas del pipeline del core (SPEC 10, version
+// 2.1, D52). El pipeline es de toda vertical; que superficie lleva que acabado lo decide cada una.
 export type Finish = 'foam' | 'brushed' | 'polished'
 
-// Parametros fisicos del material (SPEC 10, version 2.1, D52). Son del cliente y van al
+// Parametros fisicos de un material (SPEC 10, version 2.1, D52). Son del cliente y van al
 // JSON; finish elige el generador de mapas, que es del codigo (src/core/preview/finishMaps).
 // Todo numerico va entre 0 y 1. Sin transmission, thickness ni ior: la transmision esta
-// descartada (D54).
+// descartada (D54). Lo lee readMaterialVisual, que el core exporta a las verticales.
 export type MaterialVisual = {
   color: string
   finish: Finish
@@ -114,47 +47,11 @@ export type MaterialVisual = {
   clearcoatRoughness: number
   anisotropy: number
   normalScale: number
-  // Cuanto de la luz de back deja pasar la cara: 0 es opaca, el acrilico opal enciende.
+  // Cuanto de la luz trasera deja pasar la cara: 0 es opaca, el acrilico opal enciende.
   translucency: number
 }
 
-export type MaterialOption = {
-  id: string
-  label: string
-  pricePerArea: number
-  // Precio por letra y por unidad de alto de letra. Sin el, el material no entra en
-  // letras corporeas: el JSON decide asi que materiales se ofrecen en ese modo.
-  pricePerLetterHeight?: number
-  visual: MaterialVisual
-}
-
-export type LightingMode = 'none' | 'front' | 'back'
-
-export type LightingVisual = {
-  mode: LightingMode
-}
-
-export type LightingOption = {
-  id: string
-  label: string
-  pricePerArea: number
-  pricePerLetter?: number
-  visual: LightingVisual
-}
-
-// Profundidad de las letras corporeas. El factor multiplica el precio del material; el
-// visual dice cuanto mide, para que el preview dibuje esa profundidad y no una inventada.
-export type DepthVisual = {
-  depthMeters: number
-}
-
-export type DepthOption = {
-  id: string
-  label: string
-  factor: number
-  visual: DepthVisual
-}
-
+// Rango de un slider del JSON: lo lee readRange con las reglas de minimo, maximo, paso y default.
 export type RangeConfig = {
   min: number
   max: number
@@ -162,66 +59,24 @@ export type RangeConfig = {
   default: number
 }
 
+// Cantidad del pedido: la lee readQuantity.
 export type QuantityConfig = {
   min: number
   max: number
   default: number
 }
 
-export type InstallationConfig = {
-  fixed: number
-  perArea: number
-  perLetter: number
-}
-
+// Tramo de descuento por cantidad de SPEC 6.3.
 export type DiscountTier = {
   minQty: number
   pct: number
 }
 
-// Texto que va en la cara del cartel (SPEC 5.2). El default viene del JSON y el
-// visitante lo edita: es lo que hace que el preview se lea como su propio cartel.
-export type SignTextConfig = {
-  default: string
-  maxLength: number
-}
-
-export type SignOptions = {
-  types: SignTypeOption[]
-  signText: SignTextConfig
-  width: RangeConfig
-  height: RangeConfig
-  letterHeight: RangeConfig
-  depths: DepthOption[]
-  materials: MaterialOption[]
-  lighting: LightingOption[]
-  installation: InstallationConfig
-  quantity: QuantityConfig
-  discounts: DiscountTier[]
-  rangePct: number
-}
-
-// Las claves de texto de SPEC seccion 10. Todas requeridas, todas string.
-// Ningun texto visible se escribe en el codigo: sale siempre de aca.
-export type ClientTexts = {
+// Las 27 claves de texts que consume el core o las paginas genericas (SPEC 10, D135).
+export type CoreTexts = {
   headline: string
   subheadline: string
   configureTitle: string
-  typeLabel: string
-  widthLabel: string
-  heightLabel: string
-  materialLabel: string
-  lightingLabel: string
-  installationLabel: string
-  installationYes: string
-  installationNo: string
-  quantityLabel: string
-  signTextLabel: string
-  letterHeightLabel: string
-  depthLabel: string
-  previewZoomLabel: string
-  viewSignOnly: string
-  loadingLabel: string
   priceLabel: string
   priceRangeNote: string
   disclaimer: string
@@ -243,28 +98,15 @@ export type ClientTexts = {
   quoteBreakdownTitle: string
   quotePrint: string
   quoteBack: string
-  lineMaterial: string
-  lineLighting: string
-  lineType: string
-  lineInstallation: string
   lineDiscount: string
   poweredBy: string
-  whatsappMessage: string
-  whatsappMessageLetters: string
-  // Plantillas sin precio del modo hidden (SPEC 10). Opcionales en la forma y exigidas
-  // por validacion condicional cuando el modo es hidden y el cta incluye WhatsApp, igual
-  // que anchorGround con el tipo totem. No entran a las 47 claves requeridas.
-  whatsappMessageHidden?: string
-  whatsappMessageHiddenLetters?: string
+  loadingLabel: string
 }
 
-// Las claves de texto que siempre estan. Las dos plantillas del modo hidden son
-// opcionales, asi que una etiqueta de panel nunca puede apuntar a ellas y este tipo lo
-// impide en compilacion. Se deriva de ClientTexts: sumar una clave opcional nueva la deja
-// fuera sola, sin listas que mantener.
-export type RequiredTextKey = {
-  [K in keyof ClientTexts]-?: undefined extends ClientTexts[K] ? never : K
-}[keyof ClientTexts]
+// El texts del cliente, que en el JSON sigue siendo un solo objeto (D135): las 27 del core
+// validadas, mas las demas claves de texto del JSON tal cual, que valida la vertical. Contra este
+// objeto se resuelven las etiquetas de linea y de panel que emite la vertical, por su clave.
+export type ClientTexts = CoreTexts & Readonly<Record<string, string>>
 
 export type CtaMode = 'whatsapp' | 'form' | 'both'
 
@@ -273,12 +115,13 @@ export type CtaMode = 'whatsapp' | 'form' | 'both'
 // range y hidden; gated e internal los rechaza la validacion al cargar.
 export type PriceDisplay = 'exact' | 'range' | 'gated' | 'hidden' | 'internal'
 
+// La config de cliente que valida el core (SPEC 10). Lo demas del JSON es de la vertical, que lo
+// lee de json con su validate (SPEC 4.4).
 export type ClientConfig = {
   slug: string
   locale: string
   vertical: string
   currency: CurrencyConfig
-  units: UnitsConfig
   brand: BrandConfig
   cta: CtaMode
   poweredBy: boolean
@@ -286,75 +129,42 @@ export type ClientConfig = {
   // Opcional, como en el JSON: sin la clave el modo es range. El default lo resuelve
   // priceDisplayOf de clientConfig.ts, que es el unico lugar que lo conoce.
   pricing?: { display: PriceDisplay }
-  photos: ClientPhoto[]
-  options: SignOptions
   texts: ClientTexts
+  // El JSON del cliente tal cual, para el validate de su vertical.
+  json: Readonly<Record<string, unknown>>
 }
 
-// Contrato del motor de precios, exactamente como en SPEC seccion 6.
-
-// La seleccion conserva siempre los valores de los dos modos, con default del JSON: asi
-// cambiar de tipo no deja estado invalido y el motor ignora lo que no aplica (SPEC 5.2).
-export type SignSelection = {
-  type: string
-  text: string
-  width: number
-  height: number
-  letterHeight: number
-  depthId: string
-  materialId: string
-  lightingId: string
-  installation: boolean
-  quantity: number
-}
-
-export type PriceRules = {
-  currency: { code: string; symbol: string; decimals: number }
-  types: { id: string; label: string; priceFixed: number; pricing: PricingMode }[]
-  materials: { id: string; label: string; pricePerArea: number; pricePerLetterHeight?: number }[]
-  lighting: { id: string; label: string; pricePerArea: number; pricePerLetter?: number }[]
-  depths: { id: string; label: string; factor: number }[]
-  installation: { fixed: number; perArea: number; perLetter: number }
-  discounts: { minQty: number; pct: number }[]
-  rangePct: number
-}
-
-export type PriceLineId = 'material' | 'lighting' | 'type' | 'installation' | 'discount'
-
-// Los numeros crudos de cada linea del desglose (SPEC 6, version 1.5). El motor no
-// formatea: emite estos valores y la UI los arma con Intl y el locale del cliente.
-// Material, iluminacion e instalacion discriminan por modo (SPEC 6, version 1.8).
-export type PriceDetailValues =
-  | { id: 'material' | 'lighting'; mode: 'area'; area: number; unitPrice: number }
-  | {
-      id: 'material'
-      mode: 'letters'
-      letters: number
-      letterHeight: number
-      unitPrice: number
-      depthFactor: number
-    }
-  | { id: 'lighting'; mode: 'letters'; letters: number; unitPrice: number }
-  | { id: 'type'; fixed: number }
-  | { id: 'installation'; mode: 'area'; fixed: number; perArea: number; area: number }
-  | { id: 'installation'; mode: 'letters'; fixed: number; perLetter: number; letters: number }
-  | { id: 'discount'; pct: number }
+// Composicion del precio, exactamente como en SPEC 6.3 (D134).
 
 export type PriceLine = {
-  id: PriceLineId
+  // Lo define la vertical, salvo "discount", que lo agrega composePrice.
+  id: string
+  // Clave de texts, no texto literal.
   labelKey: string
   // String tecnico y determinista, sin locale y sin moneda. No se muestra en pantalla.
   detail: string
+  // Redondeado a decimals; negativo en discount.
   amount: number
-  detailValues?: PriceDetailValues
+  // Numeros crudos: los tipa y los formatea la vertical.
+  detailValues?: unknown
+}
+
+// Un componente del precio, en precision completa.
+export type PriceComponent = { line: Omit<PriceLine, 'amount'>; cost: number }
+
+export type PriceInput = {
+  decimals: number
+  quantity: number
+  // Por unidad, en el orden del desglose.
+  unit: PriceComponent[]
+  // Puede estar vacia.
+  discounts: DiscountTier[]
+  // Por pedido: no se multiplican por la cantidad ni se descuentan. Puede estar vacia.
+  order: PriceComponent[]
+  rangePct: number
 }
 
 export type PriceResult = {
-  // 0 en modo letters.
-  area: number
-  // Solo en modo letters.
-  letters?: number
-  letterHeight?: number
   unitTotal: number
   subtotal: number
   discountPct: number

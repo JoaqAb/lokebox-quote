@@ -1,16 +1,23 @@
 import { describe, expect, it } from 'vitest'
-import { getClient, listClientSlugs } from '../../clients'
-import { TOTEM_TYPE_ID, defaultSelection, materialsForMode, priceRulesFromClient } from '../clientConfig'
+import { getClient, listClientSlugs } from '../../../clients'
+import { resolveTextKey } from '../../../core/textKeys'
+import { TOTEM_TYPE_ID, defaultSelection, materialsForMode, priceRulesFromClient } from '../config'
+import { signsConfigOf } from '../testing'
 import type { SignSelection } from '../types'
-import { calculatePrice } from './calculatePrice'
-import { resolveLineLabel } from './lineLabels'
+import { calculateSignPrice } from './calculateSignPrice'
 
-function clientOrFail(slug: string) {
+// Hasta la version 2.12 era src/core/pricing/lineLabels.test.ts, sobre resolveLineLabel. Desde 2.13
+// el core resuelve cualquier clave de texto con resolveTextKey, contra el texts del cliente.
+
+const clientOrFail = signsConfigOf
+
+// El texts del cliente, el que recibe el core.
+function clientTexts(slug: string) {
   const client = getClient(slug)
   if (client === null) {
     throw new Error(`cliente no encontrado en el test: ${slug}`)
   }
-  return client
+  return client.texts
 }
 
 // Seleccion que activa las cinco lineas del desglose: totem, con luz, con instalacion y cantidad 5.
@@ -27,7 +34,7 @@ function fullSelection(slug: string): SignSelection {
   }
 }
 
-describe('resolveLineLabel', () => {
+describe('resolveTextKey con las lineas de carteles', () => {
   // 12.9
   // D127: corre sobre cada cliente con totem, el tipo que suma la linea de estructura, y exige que
   // haya al menos uno.
@@ -38,10 +45,10 @@ describe('resolveLineLabel', () => {
     expect(conTotem.length).toBeGreaterThan(0)
     for (const slug of conTotem) {
       const config = clientOrFail(slug)
-      const result = calculatePrice(priceRulesFromClient(config), fullSelection(slug))
+      const result = calculateSignPrice(priceRulesFromClient(config), fullSelection(slug))
       expect(result.lines).toHaveLength(5)
       for (const line of result.lines) {
-        const label = resolveLineLabel(line.labelKey, config.texts)
+        const label = resolveTextKey(line.labelKey, clientTexts(slug))
         expect(label.length).toBeGreaterThan(0)
       }
     }
@@ -49,8 +56,7 @@ describe('resolveLineLabel', () => {
 
   // 12.10
   it('lanza con una clave que no existe en texts', () => {
-    const config = clientOrFail('northline')
-    expect(() => resolveLineLabel('lineNoExiste', config.texts)).toThrow(/lineNoExiste/)
+    expect(() => resolveTextKey('lineNoExiste', clientTexts('northline'))).toThrow(/lineNoExiste/)
   })
 })
 
@@ -60,10 +66,10 @@ describe('lineas del desglose segun la cantidad', () => {
     const config = clientOrFail('northline')
     const rules = priceRulesFromClient(config)
 
-    const sinDescuento = calculatePrice(rules, { ...fullSelection('northline'), quantity: 1 })
+    const sinDescuento = calculateSignPrice(rules, { ...fullSelection('northline'), quantity: 1 })
     expect(sinDescuento.lines.some((line) => line.id === 'discount')).toBe(false)
 
-    const conDescuento = calculatePrice(rules, fullSelection('northline'))
+    const conDescuento = calculateSignPrice(rules, fullSelection('northline'))
     expect(conDescuento.lines).toHaveLength(5)
     const descuento = conDescuento.lines.find((line) => line.id === 'discount')
     expect(descuento?.amount).toBeLessThan(0)

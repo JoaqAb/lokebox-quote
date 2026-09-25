@@ -1,18 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { getClient, listClientSlugs } from '../../clients'
+import { listClientSlugs } from '../../clients'
 import northlineJson from '../../clients/northline.json'
-import { defaultSelection, priceRulesFromClient, validateClientConfig } from '../../core/clientConfig'
-import { calculatePrice } from '../../core/pricing/calculatePrice'
+import { defaultSelection, priceRulesFromClient } from './config'
+import { calculateSignPrice } from './pricing/calculateSignPrice'
 import type { SelectionValue } from '../../core/ui/panelTypes'
 import { applyFieldChange, buildPanelFields, selectionFromValues, valuesFromSelection } from './fields'
+import { signsClientOf, validateSignsJson } from './testing'
 
-function clientOrFail(slug: string) {
-  const client = getClient(slug)
-  if (client === null) {
-    throw new Error(`cliente no encontrado en el test: ${slug}`)
-  }
-  return client
-}
+const clientOrFail = signsClientOf
 
 function controlOf(slug: string, fieldId: string) {
   const field = buildPanelFields(clientOrFail(slug), defaultSelection(clientOrFail(slug))).find((item) => item.id === fieldId)
@@ -155,7 +150,7 @@ describe('buildPanelFields por modo y applyFieldChange', () => {
   it('en modo letters ofrece solo los materiales con pricePerLetterHeight', () => {
     const raw = structuredClone(northlineJson)
     delete (raw.options.materials[1] as Partial<(typeof raw.options.materials)[number]>).pricePerLetterHeight
-    const partial = validateClientConfig(raw)
+    const partial = validateSignsJson(raw)
     const letters = buildPanelFields(partial, { ...defaultSelection(partial), type: 'letters' })
     const material = letters.find((field) => field.id === 'materialId')?.control
     expect(material?.kind === 'choice' ? material.choices.map((item) => item.id) : null).toEqual(['pvc', 'acrylic'])
@@ -183,7 +178,7 @@ describe('buildPanelFields por modo y applyFieldChange', () => {
         for (const [index, typeId] of order.entries()) {
           values = applyFieldChange(client, values, 'type', typeId)
           values = applyFieldChange(client, values, 'materialId', client.options.materials[index % 3].id)
-          const result = calculatePrice(rules, selectionFromValues(values))
+          const result = calculateSignPrice(rules, selectionFromValues(values))
           expect(Number.isFinite(result.total), `${slug} ${order.join('>')}`).toBe(true)
           expect(Number.isFinite(result.min) && Number.isFinite(result.max)).toBe(true)
         }

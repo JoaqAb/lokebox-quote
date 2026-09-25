@@ -14,8 +14,8 @@ const LINES: PriceLine[] = [
   { id: 'type', labelKey: 'lineType', detail: '0', amount: 0, detailValues: { id: 'type', fixed: 0 } },
 ]
 
+// Desde 2.13 el PriceResult del core es el de SPEC 6.3: area es una clave de la vertical.
 const RESULT: PriceResult = {
-  area: 24,
   unitTotal: 360,
   subtotal: 360,
   discountPct: 0,
@@ -31,14 +31,14 @@ describe('buildLeadRow', () => {
     const row = buildLeadRow({
       clientSlug: 'northline',
       channel: 'form',
-      selection: { type: 'facade' },
+      selection: { type: 'panel' },
       result: RESULT,
       contact: { name: 'Ana', value: 'ana@test.example', note: 'urgente' },
     })
     expect(row).toEqual({
       client_slug: 'northline',
       channel: 'form',
-      selection: { type: 'facade' },
+      selection: { type: 'panel' },
       lines: LINES,
       price_total: 360,
       price_min: 331,

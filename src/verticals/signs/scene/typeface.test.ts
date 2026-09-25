@@ -1,7 +1,6 @@
 import { Box3, Vector3, type BufferGeometry } from 'three'
 import type { FontData } from 'three/examples/jsm/loaders/FontLoader.js'
 import { describe, expect, it } from 'vitest'
-import { getClient } from '../../../clients'
 import { lengthToMeters } from '../visuals'
 import { SET, SIGN_TEXT, SIGN_VIEW, fitTextOnPanel, layoutLetters, lettersFrameVolume, signFrameDistance } from './sceneGeometry'
 import {
@@ -20,6 +19,7 @@ import {
 // virgulilla y vocales acentuadas ya no es ASCII puro: el peso se cuenta en bytes UTF-8
 // con TextEncoder y no en caracteres.
 import typefaceJson from '../../../../public/assets/quote/fonts/archivo-black-subset.typeface.json'
+import { signsClientOf } from '../testing'
 
 
 const data = typefaceJson as FontData
@@ -39,13 +39,7 @@ const ACCENTED = [
 // Un caracter que el typeface sigue sin tener, y que no es una letra del espanol.
 const MISSING = 'Ç'
 
-function clientOrFail(slug: string) {
-  const client = getClient(slug)
-  if (client === null) {
-    throw new Error(`cliente no encontrado en el test: ${slug}`)
-  }
-  return client
-}
+const clientOrFail = signsClientOf
 
 // Normal media de los triangulos de un grupo, en z.
 function groupNormalZ(geometry: BufferGeometry, materialIndex: number): number {
