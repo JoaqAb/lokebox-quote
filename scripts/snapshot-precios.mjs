@@ -6,7 +6,7 @@
 // La salida es obligatoria: el fixture versionado no se regenera por accidente. Carga los
 // modulos del proyecto con el server de Vite en modo middleware, sin navegador.
 // Tailwind escanea scripts/, asi que este archivo no escribe nombres de utilidades.
-import { writeFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import { createServer } from 'vite'
 
 const out = process.argv[2]
@@ -160,19 +160,39 @@ try {
     snapshot.published.push({ ...entry, selection, result })
   }
 
-  // Un caso por linea: el diff de git se lee caso por caso.
+  // Un caso por linea: el diff de git se lee caso por caso. Si la salida ya existe, una entrada
+  // igual en contenido conserva su texto anterior: el orden de las claves no cuenta como cambio
+  // (D140, el diff queda limitado a lo que cambio de verdad).
+  const canonical = (value) =>
+    Array.isArray(value)
+      ? value.map(canonical)
+      : value !== null && typeof value === 'object'
+        ? Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonical(value[key])]))
+        : value
+  const previous = new Map()
+  try {
+    for (const line of (await readFile(out, 'utf8')).split('\n')) {
+      const text = line.endsWith(',') ? line.slice(0, -1) : line
+      if (text.startsWith('{"slug"') || text.startsWith('{"origin"')) {
+        previous.set(JSON.stringify(canonical(JSON.parse(text))), text)
+      }
+    }
+  } catch {
+    // Sin salida anterior: todo se escribe de cero.
+  }
+  const entry = (item) => previous.get(JSON.stringify(canonical(item))) ?? JSON.stringify(item)
   const lines = [
     '{',
     `"generatedFrom": ${JSON.stringify(snapshot.generatedFrom)},`,
     `"totals": ${JSON.stringify(snapshot.totals)},`,
     '"cases": [',
-    snapshot.cases.map((item) => JSON.stringify(item)).join(',\n'),
+    snapshot.cases.map(entry).join(',\n'),
     '],',
     '"published": [',
-    snapshot.published.map((item) => JSON.stringify(item)).join(',\n'),
+    snapshot.published.map(entry).join(',\n'),
     '],',
     '"views": [',
-    snapshot.views.map((item) => JSON.stringify(item)).join(',\n'),
+    snapshot.views.map(entry).join(',\n'),
     ']',
     '}',
   ]
