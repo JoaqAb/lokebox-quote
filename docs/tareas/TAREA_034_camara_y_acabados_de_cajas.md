@@ -61,3 +61,39 @@ Commits: apertura de docs (esta tarea, SPEC 2.15, DECISIONES D150 a D152, STATE 
 Reporte a Canal B con tope de 15 lineas mas las tablas: hashes, criterios uno por uno, valores finales de `start` y de cada `visual` cambiado, y hallazgos. El reporte completo va tambien a una seccion "Resultado" al final de este archivo, dentro del commit de cierre. Si se frena, el reporte del freno va a esa seccion en un commit de docs y no se sigue.
 
 ## Resultado
+
+Cerrada con las cuatro fases. 1f8eefc en produccion, Vercel en Ready.
+
+1. Fase 1: StudioFrame.start opcional. La direccion del primer frame sale de startDirection (studioView.ts): sin start, la misma expresion de siempre; con start, orbitPosition; un polar fuera de minPolar y maxPolar lanza al renderizar. OrbitControls no pisa la posicion inicial: toma la camara del primer frame, porque su update solo acota el polar a la orbita y el arranque ya esta dentro. VERIFICADO en las capturas sin arrastre.
+2. Fase 2: BOX_START en boxes/scene/boxGeometry.ts, azimut 35 y polar 1,0, los de partida. Con esos valores cumple el criterio 4 y no hizo falta ajustar.
+3. Fase 2, cambio fuera de la lista de la tarea (pedido de Joaquin: la caja cerrada salia abajo y chica): el encuadre de cajas deja de ser la union de cerrada y abierta (decision de TAREA_033). Ahora es la caja tal como esta en cada momento de la apertura amortiguada. Cerrada queda centrada y llena el preview, tambien en mobile; abierta incluye la tapa o las solapas, como pide 21.5. Codigo solo de cajas, el core no cambia.
+4. Fase 3: los tres corrugados de los dos clientes en foam con normalScale 0,1 (antes 0,35 el kraft y 0,3 el blanco); el rigido en polished con normalScale 0,1 (antes foam 0,15). Probe cuatro variantes: foam 0,35 (revoque), foam 0,1 (elegida), brushed 0,2 (vetas de madera, no carton) y foam 0,05 (plano).
+5. Aserciones editadas: boxes/testing.ts sigue a los JSON en finish y normalScale (D152), asi boxes/clients.test.ts mantiene la igualdad estricta; el test de encuadre pasa de la union a la caja con la apertura 0, 0,5 y 1.
+6. Filas de prueba (INFERIDO, 0 errores de insertRow en consola): formulario "Camara Test" en foldline, northline, norte, halcyon y alba. WhatsApp sin nombre: foldline 06:32:36, cajasur 06:32:55 y afterglow 06:33:25 UTC del 25/09.
+
+| Commit | Contenido |
+|---|---|
+| 02120f9 | docs: apertura, D150 a D152 |
+| 4199b3b | fase 1: StudioFrame.start y tests del core |
+| a74561f | fase 2: BOX_START, encuadre que sigue a la apertura, vitrina sin arrastre |
+| 1f8eefc | fase 3: finish y normalScale en foldline y cajasur |
+
+| Valor | Final |
+|---|---|
+| BOX_START | azimuthDeg 35, polar 1 |
+| kraft (foldline y cajasur) | finish foam, normalScale 0,1 |
+| white y blanco | finish foam, normalScale 0,1 |
+| rigid y rigido | finish polished, normalScale 0,1 |
+
+| Criterio | Estado |
+|---|---|
+| 1 | Si. Tres tests nuevos en studioView.test.ts en verde |
+| 2 | Si. Snapshot y URLs en verde; 31 capturas identicas a 033-base despues de cada fase; ningun JSON de carteles en el diff |
+| 3 | Si. git diff 691f087..HEAD -- src/clients/: solo foldline.json y cajasur.json, 8 lineas cada uno, solo finish y normalScale |
+| 4 | Si. Sin arrastre: 01, 04 y 06 muestran la cara del logo y dos laterales; 02, 03 y 05 el interior abierto; ningun canto cortado; 04 llena el preview |
+| 5 | Si. 01 y 02 sin poros de revoque; 05 rigido liso |
+| 6 | Si. grep en src/core da 0; cero imports cruzados entre verticales |
+| 7 | Si. BOX_ORBIT no aparece en scripts/vitrina.mjs |
+| 8 | Si. Produccion: foldline y cajasur cargan con el arranque nuevo (034-fase4/*-carga.png); flujo completo por su CTA, gracias, hoja 200, 0 errores. Los cinco de carteles igual que en TAREA_033 |
+| 9 | Si. Vercel Ready en 1f8eefc; siete rutas, tres hojas y la landing en 200 |
+| 10 | Si. 385 tests (382 mas 3). G1 build sin warnings, G2 tsc -b --force 0, G3 oxlint 0, G4 verde, G5 sin rayas, G6 sin parches |
