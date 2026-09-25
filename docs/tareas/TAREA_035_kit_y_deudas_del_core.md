@@ -108,3 +108,13 @@ Apertura de docs (esta tarea, SPEC 2.17, EXECUTION, STATE y DECISIONES D156 a D1
 ## Reportes
 
 Tope de 15 lineas: uno al terminar la fase 1, con los pares, y otro al cierre. El reporte va tambien a una seccion "Resultado" al final de este archivo. Si se frena, el reporte del freno va a esa seccion en un commit de docs.
+
+## Resultado
+
+### Fase 1 (923f7be), frenada con los pares para Joaquin
+
+1. 1.1: formatInteger en format.ts, lanza con no finito y con no entero. Tests con en-US, es-AR, en-GB y es-ES. Cajas deja formatQuantity (usaba formatLength) y usa formatInteger en leadTokens.ts, fields.ts y lineDetail.ts. formatLength queda en cajas solo para medidas.
+2. 1.2: QuoteSheet recibe caption y lo muestra bajo el titulo del desglose, solo con precio. QuoteSheetPage pasa breakdownCaption de la vertical. Tests en src/pages/QuoteSheetPage.test.ts, con la pagina real: carteles area con la linea, letters sin ella, foldline y cajasur con la leyenda, alba sin precio sin desglose, y cajas con display hidden sin leyenda. Sin el cambio fallan 3 de 5.
+3. 1.3: src/core/preview/stripOverlap.ts mide con ResizeObserver cuanto tapa la [data-controls] de la zona al canvas y PreviewCanvas lo pasa por contexto. useStudioFraming usa stripView: frameDistance con visibleRatio y setViewOffset con strip / 2 hacia abajo; target y posicion igual. Tests en studioFraming.test.ts: franja 0 da la misma distancia exacta; con franja, el target cae en el centro del rectangulo visible y la huella entra con el margen. No se toco ninguna vertical para esto.
+4. 1.4: dos corridas antes (b1c5650) y dos despues (923f7be) de scripts/vitrina.mjs mas cinco hojas. Ruido entre corridas iguales: solo las tomas abiertas de cajas (02, 03 y 05), las dos veces. Modo vista de carteles (02 y 03 de los cinco) identico, hoja de letters y de alba identicas. Cambian todas las tomas de estudio y las hojas con leyenda. Pares en validacion/premium/035/pares/.
+5. Tests 397 (385 mas 12). Build, tsc -b --force, oxlint y tests en verde. Snapshot de precios sin diff. grep de vocabulario en src/core da 0; cero imports cruzados.
