@@ -41,7 +41,7 @@
       "anchorGround": {
         "x": 0.225,
         "y": 0.84,
-        "metersToWidth": 0.145,
+        "metersToWidth": 0.151,
         "wallY": 0.802
       },
       "light": {
@@ -66,7 +66,7 @@
       "anchorGround": {
         "x": 0.225,
         "y": 0.84,
-        "metersToWidth": 0.145,
+        "metersToWidth": 0.151,
         "wallY": 0.802
       },
       "light": {
@@ -115,13 +115,13 @@
       "min": 0.6,
       "max": 6,
       "step": 0.1,
-      "default": 2.5
+      "default": 1.4
     },
     "height": {
       "min": 0.3,
       "max": 2.5,
       "step": 0.1,
-      "default": 1
+      "default": 0.8
     },
     "letterHeight": {
       "min": 0.15,
