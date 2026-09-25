@@ -10,7 +10,7 @@ import { resolveSignVisual } from './visuals'
 // la escena en el render, sobre la misma seleccion que el precio.
 // El modo de calibracion es de desarrollo: import.meta.env.DEV vale false en el build de
 // produccion, asi que esa rama y su modulo quedan fuera del bundle. Hasta la version 2.12 se
-// decidia en QuotePage.
+// decidia en QuotePage. El logo del contrato (D144) no se usa: carteles no lo dibuja.
 
 export function SignsView({ config, selection, theme, loading }: VerticalViewProps<SignsConfig, SignSelection>) {
   const [searchParams] = useSearchParams()

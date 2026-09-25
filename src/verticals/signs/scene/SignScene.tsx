@@ -1,30 +1,24 @@
-import { OrbitControls, PerspectiveCamera } from '@react-three/drei'
-import { useFrame, useThree } from '@react-three/fiber'
+import { useThree } from '@react-three/fiber'
 import { useLayoutEffect, useMemo, useRef } from 'react'
-import { Color, MathUtils, Vector3, type DirectionalLight, type PerspectiveCamera as PerspectiveCameraImpl } from 'three'
-import { ATTENUATION_LAYER } from '../../../core/preview/render'
+import { Color, type PerspectiveCamera as PerspectiveCameraImpl } from 'three'
+import { StudioOrbitControls, StudioPerspective } from '../../../core/preview/StudioCamera'
+import { useStudioFraming } from '../../../core/preview/studioFraming'
+import { StudioEnvironment } from '../../../core/preview/StudioEnvironment'
+import { StudioKeyLight } from '../../../core/preview/StudioKeyLight'
+import { STUDIO_BRIGHT, STUDIO_LIGHT, studioShadowReach } from '../../../core/preview/studioView'
 import type { MaterialVisual } from '../../../core/types'
 import type { ClientPhoto, Mount, PhotoGroundAnchor } from '../types'
 import { SignBoard } from './SignBoard'
-import { StudioEnvironment } from '../../../core/preview/StudioEnvironment'
 import {
   SET,
-  SIGN_STUDIO_BRIGHT,
-  SIGN_STUDIO_LIGHT,
-  SIGN_VIEW,
-  STUDIO_SHADOW,
-  approach,
   fitTextOnPanel,
   layoutLetters,
   lettersFrameVolume,
   totemLayout,
-  orbitPosition,
   photoCameraPose,
   groundPointAt,
   photoShadowVolume,
   tintedLightColor,
-  signFrameDistance,
-  studioShadowReach,
   type LetterBox,
   type ScenePalette,
   type SignPlacement,
@@ -60,7 +54,7 @@ type SignSceneProps = {
   palette: ScenePalette
   // null en modo cartel.
   photo: ClientPhoto | null
-  // Multiplicador de la distancia del modo cartel, entre SIGN_VIEW.nearFactor y 1.
+  // Multiplicador de la distancia del modo cartel, entre STUDIO_VIEW.nearFactor y 1.
   signZoom: number
   reducedMotion: boolean
   // Modo letters: las letras en alto de mayuscula 1, null en modo area.
@@ -92,11 +86,6 @@ type ViewerCameraProps = {
 
 function ViewerCamera({ volume, center, photo, ground, signZoom, reducedMotion }: ViewerCameraProps) {
   const cameraRef = useRef<PerspectiveCameraImpl>(null)
-  // Distancia aplicada en el frame anterior; null al entrar al modo cartel, que va de golpe.
-  const distanceRef = useRef<number | null>(null)
-  const direction = useMemo(() => new Vector3(), [])
-  const [cx, cy, cz] = center
-  const target = useMemo(() => new Vector3(cx, cy, cz), [cx, cy, cz])
   const size = useThree((state) => state.size)
   const aspect = size.width / size.height
 
@@ -118,62 +107,16 @@ function ViewerCamera({ volume, center, photo, ground, signZoom, reducedMotion }
     camera.updateProjectionMatrix()
   }, [photo, ground, aspect])
 
-  // Modo cartel al entrar: de frente, apenas por encima. Posicion y distancia las pone el
-  // primer frame, que conoce el target. Depende solo de si hay foto: cambiar el cartel o el
-  // tipo no le devuelve el azimut al frente.
+  // Modo cartel: el encuadre de estudio del core (desde TAREA_033, D143). Al entrar va de frente,
+  // apenas por encima; depende solo de si hay foto: cambiar el cartel o el tipo no le devuelve el
+  // azimut al frente.
   const signMode = photo === null
-  useLayoutEffect(() => {
-    const camera = cameraRef.current
-    if (camera === null || !signMode) {
-      return
-    }
-    camera.clearViewOffset()
-    camera.fov = SIGN_VIEW.fovDeg
-    camera.updateProjectionMatrix()
-    distanceRef.current = null
-  }, [signMode])
-
-  // Modo cartel: en cada frame, la distancia que encuadra la huella de la caja desde la
-  // orientacion actual, por el zoom, con damp. Solo cambia el largo del vector: el azimut
-  // y el polar son los que dejo OrbitControls, que actualiza antes en el mismo frame.
-  useFrame((_state, delta) => {
-    const camera = cameraRef.current
-    if (camera === null || !signMode) {
-      return
-    }
-    const current = distanceRef.current
-    if (current === null) {
-      direction.set(...orbitPosition(0, 90 - MathUtils.radToDeg(SIGN_VIEW.startPolar), 1))
-    } else {
-      direction.copy(camera.position).sub(target).normalize()
-    }
-    const wanted = signFrameDistance(volume, [direction.x, direction.y, direction.z], aspect) * signZoom
-    const next = current === null || reducedMotion ? wanted : approach(current, wanted, delta)
-    camera.position.copy(direction.multiplyScalar(next).add(target))
-    if (current === null) {
-      camera.lookAt(target)
-    }
-    distanceRef.current = next
-  })
+  useStudioFraming(cameraRef, { volume, center, zoom: signZoom, reducedMotion }, signMode)
 
   return (
     <>
-      <PerspectiveCamera
-        ref={cameraRef}
-        makeDefault
-        fov={SIGN_VIEW.fovDeg}
-        near={SIGN_VIEW.near}
-        far={SIGN_VIEW.far}
-      />
-      {signMode ? (
-        <OrbitControls
-          target={center}
-          enablePan={false}
-          enableZoom={false}
-          minPolarAngle={SIGN_VIEW.minPolar}
-          maxPolarAngle={SIGN_VIEW.maxPolar}
-        />
-      ) : null}
+      <StudioPerspective cameraRef={cameraRef} />
+      {signMode ? <StudioOrbitControls center={center} /> : null}
     </>
   )
 }
@@ -199,13 +142,7 @@ export function SignScene({
   // el volumen del cartel case con ella. En modo cartel es la luz de estudio del producto: con
   // el cartel apagado, el estudio con las luces prendidas (D104); encendido, el de siempre (D105).
   const studioBright = photo === null && lightingMode === 'none'
-  const light = photo !== null ? photo.light : studioBright ? SIGN_STUDIO_BRIGHT.light : SIGN_STUDIO_LIGHT
-  const keyPosition = useMemo((): [number, number, number] => {
-    const az = MathUtils.degToRad(light.keyAzimuthDeg)
-    const el = MathUtils.degToRad(light.keyElevationDeg)
-    const r = 10
-    return [r * Math.sin(az) * Math.cos(el), r * Math.sin(el), r * Math.cos(az) * Math.cos(el)]
-  }, [light])
+  const light = photo !== null ? photo.light : studioBright ? STUDIO_BRIGHT.light : STUDIO_LIGHT
   // Modo vista: la fuente especular del estudio sale de la key de la foto (D61), asi el
   // brillo cae donde esta el sol de esa foto y el dato viene del JSON.
   const studioHighlight = useMemo(
@@ -213,12 +150,6 @@ export function SignScene({
     [light],
   )
   const { width, height } = placement.box
-  // La key tambien va en la capa de atenuacion (version 2.6, D79): three solo cuenta las luces de
-  // las capas que dibuja la camara, y los receptores de la sombra se dibujan solos en esa capa.
-  const keyRef = useRef<DirectionalLight>(null)
-  useLayoutEffect(() => {
-    keyRef.current?.layers.enable(ATTENUATION_LAYER)
-  }, [])
 
   // Contorno real del texto con el typeface: encuadra las letras y escala el relieve.
   const bounds = useMemo(() => (typeface === null ? null : textBounds(typeface, text)), [typeface, text])
@@ -273,26 +204,9 @@ export function SignScene({
         reducedMotion={reducedMotion}
       />
 
-      <ambientLight intensity={light.ambient} color={lightColor} />
-      <directionalLight
-        ref={keyRef}
-        position={keyPosition}
-        intensity={light.keyIntensity}
-        color={lightColor}
-        castShadow
-        shadow-mapSize={[STUDIO_SHADOW.mapSize, STUDIO_SHADOW.mapSize]}
-        shadow-bias={STUDIO_SHADOW.bias}
-        shadow-normalBias={STUDIO_SHADOW.normalBias}
-        shadow-radius={STUDIO_SHADOW.radius}
-        shadow-camera-left={-shadowReach}
-        shadow-camera-right={shadowReach}
-        shadow-camera-top={shadowReach}
-        shadow-camera-bottom={-shadowReach}
-        shadow-camera-near={STUDIO_SHADOW.near}
-        shadow-camera-far={STUDIO_SHADOW.far}
-      />
+      <StudioKeyLight light={light} color={lightColor} reach={shadowReach} />
       <StudioEnvironment
-        intensity={photo !== null ? light.ambient : studioBright ? SIGN_STUDIO_BRIGHT.environment : 1}
+        intensity={photo !== null ? light.ambient : studioBright ? STUDIO_BRIGHT.environment : 1}
         highlight={photo === null ? null : studioHighlight}
         color={lightTint}
       />

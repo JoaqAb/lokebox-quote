@@ -2,7 +2,8 @@ import { Box3, Vector3, type BufferGeometry } from 'three'
 import { describe, expect, it } from 'vitest'
 import { HALO, SET, haloProfile, type HaloCellKind } from './sceneGeometry'
 import { haloCellMesh } from './haloGeometry'
-import { PANEL_FACES, disposeSurfaceParts, roundedPanelParts } from './surfaceParts'
+import { BOX_FACES } from '../../../core/preview/physicalSurface'
+import { disposeSurfaceParts, roundedPanelParts } from './surfaceParts'
 
 // Normales de cada vertice de los grupos de una parte.
 function normals(part: BufferGeometry): Vector3[] {
@@ -33,7 +34,7 @@ describe('panel con cantos redondeados (version 2.4)', () => {
   // El redondeo parte cada canto a 45 grados: la cara se queda con lo que mira mas al frente
   // que a un costado, hasta la esquina, donde las tres caras se tocan en el octante de esfera.
   it('la cara es el grupo del frente y mira mas al frente que a los costados', () => {
-    expect(parts.face.groups.map((group) => group.materialIndex)).toEqual([PANEL_FACES.front])
+    expect(parts.face.groups.map((group) => group.materialIndex)).toEqual([BOX_FACES.front])
     const face = normals(parts.face)
     expect(face.length).toBeGreaterThan(0)
     for (const normal of face) {

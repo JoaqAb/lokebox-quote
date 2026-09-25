@@ -2,7 +2,8 @@ import { Box3, Vector3, type BufferGeometry } from 'three'
 import type { FontData } from 'three/examples/jsm/loaders/FontLoader.js'
 import { describe, expect, it } from 'vitest'
 import { lengthToMeters } from '../visuals'
-import { SET, SIGN_TEXT, SIGN_VIEW, fitTextOnPanel, layoutLetters, lettersFrameVolume, signFrameDistance } from './sceneGeometry'
+import { STUDIO_VIEW, frameDistance } from '../../../core/preview/studioView'
+import { SET, SIGN_TEXT, fitTextOnPanel, layoutLetters, lettersFrameVolume } from './sceneGeometry'
 import {
   TEXT_3D,
   TEXT_FACE,
@@ -220,8 +221,8 @@ describe('texto en relieve del modo area', () => {
 describe('letras corporeas en el encuadre', () => {
   it('18 letras con el alto maximo quedan dentro de la caja del encuadre, y la caja dentro del cuadro en todo el giro', () => {
     const aspect = 16 / 9
-    const inside = 1 / (1 + 2 * SIGN_VIEW.marginRatio)
-    const tan = Math.tan((SIGN_VIEW.fovDeg * Math.PI) / 360)
+    const inside = 1 / (1 + 2 * STUDIO_VIEW.marginRatio)
+    const tan = Math.tan((STUDIO_VIEW.fovDeg * Math.PI) / 360)
     for (const slug of ['northline', 'norte']) {
       const client = clientOrFail(slug)
       const letterHeight = client.options.letterHeight.max * lengthToMeters(client.units.length)
@@ -241,11 +242,11 @@ describe('letras corporeas en el encuadre', () => {
         expect(Math.abs(glyph.maxY * letterHeight)).toBeLessThanOrEqual(volume.height / 2 + 1e-9)
       }
       // Y la caja entra en el cuadro desde cualquier azimut, en los dos polares extremos.
-      for (const polar of [SIGN_VIEW.minPolar, SIGN_VIEW.maxPolar]) {
+      for (const polar of [STUDIO_VIEW.minPolar, STUDIO_VIEW.maxPolar]) {
         for (let azimuth = 0; azimuth < 360; azimuth += 5) {
           const a = (azimuth * Math.PI) / 180
           const z: [number, number, number] = [Math.sin(polar) * Math.sin(a), Math.cos(polar), Math.sin(polar) * Math.cos(a)]
-          const distance = signFrameDistance(volume, z, aspect)
+          const distance = frameDistance(volume, z, aspect)
           const flat = Math.hypot(z[0], z[2])
           const x = [z[2] / flat, 0, -z[0] / flat]
           const y = [z[1] * x[2], z[2] * x[0] - z[0] * x[2], -z[1] * x[0]]

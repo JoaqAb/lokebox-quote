@@ -22,24 +22,23 @@ import { haloCellGeometry } from './haloGeometry'
 import { letterHaloGrid } from './letterHalo'
 import { SignText3D, type LetterPart } from './SignText3D'
 import {
+  PHYSICAL_KEYS,
   applyFinish,
-  disposeStandoffSurface,
   disposeSurface,
-  letterSurface,
-  panelSurface,
   repeatSurface,
-  standoffSurface,
+  setPhysical,
+  type PhysicalParams,
   type Surface,
   type SurfaceSize,
-} from './surfaceMaterials'
+} from '../../../core/preview/physicalSurface'
+import { approach, approachColor } from '../../../core/preview/studioView'
+import { supportShadowTexture } from '../../../core/preview/supportShadow'
+import { disposeStandoffSurface, letterSurface, panelSurface, standoffSurface } from './surfaceMaterials'
 import { disposeSurfaceParts, roundedPanelParts } from './surfaceParts'
-import { supportShadowTexture } from './supportShadow'
 import {
-  DAMP_LAMBDA,
   HALO,
   SET,
   STANDOFF,
-  SETTLE_EPSILON,
   SIGN_TEXT,
   SUPPORT_SHADOW,
   TOTEM_SHADOW,
@@ -48,7 +47,6 @@ import {
   UNIT_BOX,
   UNIT_PLANE,
   VISIBLE_EPSILON,
-  approach,
   haloBox,
   haloCells,
   haloMargin,
@@ -110,16 +108,6 @@ const HALO_KINDS: HaloCellKind[] = [
   'bottomRight',
 ]
 
-function approachColor(current: Color, target: Color, delta: number): void {
-  const distance =
-    Math.abs(current.r - target.r) + Math.abs(current.g - target.g) + Math.abs(current.b - target.b)
-  if (distance < SETTLE_EPSILON) {
-    current.copy(target)
-    return
-  }
-  current.lerp(target, 1 - Math.exp(-DAMP_LAMBDA * delta))
-}
-
 type SignBoardProps = {
   placement: SignPlacement
   material: MaterialVisual
@@ -153,10 +141,6 @@ type SignBoardProps = {
 }
 
 type Surfaces = { panel: Surface; letter: Surface; relief: Surface }
-
-// Parametros fisicos que se amortiguan con el cartel. El acabado y sus mapas cambian de golpe.
-const DAMPED = ['metalness', 'roughness', 'specularIntensity', 'clearcoat', 'clearcoatRoughness', 'anisotropy', 'normalScale'] as const
-type Damped = Record<(typeof DAMPED)[number], number>
 
 function setBloom(mesh: Mesh | null, on: boolean): void {
   if (mesh === null) {
@@ -214,7 +198,7 @@ export function SignBoard({
   // Estado amortiguado del material, compartido por todas las caras de todas las cajas.
   const look = useRef({
     color: new Color(),
-    physical: { metalness: 0, roughness: 1, specularIntensity: 1, clearcoat: 0, clearcoatRoughness: 0, anisotropy: 0, normalScale: 0 } as Damped,
+    physical: { metalness: 0, roughness: 1, specularIntensity: 1, clearcoat: 0, clearcoatRoughness: 0, anisotropy: 0, normalScale: 0 } as PhysicalParams,
     width: 0,
     height: 0,
     face: 0,
@@ -348,7 +332,7 @@ export function SignBoard({
     } else {
       approachColor(state.color, targetColor, delta)
     }
-    for (const key of DAMPED) {
+    for (const key of PHYSICAL_KEYS) {
       state.physical[key] = move(state.physical[key], material[key])
     }
     state.face = move(state.face, face.faceEmissiveIntensity)
@@ -370,13 +354,7 @@ export function SignBoard({
       applyFinish(surface, material.finish)
       repeatSurface(surface, sizes[kind])
       surface.materials.forEach((physical, index) => {
-        physical.metalness = state.physical.metalness
-        physical.roughness = state.physical.roughness
-        physical.specularIntensity = state.physical.specularIntensity
-        physical.clearcoat = state.physical.clearcoat
-        physical.clearcoatRoughness = state.physical.clearcoatRoughness
-        physical.anisotropy = state.physical.anisotropy
-        physical.normalScale.setScalar(state.physical.normalScale)
+        setPhysical(physical, state.physical)
         // El relieve es parte de la cara: color del texto y sin emision.
         if (kind === 'relief') {
           physical.color.copy(reliefColor)

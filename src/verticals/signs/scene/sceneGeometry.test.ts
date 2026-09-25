@@ -2,6 +2,7 @@ import { Color, PerspectiveCamera, Vector3 } from 'three'
 import { describe, expect, it } from 'vitest'
 import { listClientSlugs } from '../../../clients'
 import { defaultSelection } from '../config'
+import { STUDIO_VIEW, SUPPORT_SHADOW_COLOR, frameDistance } from '../../../core/preview/studioView'
 import { themeFromClient } from '../../../core/theme'
 import { lengthToMeters } from '../visuals'
 import {
@@ -10,11 +11,8 @@ import {
   SET,
   SIGN_TEXT,
   SUPPORT_SHADOW,
-  SUPPORT_SHADOW_COLOR,
   LETTERS,
   SIGN_MODE_BACK_FACE,
-  SIGN_STUDIO_LIGHT,
-  SIGN_VIEW,
   EDGE_RADIUS_M,
   STANDOFF,
   haloBox,
@@ -36,14 +34,9 @@ import {
   wallGap,
   photoCameraPose,
   containBox,
-  zoomBy,
-  zoomFromPinch,
   groundPointAt,
-  orbitPosition,
   photoCameraDistance,
-  signFrameDistance,
   signModeLightingParams,
-  signZoomFactor,
   layoutLetters,
   lampPosition,
   lightingParams,
@@ -60,7 +53,6 @@ import {
   totemLayout,
   totemStructureColor,
 } from './sceneGeometry'
-import { hasWebGL } from './webgl'
 import { signsClientOf } from '../testing'
 
 const clientOrFail = signsClientOf
@@ -262,13 +254,6 @@ describe('SIGN_TEXT', () => {
     expect(SIGN_TEXT.marginRatio).toBeGreaterThan(0)
     expect(SIGN_TEXT.marginRatio).toBeLessThan(0.5)
     expect(SIGN_TEXT.maxHeightRatio).toBeLessThan(1)
-  })
-})
-
-describe('hasWebGL', () => {
-  // 12.10
-  it('devuelve false en entorno node y no lanza', () => {
-    expect(hasWebGL()).toBe(false)
   })
 })
 
@@ -478,95 +463,11 @@ describe('cantos del panel', () => {
 })
 
 describe('camara del viewer', () => {
-  it('de frente y sin espesor, la distancia encuadra el cartel con 12 por ciento de margen por lado', () => {
-    const aspect = 16 / 9
-    const tan = Math.tan((SIGN_VIEW.fovDeg * Math.PI) / 360)
-    // Cartel ancho: manda el ancho.
-    const ancho = signFrameDistance({ width: 6, height: 1, depth: 0 }, [0, 0, 1], aspect)
-    expect(2 * ancho * tan * aspect).toBeCloseTo(6 * 1.24, 10)
-    // Cartel alto: manda el alto.
-    const alto = signFrameDistance({ width: 1, height: 2, depth: 0 }, [0, 0, 1], aspect)
-    expect(2 * alto * tan).toBeCloseTo(2 * 1.24, 10)
-  })
-
-  // Proyecta una esquina con la camara en direction a distance y devuelve su posicion en
-  // fraccion del semicuadro: 1 es el borde del cuadro.
-  function projectCorner(corner: [number, number, number], direction: [number, number, number], distance: number, aspect: number) {
-    const tan = Math.tan((SIGN_VIEW.fovDeg * Math.PI) / 360)
-    const [zx, zy, zz] = direction
-    const flat = Math.hypot(zx, zz)
-    const x = [zz / flat, 0, -zx / flat]
-    const y = [zy * x[2], zz * x[0] - zx * x[2], -zy * x[0]]
-    const dot = (a: number[], b: number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
-    const depth = distance - dot(corner, direction)
-    return { u: dot(corner, x) / (depth * tan * aspect), v: dot(corner, y) / (depth * tan) }
-  }
-
-  function corners(width: number, height: number, depth: number): [number, number, number][] {
-    const list: [number, number, number][] = []
-    for (const sx of [-1, 1]) {
-      for (const sy of [-1, 1]) {
-        for (const sz of [-1, 1]) {
-          list.push([(sx * width) / 2, (sy * height) / 2, (sz * depth) / 2])
-        }
-      }
-    }
-    return list
-  }
-
-  it('girando 360 grados en los dos polares extremos, ninguna esquina sale del cuadro y alguna toca el margen', () => {
-    const aspect = 16 / 9
-    const inside = 1 / (1 + 2 * SIGN_VIEW.marginRatio)
-    // Un panel ancho y el conjunto de 18 letras, las dos formas mas exigentes.
-    const volumes = [
-      { width: 6.096, height: 2.438, depth: SET.sign.thickness },
-      { width: 11, height: 0.9, depth: 0.15 },
-    ]
-    for (const volume of volumes) {
-      for (const polar of [SIGN_VIEW.minPolar, SIGN_VIEW.maxPolar]) {
-        for (let azimuth = 0; azimuth < 360; azimuth += 5) {
-          const a = (azimuth * Math.PI) / 180
-          const direction: [number, number, number] = [Math.sin(polar) * Math.sin(a), Math.cos(polar), Math.sin(polar) * Math.cos(a)]
-          const distance = signFrameDistance(volume, direction, aspect)
-          const projected = corners(volume.width, volume.height, volume.depth).map((corner) => projectCorner(corner, direction, distance, aspect))
-          const worst = Math.max(...projected.map(({ u, v }) => Math.max(Math.abs(u), Math.abs(v))))
-          expect(worst).toBeLessThanOrEqual(inside + 1e-9)
-          expect(worst).toBeCloseTo(inside, 9)
-        }
-      }
-    }
-  })
-
-  it('de frente el panel queda mas cerca que con el 15 por ciento fijo sobre ancho y alto', () => {
-    const aspect = 16 / 9
-    const tan = Math.tan((SIGN_VIEW.fovDeg * Math.PI) / 360)
-    const direction: [number, number, number] = [0, Math.cos(SIGN_VIEW.startPolar), Math.sin(SIGN_VIEW.startPolar)]
-    for (const [width, height] of [[2.438, 0.914], [6.096, 2.438], [2.5, 1], [6, 0.3]]) {
-      const previous = Math.max((height * 1.3) / 2 / tan, (width * 1.3) / 2 / (tan * aspect))
-      expect(signFrameDistance({ width, height, depth: SET.sign.thickness }, direction, aspect)).toBeLessThan(previous)
-    }
-  })
-
-  it('la luz del modo cartel es la de estudio del producto: key sin ambiente', () => {
-    expect(SIGN_STUDIO_LIGHT.ambient).toBe(0)
-    expect(SIGN_STUDIO_LIGHT.keyIntensity).toBeGreaterThan(0)
-    expect(SIGN_STUDIO_LIGHT.keyElevationDeg).toBeGreaterThan(0)
-  })
-
   it('en modo vista un metro ocupa metersToWidth del ancho de la foto', () => {
     const aspect = 16 / 9
     const d = photoCameraDistance(0.1, 40, aspect)
     const visibleWidth = 2 * d * Math.tan((40 * Math.PI) / 360) * aspect
     expect(1 / visibleWidth).toBeCloseTo(0.1, 10)
-  })
-
-  it('orbitPosition: yaw positivo a la derecha, pitch negativo por debajo, a la distancia pedida', () => {
-    const [x, y, z] = orbitPosition(30, -10, 5)
-    expect(x).toBeGreaterThan(0)
-    expect(y).toBeLessThan(0)
-    expect(z).toBeGreaterThan(0)
-    expect(Math.hypot(x, y, z)).toBeCloseTo(5, 10)
-    expect(orbitPosition(0, 0, 3)).toEqual([0, 0, 3])
   })
 
   // Version 2.6, D81: la camara de vista mira con los angulos del anchor y el anclaje cae en (x, y).
@@ -590,21 +491,6 @@ describe('camara del viewer', () => {
     expect(pose.position[1]).toBeCloseTo(1.84, 2)
     const norte = photoCameraPose({ x: 0.25, y: 0.9, metersToWidth: 0.11 }, { yawDeg: 0, pitchDeg: 0 }, 40, 16 / 9)
     expect(norte.position[1]).toBeCloseTo(2.04, 1)
-  })
-
-  it('el zoom del modo cartel va de 1 a 0,55 de la base y no aleja nunca', () => {
-    const range = { min: 1, max: 2.5 }
-    expect(signZoomFactor(1, range)).toBe(1)
-    expect(signZoomFactor(2.5, range)).toBeCloseTo(0.55, 10)
-    expect(signZoomFactor(0, range)).toBe(1)
-    expect(signZoomFactor(9, range)).toBeCloseTo(0.55, 10)
-  })
-
-  it('el polar del modo cartel nunca llega a verlo desde abajo', () => {
-    expect(SIGN_VIEW.maxPolar).toBeLessThan(Math.PI / 2)
-    expect(SIGN_VIEW.minPolar).toBe(0.6)
-    expect(SIGN_VIEW.startPolar).toBeGreaterThanOrEqual(SIGN_VIEW.minPolar)
-    expect(SIGN_VIEW.startPolar).toBeLessThanOrEqual(SIGN_VIEW.maxPolar)
   })
 })
 
@@ -649,18 +535,18 @@ describe('totem de verdad', () => {
 
   it('la caja del totem entra en el cuadro desde cualquier azimut en los dos polares extremos', () => {
     const aspect = 16 / 9
-    const inside = 1 / (1 + 2 * SIGN_VIEW.marginRatio)
-    const tan = Math.tan((SIGN_VIEW.fovDeg * Math.PI) / 360)
+    const inside = 1 / (1 + 2 * STUDIO_VIEW.marginRatio)
+    const tan = Math.tan((STUDIO_VIEW.fovDeg * Math.PI) / 360)
     for (const slug of listClientSlugs()) {
       const { width, height } = clientOrFail(slug).options
       const factor = factorOf(slug)
       for (const [w, h] of [[width.min, height.max], [width.max, height.max], [width.max, height.min]]) {
         const { volume } = totemLayout({ width: w * factor, height: h * factor })
-        for (const polar of [SIGN_VIEW.minPolar, SIGN_VIEW.maxPolar]) {
+        for (const polar of [STUDIO_VIEW.minPolar, STUDIO_VIEW.maxPolar]) {
           for (let azimuth = 0; azimuth < 360; azimuth += 15) {
             const a = (azimuth * Math.PI) / 180
             const z = [Math.sin(polar) * Math.sin(a), Math.cos(polar), Math.sin(polar) * Math.cos(a)] as [number, number, number]
-            const distance = signFrameDistance(volume, z, aspect)
+            const distance = frameDistance(volume, z, aspect)
             const flat = Math.hypot(z[0], z[2])
             const x = [z[2] / flat, 0, -z[0] / flat]
             const y = [z[1] * x[2], z[2] * x[0] - z[0] * x[2], -z[1] * x[0]]
@@ -704,15 +590,5 @@ describe('zona del preview (version 2.8, D91 y D92)', () => {
     expect(narrow.height).toBe(400)
     expect(narrow.left).toBeCloseTo((1200 - 400 * (16 / 9)) / 2, 10)
     expect(containBox({ width: 0, height: 300 }, 16 / 9).width).toBe(0)
-  })
-
-  it('la rueda y el pinch acercan y alejan dentro del rango de SPEC 12', () => {
-    const range = { min: 1, max: 2.5 }
-    expect(zoomBy(1, -100, range)).toBeGreaterThan(1)
-    expect(zoomBy(1, 100, range)).toBe(1)
-    expect(zoomBy(2.4, -1000, range)).toBe(2.5)
-    expect(zoomFromPinch(1, 100, 200, range)).toBe(2)
-    expect(zoomFromPinch(2, 100, 20, range)).toBe(1)
-    expect(zoomFromPinch(1.5, 0, 50, range)).toBe(1.5)
   })
 })

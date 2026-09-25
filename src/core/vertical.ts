@@ -56,6 +56,8 @@ export type VerticalViewProps<C, S> = {
   selection: S
   theme: Record<string, string>
   loading: LoadingBrand
+  // La ruta del logo del cliente (D144). Una vertical que no lo dibuja lo ignora.
+  logo: string
 }
 
 export type VerticalModule<C, S, R extends PriceResult = PriceResult> = {

@@ -1,4 +1,5 @@
-// Deteccion de WebGL. Si el navegador no lo tiene, el preview cae al bloque plano.
+// Deteccion de WebGL. Si el navegador no lo tiene, la vista no monta el canvas. En el core desde
+// TAREA_033 (D143).
 // El resultado se cachea a nivel de modulo: crear un canvas por render es caro.
 
 let cached: boolean | null = null

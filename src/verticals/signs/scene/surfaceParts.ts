@@ -1,5 +1,6 @@
 import { BufferGeometry } from 'three'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
+import { BOX_FACES } from '../../../core/preview/physicalSurface'
 import { EDGE_SEGMENTS, panelEdgeRadius } from './sceneGeometry'
 
 // Cara y cascara de una geometria (SPEC 12, version 2.1, D50). El bloom selecciona mallas
@@ -39,10 +40,6 @@ export function disposeSurfaceParts(parts: SurfaceParts): void {
   parts.shell.dispose()
 }
 
-// Orden de las caras de BoxGeometry, que RoundedBoxGeometry conserva: +x, -x, +y, -y, frente,
-// atras.
-export const PANEL_FACES = { count: 6, front: 4 } as const
-
 // El panel con los cantos redondeados (SPEC 12, version 2.4), en metros. RoundedBoxGeometry
 // dobla cada cara hasta la mitad del canto, a 45 grados, y conserva los seis grupos: la cara
 // lleva su mitad del redondeo y la cascara el resto, asi la particion del bloom sigue igual.
@@ -51,5 +48,5 @@ export const PANEL_FACES = { count: 6, front: 4 } as const
 // quien la dibuja, cuando cambia la medida y al desmontar.
 export function roundedPanelParts(width: number, height: number, thickness: number): SurfaceParts {
   const geometry = new RoundedBoxGeometry(width, height, thickness, EDGE_SEGMENTS, panelEdgeRadius(thickness))
-  return splitSurface(geometry, PANEL_FACES.front)
+  return splitSurface(geometry, BOX_FACES.front)
 }

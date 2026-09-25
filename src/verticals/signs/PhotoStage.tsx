@@ -16,10 +16,10 @@ import {
   type ScenePalette,
   type SignPlacement,
 } from './scene/sceneGeometry'
-import { hasWebGL } from './scene/webgl'
+import { hasWebGL } from '../../core/preview/webgl'
 import { createTypeface, disposeGlyphGeometries, glyphAdvance, TYPEFACE_SRC, type Typeface } from './scene/typeface'
 import { disposeHaloGeometry } from './scene/haloGeometry'
-import { disposeSupportShadow } from './scene/supportShadow'
+import { disposeSupportShadow } from '../../core/preview/supportShadow'
 import { disposeFinishTextures } from '../../core/preview/finishTextures'
 import { photoTint, type Tint } from '../../core/preview/photoTint'
 import type { SignVisual } from './visuals'

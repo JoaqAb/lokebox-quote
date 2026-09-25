@@ -109,7 +109,7 @@ function QuoteScreen({ config, vertical, verticalConfig }: ResolvedClient) {
             </div>
           }
         >
-          <View config={verticalConfig} selection={selection} theme={theme} loading={loading} />
+          <View config={verticalConfig} selection={selection} theme={theme} loading={loading} logo={config.brand.logo} />
         </Suspense>
       }
       panel={

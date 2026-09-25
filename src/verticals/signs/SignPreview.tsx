@@ -2,9 +2,12 @@ import { useReducedMotion } from 'framer-motion'
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import type { ClientPhoto, SignSelection } from './types'
 import type { LoadingBrand } from '../../core/ui/LoadingScreen'
+import { PreviewStrip } from '../../core/preview/PreviewControls'
+import { CONTROL_STRIP, usePreviewZoom } from '../../core/preview/previewZoom'
+import { PREVIEW_ZOOM, studioZoomFactor } from '../../core/preview/studioView'
 import { StageBackdrop } from '../../core/ui/StageBackdrop'
 import { PhotoStage } from './PhotoStage'
-import { containBox, signZoomFactor, zoomBy, zoomFromPinch } from './scene/sceneGeometry'
+import { containBox } from './scene/sceneGeometry'
 import type { SignVisual } from './visuals'
 
 // Viewer del cotizador (SPEC 12, version 1.12), en dos modos sobre el mismo canvas:
@@ -41,14 +44,10 @@ import type { SignVisual } from './visuals'
 // tema oscuro es grafito fijo en los dos modos.
 // - D107: en lg la foto de vista lleva radio de 14 px y sombra suave hacia abajo; en mobile va a
 //   todo el ancho, sin radio ni sombra.
-
-const ZOOM = { min: 1, max: 2.5, step: 0.25 }
+// Desde TAREA_033 (D143) la franja de controles y el zoom son del core (PreviewControls).
 
 // Proporcion de una foto hasta que carga: la de las fotos de la demo.
 const DEFAULT_PHOTO_ASPECT = 16 / 9
-
-// Alto de la franja de controles: el selector y el zoom miden 46 px con su borde.
-const CONTROL_STRIP = '3.5rem'
 
 type Box = { left: number; top: number; width: number; height: number }
 
@@ -91,34 +90,15 @@ function usePhotoAspect(photo: ClientPhoto | null): number {
   return known ?? DEFAULT_PHOTO_ASPECT
 }
 
-function PlusIcon() {
-  return (
-    <svg viewBox="0 0 16 16" aria-hidden="true" className="size-4">
-      <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" fill="none" />
-    </svg>
-  )
-}
-
-function MinusIcon() {
-  return (
-    <svg viewBox="0 0 16 16" aria-hidden="true" className="size-4">
-      <path d="M3 8h10" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" fill="none" />
-    </svg>
-  )
-}
-
 export function SignPreview({ selection, visual, theme, photos, zoomLabel, signOnlyLabel, loading }: SignPreviewProps) {
   const reducedMotion = useReducedMotion() === true
   const [view, setView] = useState<View>({ kind: 'sign' })
-  const [zoom, setZoom] = useState(ZOOM.min)
   const [fit, setFit] = useState<Box>({ left: 0, top: 0, width: 0, height: 0 })
   // La ultima foto elegida: da la proporcion del alto mobile tambien en modo cartel.
   const [lastPhotoId, setLastPhotoId] = useState<string | null>(null)
   const zoneRef = useRef<HTMLDivElement>(null)
   const fitRef = useRef<HTMLDivElement>(null)
-  // Punteros activos sobre la zona, para el pinch con dos dedos.
-  const pointers = useRef(new Map<number, { x: number; y: number }>())
-  const pinchStart = useRef<{ distance: number; zoom: number } | null>(null)
+  const { zoom, step, pointerHandlers } = usePreviewZoom(zoneRef)
 
   const photo = view.kind === 'photo' ? (photos.find((item) => item.id === view.id) ?? null) : null
   const framePhoto = photo ?? photos.find((item) => item.id === lastPhotoId) ?? photos.at(0) ?? null
@@ -146,31 +126,23 @@ export function SignPreview({ selection, visual, theme, photos, zoomLabel, signO
     }
   }, [])
 
-  // La rueda se escucha a mano para poder cancelar el scroll de la pagina (React la registra
-  // pasiva). El pinch del trackpad llega como rueda con ctrl y va por el mismo camino.
-  useEffect(() => {
-    const element = zoneRef.current
-    if (element === null) {
-      return undefined
-    }
-    const onWheel = (event: WheelEvent): void => {
-      event.preventDefault()
-      setZoom((current) => zoomBy(current, event.deltaY, ZOOM))
-    }
-    element.addEventListener('wheel', onWheel, { passive: false })
-    return () => {
-      element.removeEventListener('wheel', onWheel)
-    }
-  }, [])
-
   const options = [
-    { key: 'sign', label: signOnlyLabel, active: photo === null, photoId: null, pick: (): View => ({ kind: 'sign' }) },
+    {
+      key: 'sign',
+      label: signOnlyLabel,
+      active: photo === null,
+      onSelect: () => {
+        setView({ kind: 'sign' })
+      },
+    },
     ...photos.map((item) => ({
       key: `photo-${item.id}`,
       label: item.label,
       active: photo?.id === item.id,
-      photoId: item.id,
-      pick: (): View => ({ kind: 'photo', id: item.id }),
+      onSelect: () => {
+        setView({ kind: 'photo', id: item.id })
+        setLastPhotoId(item.id)
+      },
     })),
   ]
 
@@ -184,45 +156,13 @@ export function SignPreview({ selection, visual, theme, photos, zoomLabel, signO
       : { left: Math.round(fit.left + box.left), top: Math.round(fit.top + box.top), width: box.width, height: box.height }
   const zoneStyle = { ...theme, '--q-photo-aspect': String(aspect), '--q-strip': CONTROL_STRIP } as CSSProperties
 
-  function step(direction: 1 | -1): void {
-    setZoom((current) => Math.min(ZOOM.max, Math.max(ZOOM.min, current + direction * ZOOM.step)))
-  }
-
-  function pinchDistance(): number | null {
-    const points = [...pointers.current.values()]
-    return points.length === 2 ? Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y) : null
-  }
-
   return (
     <div
       ref={zoneRef}
       data-preview-zone
       style={zoneStyle}
       className={`relative h-[min(42svh,calc(100cqw/var(--q-photo-aspect)_+_var(--q-strip)))] w-full touch-none lg:h-full overflow-hidden ${photo === null ? 'cursor-grab active:cursor-grabbing' : ''}`}
-      onPointerDownCapture={(event) => {
-        pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
-        const distance = pinchDistance()
-        pinchStart.current = distance === null ? null : { distance, zoom }
-      }}
-      onPointerMoveCapture={(event) => {
-        if (!pointers.current.has(event.pointerId)) {
-          return
-        }
-        pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY })
-        const distance = pinchDistance()
-        const start = pinchStart.current
-        if (distance !== null && start !== null) {
-          setZoom(zoomFromPinch(start.zoom, start.distance, distance, ZOOM))
-        }
-      }}
-      onPointerUpCapture={(event) => {
-        pointers.current.delete(event.pointerId)
-        pinchStart.current = null
-      }}
-      onPointerCancelCapture={(event) => {
-        pointers.current.delete(event.pointerId)
-        pinchStart.current = null
-      }}
+      {...pointerHandlers}
     >
       <StageBackdrop tone={loading.stage} lit={photo === null && visual.lighting.mode !== 'none'} />
 
@@ -240,65 +180,12 @@ export function SignPreview({ selection, visual, theme, photos, zoomLabel, signO
           photo={photo}
           reducedMotion={reducedMotion}
           cssZoom={zoom}
-          signZoom={signZoomFactor(zoom, ZOOM)}
+          signZoom={studioZoomFactor(zoom, PREVIEW_ZOOM)}
           loading={loading}
         />
       </div>
 
-      <div
-        data-controls
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex h-[var(--q-strip)] items-center gap-2 px-3"
-      >
-        <div className="min-w-0 flex-1 basis-0" />
-        <div
-          role="group"
-          data-view-selector
-          className="q-panel q-hairline pointer-events-auto flex min-w-0 gap-1 overflow-x-auto rounded-full border p-1 shadow-sm"
-        >
-          {options.map((option) => (
-            <button
-              key={option.key}
-              type="button"
-              aria-pressed={option.active}
-              className={`${option.active ? 'q-on' : 'text-[var(--q-text)]'} min-h-9 shrink-0 rounded-full px-3 text-xs font-medium whitespace-nowrap transition-colors sm:text-sm`}
-              onClick={() => {
-                setView(option.pick())
-                if (option.photoId !== null) {
-                  setLastPhotoId(option.photoId)
-                }
-              }}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-        <div className="flex flex-1 basis-0 justify-end">
-          <div data-zoom className="q-panel q-hairline pointer-events-auto flex shrink-0 overflow-hidden rounded-full border shadow-sm">
-            <button
-              type="button"
-              aria-label={`${zoomLabel} -`}
-              disabled={zoom <= ZOOM.min}
-              className="flex size-9 items-center justify-center text-[var(--q-text)] disabled:opacity-40"
-              onClick={() => {
-                step(-1)
-              }}
-            >
-              <MinusIcon />
-            </button>
-            <button
-              type="button"
-              aria-label={`${zoomLabel} +`}
-              disabled={zoom >= ZOOM.max}
-              className="q-hairline flex size-9 items-center justify-center border-l text-[var(--q-text)] disabled:opacity-40"
-              onClick={() => {
-                step(1)
-              }}
-            >
-              <PlusIcon />
-            </button>
-          </div>
-        </div>
-      </div>
+      <PreviewStrip options={options} zoom={zoom} onStep={step} zoomLabel={zoomLabel} />
     </div>
   )
 }

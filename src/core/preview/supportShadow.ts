@@ -1,8 +1,9 @@
 import { CanvasTexture, NoColorSpace, type Texture } from 'three'
 
 // El degradado radial de la escena (SPEC 12, version 1.12), generado en canvas. Lo usan
-// como mapa de opacidad la sombra de apoyo y el halo de back. No es una segunda pasada de
-// sombras: es un quad con esta textura detras del cartel.
+// como mapa de opacidad la sombra de apoyo y, en carteles, el halo de back. No es una segunda
+// pasada de sombras: es un quad con esta textura debajo o detras de la pieza. Vive en el core
+// desde TAREA_033 (D143): lo comparten las verticales.
 // alphaMap lee el canal verde, no el alfa: el degradado va de blanco a negro sobre un
 // fondo opaco. Con blanco y alfa variable el verde quedaba en 1 en todo el disco y el
 // borde salia duro. Es un dato y no un color, asi que no lleva espacio de color sRGB.

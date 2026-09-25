@@ -1,5 +1,9 @@
-import { Color, MathUtils } from 'three'
+import { Color } from 'three'
+import { orbitPosition, SUPPORT_SHADOW_COLOR, type Vec3 } from '../../../core/preview/studioView'
+import { themeColor } from '../../../core/preview/themeColor'
 import type { Mount, PhotoLight, SignSelection } from '../types'
+
+export type { Vec3 }
 
 // Medidas y colores del cartel. Puro, sin React y sin JSX.
 // Desde el pivote de TAREA_010 no hay set: la fachada, la vereda, la vidriera y el poste
@@ -12,24 +16,9 @@ export const SET = {
   sign: { thickness: 0.14 },
 } as const
 
-export type Vec3 = [number, number, number]
-
 export type SignBox = {
   width: number
   height: number
-}
-
-// Lambda del damp de la escena. Con 12 el acomodamiento es de unos 200 ms.
-export const DAMP_LAMBDA = 12
-
-// El damp se acerca al objetivo sin llegar nunca. Por debajo de esta distancia se cierra
-// exacto, para que el estado final sea el del JSON y no un valor que oscila para siempre.
-export const SETTLE_EPSILON = 0.0005
-
-// Damp que cierra exacto: sin esto el valor final nunca es el objetivo.
-export function approach(current: number, target: number, delta: number): number {
-  const next = MathUtils.damp(current, target, DAMP_LAMBDA, delta)
-  return Math.abs(target - next) < SETTLE_EPSILON ? target : next
 }
 
 // Geometrias unitarias: una sola de cada una, el tamano se aplica con scale.
@@ -471,14 +460,6 @@ export type ScenePalette = {
   signText: string
 }
 
-function readColor(theme: Record<string, string>, key: string): Color {
-  const value = theme[key]
-  if (typeof value !== 'string' || value.length === 0) {
-    throw new Error(`scenePalette: falta la variable de tema "${key}"`)
-  }
-  return new Color(value)
-}
-
 // Mezcla entre dos colores del tema. Reemplaza a multiplyScalar, que sobre una paleta
 // clara devuelve gris sucio en vez de un tono mas oscuro del mismo color.
 function blend(from: Color, to: Color, amount: number): string {
@@ -493,8 +474,8 @@ const MIX = {
 // Lo poco que queda de paleta: el color del texto se deriva del tema del cliente y la sombra
 // es la constante de escena. El color del cartel no sale de aca: sale del visual del material.
 export function scenePalette(theme: Record<string, string>): ScenePalette {
-  const primary = readColor(theme, '--q-primary')
-  const text = readColor(theme, '--q-text')
+  const primary = themeColor(theme, '--q-primary')
+  const text = themeColor(theme, '--q-text')
   return {
     shadow: SUPPORT_SHADOW_COLOR,
     signText: blend(primary, text, MIX.signText),
@@ -559,80 +540,16 @@ export function totemLayout(panel: SignBox): TotemLayout {
 // Color de poste y base: el muted del tema. Aparte de scenePalette, que es la paleta del
 // cartel, para que el cartel y la estructura no se mezclen.
 export function totemStructureColor(theme: Record<string, string>): string {
-  return `#${readColor(theme, '--q-muted').getHexString()}`
+  return `#${themeColor(theme, '--q-muted').getHexString()}`
 }
-
-// Camara del viewer (SPEC 12, version 1.12). En perspectiva en los dos modos; se orbita la
-// camara alrededor del cartel, que queda siempre en el origen y sin rotar.
-export const SIGN_VIEW = {
-  fovDeg: 30,
-  // Margen por lado alrededor de la huella proyectada de la caja del cartel.
-  marginRatio: 0.12,
-  minPolar: 0.6,
-  maxPolar: 1.5,
-  // Polar al entrar al modo cartel: apenas por encima del frente, dentro del rango.
-  startPolar: 1.45,
-  // Distancia minima del zoom, en fraccion de la derivada. El maximo es 1: solo acercar.
-  nearFactor: 0.55,
-  near: 0.05,
-  far: 200,
-} as const
 
 function tanHalf(fovDeg: number): number {
   return Math.tan((fovDeg * Math.PI) / 360)
 }
 
 // La caja que encuadra el modo cartel: el panel con su espesor, o en modo letters el
-// conjunto de letras con su profundidad. Nunca una letra sola.
+// conjunto de letras con su profundidad. Nunca una letra sola. Es un FrameVolume del core.
 export type SignVolume = SignBox & { depth: number }
-
-// Luz de estudio del modo cartel (SPEC 12, version 1.13): el entorno de estudio mas una key.
-// Es del producto y no de un cliente, por eso no va al JSON. Sin ambiente: el relleno lo da
-// el entorno de estudio del core. Mismo formato que el light de una foto, asi la escena tiene
-// un solo camino.
-export const SIGN_STUDIO_LIGHT: PhotoLight = {
-  ambient: 0,
-  keyIntensity: 0.3,
-  keyAzimuthDeg: -30,
-  keyElevationDeg: 40,
-}
-
-// Estudio con las luces prendidas (SPEC 12, D104): el modo cartel con el cartel apagado, sobre el
-// escenario claro. Mas key y mas entorno, para que el cartel se lea del color del JSON: el PVC,
-// #E8E8E4, salia gris medio. Se sube la luz y no el material. Con el cartel encendido el estudio
-// vuelve a SIGN_STUDIO_LIGHT y al entorno 1 sobre el escenario grafito (D105): se apagan las luces.
-export const SIGN_STUDIO_BRIGHT = {
-  light: { ...SIGN_STUDIO_LIGHT, ambient: 3.5, keyIntensity: 5 } satisfies PhotoLight,
-  environment: 1,
-}
-
-// Sombra de mapa de la key del modo cartel (SPEC 12, version 2.0). La key esta a 10 m del
-// origen, asi near y far cubren cualquier cartel del rango. normalBias evita el acne en el
-// relieve de 3 mm, que proyecta sobre la misma cara que lo recibe. radius es el ancho del
-// filtro suave de PCFShadowMap, en texels.
-export const STUDIO_SHADOW = {
-  mapSize: 2048,
-  bias: -0.0002,
-  normalBias: 0.004,
-  radius: 4,
-  near: 0.5,
-  far: 30,
-  margin: 0.25,
-} as const
-
-// Medio lado de la camara ortografica de la sombra: la media diagonal de la caja de encuadre
-// mas lo que su centro se aparta del origen, que es adonde apunta la key, y un margen.
-// Con eso la caja entra entera desde cualquier direccion de la luz.
-export function studioShadowReach(volume: SignVolume, center: Vec3): number {
-  const halfDiagonal = Math.hypot(volume.width, volume.height, volume.depth) / 2
-  return halfDiagonal + Math.hypot(...center) + STUDIO_SHADOW.margin
-}
-
-// Color de la sombra de apoyo (SPEC 12, version 1.16), en los dos modos. Es del producto y no
-// del cliente: una sombra oscurece siempre y no tiene color de marca. Derivada de una paleta
-// clara no tenia garantia de quedar por debajo del fondo que tuviera detras, y sobre el
-// escenario oscuro del modo cartel aclaraba en vez de oscurecer.
-export const SUPPORT_SHADOW_COLOR = '#0a0a0a'
 
 // Caja del encuadre en modo letters: el contorno real de las letras, simetrico alrededor del
 // origen porque el encuadre centra el cuadro en el target, y la profundidad de las letras.
@@ -647,54 +564,10 @@ export function lettersFrameVolume(bounds: TextBounds | null, letterHeight: numb
   }
 }
 
-// Distancia del modo cartel (SPEC 12, version 1.13): la menor a la que las ocho esquinas
-// de la caja, vistas desde direction (unitario, del cartel hacia la camara), caen dentro
-// del cuadro con el margen por lado. El cuadro se centra en el target, como la camara.
-// Se recalcula en cada frame con la orientacion actual: la huella de frente es mas chica
-// que la de la esfera contenedora, y encuadrar la esfera achicaria la vista al cargar.
-// Para cada esquina p y cada eje e de la camara, |p.e| <= k (d - p.z), con k la tangente
-// del semicampo en ese eje dividida por 1 + 2 margen. Despejando d, manda la mayor.
-export function signFrameDistance(volume: SignVolume, direction: Vec3, aspect: number): number {
-  const [zx, zy, zz] = direction
-  // Ejes de la camara con el up del mundo, igual que lookAt. El polar del modo cartel
-  // nunca llega a la vertical, pero la funcion no se rompe si llega.
-  const flat = Math.hypot(zx, zz)
-  const xAxis: Vec3 = flat === 0 ? [1, 0, 0] : [zz / flat, 0, -zx / flat]
-  const yAxis: Vec3 = [zy * xAxis[2], zz * xAxis[0] - zx * xAxis[2], -zy * xAxis[0]]
-  const ky = tanHalf(SIGN_VIEW.fovDeg) / (1 + 2 * SIGN_VIEW.marginRatio)
-  const kx = ky * aspect
-  const half: Vec3 = [volume.width / 2, volume.height / 2, volume.depth / 2]
-  let distance = 0
-  for (const sx of [-1, 1]) {
-    for (const sy of [-1, 1]) {
-      for (const sz of [-1, 1]) {
-        const p: Vec3 = [sx * half[0], sy * half[1], sz * half[2]]
-        const along = p[0] * zx + p[1] * zy + p[2] * zz
-        const right = p[0] * xAxis[0] + p[2] * xAxis[2]
-        const up = p[0] * yAxis[0] + p[1] * yAxis[1] + p[2] * yAxis[2]
-        distance = Math.max(distance, Math.abs(right) / kx + along, Math.abs(up) / ky + along)
-      }
-    }
-  }
-  return distance
-}
-
 // Distancia del modo vista: aquella en la que un metro de cartel ocupa metersToWidth del
 // ancho de la foto, con el fov vertical del anchor y el aspecto del cuadro.
 export function photoCameraDistance(metersToWidth: number, fovDeg: number, aspect: number): number {
   return 1 / (metersToWidth * 2 * tanHalf(fovDeg) * aspect)
-}
-
-// Posicion de la camara en una orbita alrededor del origen. yaw positivo va a la derecha
-// del frente del cartel y pitch negativo por debajo de su centro.
-export function orbitPosition(yawDeg: number, pitchDeg: number, distance: number): Vec3 {
-  const yaw = (yawDeg * Math.PI) / 180
-  const pitch = (pitchDeg * Math.PI) / 180
-  return [
-    distance * Math.cos(pitch) * Math.sin(yaw),
-    distance * Math.sin(pitch),
-    distance * Math.cos(pitch) * Math.cos(yaw),
-  ]
 }
 
 // Camara del modo vista (SPEC 12, version 2.6, D81). Toma la orientacion y el fov del anchor, con
@@ -767,28 +640,4 @@ export function containBox(zone: Size, aspect: number): { left: number; top: num
   const width = Math.min(zone.width, zone.height * aspect)
   const height = width / aspect
   return { left: (zone.width - width) / 2, top: (zone.height - height) / 2, width, height }
-}
-
-// Zoom con la rueda: un paso de rueda (100 px de deltaY) cambia el zoom por el factor de
-// WHEEL_ZOOM, hacia adentro con deltaY negativo, siempre dentro del rango.
-export const WHEEL_ZOOM = 0.15
-
-export function zoomBy(current: number, deltaY: number, range: { min: number; max: number }): number {
-  const next = current * Math.exp((-deltaY / 100) * WHEEL_ZOOM)
-  return Math.min(range.max, Math.max(range.min, next))
-}
-
-// Zoom con dos dedos: el del comienzo del gesto por la razon entre las distancias, dentro del rango.
-export function zoomFromPinch(startZoom: number, startDistance: number, distance: number, range: { min: number; max: number }): number {
-  if (startDistance <= 0) {
-    return startZoom
-  }
-  return Math.min(range.max, Math.max(range.min, (startZoom * distance) / startDistance))
-}
-
-// El control de zoom va de min a max. En modo cartel lo traduce a un multiplicador de la
-// distancia derivada de la huella: min es 1 y max es nearFactor.
-export function signZoomFactor(zoom: number, range: { min: number; max: number }): number {
-  const t = (zoom - range.min) / (range.max - range.min)
-  return 1 - Math.min(1, Math.max(0, t)) * (1 - SIGN_VIEW.nearFactor)
 }
