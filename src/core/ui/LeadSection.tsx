@@ -7,6 +7,9 @@ import { ThanksScreen } from './ThanksScreen'
 
 // Unico componente con estado del flujo del lead. No hay estado de error:
 // un insert fallido termina igual en thanks, por SPEC 7.3.
+// Desde la version 2.13 (D131, SPEC 7.4) el clic de WhatsApp tambien pasa a thanks: el enlace
+// nativo abre wa.me en otra pestana, el insert sale sin esperarse y el bloque muestra la
+// confirmacion con el boton a la hoja, igual que el formulario.
 // Desde la version 2.8 (D93) vive en el bloque fijo de precio: los botones van en una fila, y el
 // formulario y la confirmacion se abren en el mismo bloque.
 
@@ -66,7 +69,10 @@ export function LeadSection({
               href={whatsappLink(whatsappNumber, whatsappMessage)}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={onWhatsappClick}
+              onClick={() => {
+                onWhatsappClick()
+                setState('thanks')
+              }}
               className={`${PRIMARY} flex-1`}
             >
               {texts.ctaWhatsapp}

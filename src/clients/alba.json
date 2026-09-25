@@ -39,9 +39,9 @@
         "fovDeg": 40
       },
       "anchorGround": {
-        "x": 0.21,
-        "y": 0.86,
-        "metersToWidth": 0.16,
+        "x": 0.225,
+        "y": 0.84,
+        "metersToWidth": 0.145,
         "wallY": 0.802
       },
       "light": {
@@ -64,9 +64,9 @@
         "fovDeg": 40
       },
       "anchorGround": {
-        "x": 0.21,
-        "y": 0.86,
-        "metersToWidth": 0.16,
+        "x": 0.225,
+        "y": 0.84,
+        "metersToWidth": 0.145,
         "wallY": 0.802
       },
       "light": {
@@ -284,7 +284,7 @@
     "priceLabel": "Precio estimado",
     "priceRangeNote": "Rango estimado",
     "disclaimer": "Es una estimación. El presupuesto final lo confirma Rótulos Alba.",
-    "ctaWhatsapp": "Enviar por WhatsApp",
+    "ctaWhatsapp": "Por WhatsApp",
     "ctaForm": "Pedir presupuesto",
     "formTitle": "¿Dónde te enviamos el presupuesto?",
     "formName": "Tu nombre",

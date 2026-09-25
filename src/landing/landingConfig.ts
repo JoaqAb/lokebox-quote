@@ -66,7 +66,7 @@ const DEMO_HREF = /^\/d\/([^/]+)$/
 const EMAIL = /^[^@]+@[^@]+\.[^@]+$/
 const ASSET_PATH = /^\/[^\s]+\.[a-z0-9]+$/i
 const STEPS_PER_LIST = 3
-// Dos demos de la salida comercial y tres de la vitrina (D129).
+// Dos demos de la salida comercial y tres de la vitrina (D137).
 const DEMO_COUNT = 5
 // Huecos de texts.offerPrice: los completa la landing con el formateo de moneda del core.
 // No son texto visible, son las marcas donde entra cada numero.

@@ -37,3 +37,35 @@ export function themeFromClient(config: ClientConfig): Record<string, string> {
     '--q-stage': mix(STAGE_MIX_PCT),
   }
 }
+
+// Tono del escenario del preview (SPEC 12, version 2.13, D132). Con un tema oscuro el escenario
+// es grafito en los dos modos desde la carga y no cambia con la iluminacion: el estudio claro al
+// lado de un panel oscuro se leia como otro producto. Se deriva del fondo del tema, sin campo
+// nuevo en el JSON. El umbral es el de D132 sobre la luminancia relativa de WCAG.
+export type StageTone = 'light' | 'dark'
+
+export const DARK_THEME_LUMINANCE = 0.2
+
+const HEX_COLOR = /^#([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})$/
+
+export function isHexColor(value: string): boolean {
+  return HEX_COLOR.test(value)
+}
+
+// Luminancia relativa de WCAG 2 de un color #RRGGBB, entre 0 y 1. Otro formato lanza: no hay
+// un tono por defecto que adivinar.
+export function relativeLuminance(hex: string): number {
+  const match = HEX_COLOR.exec(hex)
+  if (match === null) {
+    throw new Error(`relativeLuminance: "${hex}" no es un color #RRGGBB.`)
+  }
+  const [r, g, b] = match.slice(1).map((pair) => {
+    const channel = Number.parseInt(pair, 16) / 255
+    return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4
+  })
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+
+export function stageToneOf(bg: string): StageTone {
+  return relativeLuminance(bg) < DARK_THEME_LUMINANCE ? 'dark' : 'light'
+}

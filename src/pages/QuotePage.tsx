@@ -7,7 +7,7 @@ import { buildLeadRow, type LeadContact } from '../core/lead/leadRow'
 import { buildWhatsappMessage } from '../core/lead/whatsapp'
 import { calculatePrice } from '../core/pricing/calculatePrice'
 import { encodeQuoteParams } from '../core/quote/quoteParams'
-import { themeFromClient } from '../core/theme'
+import { stageToneOf, themeFromClient } from '../core/theme'
 import { LeadSection } from '../core/ui/LeadSection'
 import { OptionsPanel } from '../core/ui/OptionsPanel'
 import { PriceBar } from '../core/ui/PriceBar'
@@ -51,7 +51,12 @@ function QuoteScreen({ config }: QuoteScreenProps) {
 
   const brandName = config.brand.name
   const loading = useMemo(
-    () => ({ logo: config.brand.logo, brandName: config.brand.name, label: config.texts.loadingLabel }),
+    () => ({
+      logo: config.brand.logo,
+      brandName: config.brand.name,
+      label: config.texts.loadingLabel,
+      stage: stageToneOf(config.brand.colors.bg),
+    }),
     [config],
   )
   useEffect(() => {

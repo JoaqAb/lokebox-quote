@@ -22,6 +22,7 @@ import type {
   SignTypeOption,
 } from './types'
 import { FINISHES, isFinish } from './preview/finishMaps'
+import { isHexColor } from './theme'
 
 // Validacion de la forma del JSON de cliente en runtime, sin librerias.
 // Si algo falta o no cierra, se lanza con un mensaje que dice que falta y en que cliente.
@@ -659,6 +660,13 @@ export function validateClientConfig(raw: unknown): ClientConfig {
     fail(slug, `cta tiene un valor invalido: "${cta}".`)
   }
 
+  // El tono del escenario sale del fondo (D132): un fondo que no es #RRGGBB no tiene luminancia
+  // y se rechaza al cargar, en lugar de romper el preview.
+  const bg = readString(colors, 'bg', slug, 'brand.colors.bg')
+  if (!isHexColor(bg)) {
+    fail(slug, `brand.colors.bg "${bg}" no es un color #RRGGBB.`)
+  }
+
   const decimals = readNumber(currency, 'decimals', slug, 'currency.decimals')
   if (!Number.isInteger(decimals) || decimals < 0) {
     fail(slug, 'currency.decimals debe ser un entero mayor o igual a 0.')
@@ -689,7 +697,7 @@ export function validateClientConfig(raw: unknown): ClientConfig {
       name: readString(brand, 'name', slug, 'brand.name'),
       logo: readString(brand, 'logo', slug, 'brand.logo'),
       colors: {
-        bg: readString(colors, 'bg', slug, 'brand.colors.bg'),
+        bg,
         primary: readString(colors, 'primary', slug, 'brand.colors.primary'),
         accent: readString(colors, 'accent', slug, 'brand.colors.accent'),
         text: readString(colors, 'text', slug, 'brand.colors.text'),

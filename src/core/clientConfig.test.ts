@@ -133,6 +133,15 @@ describe('validateClientConfig', () => {
   it('falla con un objeto vacio', () => {
     expect(() => validateClientConfig({})).toThrow(/slug/)
   })
+
+  // D132: el tono del escenario sale de brand.colors.bg, que tiene que ser #RRGGBB.
+  it('falla si brand.colors.bg no es #RRGGBB, nombrando el valor y el cliente', () => {
+    for (const value of ['#FFF', 'white', 'rgb(1, 2, 3)']) {
+      const broken = structuredClone(northline)
+      broken.brand.colors.bg = value
+      expect(() => validateClientConfig(broken), value).toThrow(`Cliente "northline": brand.colors.bg "${value}" no es un color #RRGGBB.`)
+    }
+  })
 })
 
 describe('validateClientConfig: photos', () => {

@@ -37,6 +37,8 @@ import type { SignVisual } from './visuals'
 // Desde la version 2.10:
 // - D103, D105: el fondo es el escenario del core (StageBackdrop), claro, y grafito en modo cartel
 //   con el cartel encendido. La franja de controles queda sobre el mismo fondo.
+// Desde la version 2.13 (D132) el tono del escenario lo da el core con la pantalla de carga: con un
+// tema oscuro es grafito fijo en los dos modos.
 // - D107: en lg la foto de vista lleva radio de 14 px y sombra suave hacia abajo; en mobile va a
 //   todo el ancho, sin radio ni sombra.
 
@@ -222,7 +224,7 @@ export function SignPreview({ selection, visual, theme, photos, zoomLabel, signO
         pinchStart.current = null
       }}
     >
-      <StageBackdrop dark={photo === null && visual.lighting.mode !== 'none'} />
+      <StageBackdrop tone={loading.stage} lit={photo === null && visual.lighting.mode !== 'none'} />
 
       <div ref={fitRef} aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 bottom-[var(--q-strip)] lg:inset-x-6 lg:top-6" />
 

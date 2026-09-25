@@ -39,10 +39,10 @@
         "fovDeg": 40
       },
       "light": {
-        "ambient": 0.9,
-        "keyIntensity": 1.2,
-        "keyAzimuthDeg": -25,
-        "keyElevationDeg": 35
+        "ambient": 1.5,
+        "keyIntensity": 0.45,
+        "keyAzimuthDeg": -10,
+        "keyElevationDeg": 30
       }
     },
     {
