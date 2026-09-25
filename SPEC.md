@@ -3,7 +3,7 @@
 Fuente de verdad del alcance. Si algo no está acá, no se construye.
 Este documento se edita, no se contradice. Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 
-Versión: 2.14 · 25/09/2026
+Versión: 2.15 · 25/09/2026
 
 ## 1. Objetivo
 
@@ -825,7 +825,7 @@ Las claves del core no cambian (sección 10). La vertical valida `units`, `optio
 ```
 
 - `styles[].visual.shape`: `"mailer"` (autoarmable, tapa con bisagra atrás), `"two-piece"` (fondo y tapa telescópica) o `"shipping"` (caja de envío con cuatro solapas arriba). `lidDepth`, obligatorio solo en `two-piece`, entre 0 y 1: el alto de la tapa como fracción del alto. Es dato de la escena, como `depthMeters` en carteles: el precio sale de `blank`.
-- `materials[].visual`: la forma de `materials[].visual` de carteles (sección 10) más `thicknessMm`, mayor que 0, el espesor que dibuja la escena.
+- `materials[].visual`: la forma de `materials[].visual` de carteles (sección 10) más `thicknessMm`, mayor que 0, el espesor que dibuja la escena. Desde 2.15 (D152) los números del `visual` del ejemplo son de partida: los finales están en el JSON de cada cliente y se fijan mirando las capturas. Corrugados (kraft y blanco) con un relieve apenas visible, que se lee como cartón y no como revoque; rígido forrado liso, con un brillo suave.
 - `printing[].visual`: `logo` `"none"`, `"accent"` (la silueta del logo en el acento del tema) u `"original"` (sus colores), e `inside`, las caras interiores en el acento.
 - `defaults`: la selección inicial; las medidas salen del `default` de cada range.
 
@@ -862,6 +862,6 @@ Valores de `cajasur` (ARS, decimals 0, cm y m2, `prices_placeholder` true), deri
 - Material: `MeshPhysicalMaterial` desde el `visual`, con los acabados del core. Un acabado nuevo solo si las capturas muestran que los existentes no alcanzan (D124).
 - Impresión (D144): el logo del cliente, rasterizado una vez a `CanvasTexture` desde su archivo, con `dispose` al desmontar, centrado en la cara exterior de la tapa (en shipping, en la cara lateral larga del frente), con un ancho relativo nombrado. Con `accent`, la silueta en el acento del tema; con `original`, sus colores. Con `inside`, las caras interiores en el acento.
 - Sombra de apoyo en el piso y key que proyecta, como el totem en modo cartel.
-- Cámara: la del modo cartel de la sección 12 (fov 30, órbita con los mismos límites, distancia por la huella de la caja de encuadre con 12 por ciento de margen, zoom de 1,0 a 0,55). La caja de encuadre incluye la tapa o las solapas abiertas.
+- Cámara: la del modo cartel de la sección 12 (fov 30, órbita con los mismos límites, distancia por la huella de la caja de encuadre con 12 por ciento de margen, zoom de 1,0 a 0,55). La caja de encuadre incluye la tapa o las solapas abiertas. Desde 2.15 (D151) arranca en tres cuartos y desde arriba, con el arranque que el core acepta por vista: al cargar, sin arrastrar, se ven la cara del logo y dos caras laterales en los tres estilos.
 - Por debajo de lg el alto del preview es 3/4 del ancho, con el tope de 42svh (D98).
 - Ningún hexadecimal en la escena: colores del `visual` y del tema.

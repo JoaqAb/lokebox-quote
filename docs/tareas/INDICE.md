@@ -44,4 +44,5 @@ ejecutaron, que es el orden del historial: TAREA_013 se ejecuto despues de TAREA
 | TAREA_030 | Escenario claro y cartel que se lee blanco | cerrada (D108) | ed79a4e |
 | TAREA_031 | Vitrina nivel 1: tres clientes nuevos de carteleria | cerrada (D129) | 0fd3f8a |
 | TAREA_032 | Contrato de vertical y motor generico | cerrada (D139) | 00e9813 |
-| TAREA_033 | Vertical cajas | cerrada, espera R1 | 691f087 |
+| TAREA_033 | Vertical cajas | R1 parcial (D150), criterio 12 en TAREA_034 | 691f087 |
+| TAREA_034 | Camara de arranque y acabados de cajas | abierta | |
