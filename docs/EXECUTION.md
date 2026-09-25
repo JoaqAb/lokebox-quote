@@ -40,8 +40,8 @@ Cerrado el 24/09 (D129). Las tres demos de la vitrina entraron a la landing (D13
 
 Arranca con TAREA_031 aceptada. Decisiones D119 a D125. Corre en paralelo con el bloque 9. La tarea se escribe en el chat que acepta la anterior, con el código leído, y ese chat edita SPEC 4, 6, 8, 10 y 16 con el contrato real.
 
-- T1 TAREA_032, contrato de vertical y motor genérico (SPEC 2.13: 4.4, 6.3). Fase 0 con los hallazgos visibles de la vitrina (D130 a D132): WhatsApp llega a gracias, escenario grafito con tema oscuro, alba y halcyon por JSON, pares mirados por Joaquín. Después, refactor sin cambio visible ni de datos con la vara de D122 contra la línea base de la fase 1: JSON sin editar, motor idéntico contra snapshot, URLs de hoja publicadas válidas, capturas de vitrina iguales dentro del ruido medido, cero vocabulario de carteles en src/core.
-- T2 TAREA_033, vertical boxes con foldline y cajasur (D123 a D125). Flujo completo en los dos, precio por escalones con tests, logo en la tapa, tapa que abre y cierra, capturas de vitrina de los dos clientes con scripts/vitrina.mjs.
+- T1 TAREA_032, contrato de vertical y motor genérico. Cerrada (D139).
+- T2 TAREA_033, vertical cajas con foldline y cajasur (SPEC 2.14, sección 21; D138 a D145). Fase 0 con el totem de alba (D140) y línea base nueva; fase 1 con lo compartido de la escena pasado al core sin cambio en carteles (D143); fase 2 lógica pura con tests; fase 3 vista, clientes y capturas; fase 4 verificación y deploy. Vara de carteles durante toda la tarea: snapshot, URLs y capturas idénticas a la línea base de la fase 0.
 - R1 Canal B revisa las capturas de cajas contra las de carteles: tienen que parecer del mismo producto.
 - Cierre: docs/STATE.md, y en docs/DECISIONES.md la lista de lo que la segunda vertical obligó a cambiar en el contrato, que es la entrada del bloque 13.
 

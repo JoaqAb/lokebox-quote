@@ -3,13 +3,13 @@
 Fuente de verdad del alcance. Si algo no está acá, no se construye.
 Este documento se edita, no se contradice. Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 
-Versión: 2.13 · 24/09/2026
+Versión: 2.14 · 25/09/2026
 
 ## 1. Objetivo
 
 Cotizador visual interactivo que un negocio pone en su web. El visitante configura lo que necesita, ve un preview 3D que cambia en vivo, obtiene un precio estimado, deja sus datos, y el negocio recibe un lead estructurado.
 
-Primera y única vertical del MVP: cartelería (custom signs).
+Primera y única vertical del MVP: cartelería (custom signs). Desde 2.14 hay una segunda, cajas y packaging a medida (sección 21), que no entra en la landing (D125).
 
 Canales de venta:
 
@@ -91,7 +91,17 @@ Una vertical es un módulo en `src/verticals/<id>/`, en dos partes.
 
 El registro de verticales vive fuera de `src/core`, en `src/app/`, y mapea el campo `vertical` del JSON a las dos partes (D121). `src/core` define los tipos del contrato y no importa de `src/verticals`, `src/clients` ni `src/app`. Las páginas `/d/<slug>` y `/d/<slug>/quote` son las mismas para toda vertical.
 
-El core no tiene vocabulario de ningún rubro: en `src/core`, tests incluidos, no aparecen `totem`, `letters`, `facade`, `signText` ni identificadores `Sign*` (D122).
+El core no tiene vocabulario de ningún rubro: en `src/core`, tests incluidos, no aparecen `totem`, `letters`, `facade`, `signText` ni identificadores `Sign*` (D122). Desde 2.14 tampoco los de cajas: `mailer`, `kraft`, `corrugated`, `BoxSelection`, `BoxesConfig` ni `BoxPrice`.
+
+Desde 2.14 (D145) el contrato dice también lo que TAREA_032 tuvo que cubrir:
+
+- `ClientConfig.json` guarda el JSON del cliente tal cual, y es lo que recibe `validate`.
+- El `texts` del core deja pasar las claves que no son suyas, sin validarlas. `resolveTextKey` resuelve por nombre, contra el `texts` del cliente, las etiquetas de línea y de panel que emite la vertical; `PanelField.labelKey` es un string. Una clave que no existe lanza.
+- `VerticalLogic<C, S, R>`: R es el resultado propio de la vertical, el `PriceResult` de 6.3 más sus claves, y es lo que reciben `breakdownCaption` y `whatsappMessage`.
+- El registro borra los tipos de cada vertical en un solo lugar, `register` de `src/app/verticals.ts`.
+- Mientras baja la vista lazy, el área del preview muestra la pantalla de carga del core.
+- La vista recibe además `logo`, la ruta del logo del cliente (D144). Carteles no lo usa; cajas lo imprime.
+- Una vertical no importa de otra. Lo que dos verticales comparten vive en el core, sin vocabulario de ninguna (D143).
 
 ## 5. Vertical cartelería
 
@@ -288,6 +298,7 @@ Reglas de cálculo:
 - `total` = `subtotal` menos el descuento, redondeado.
 - `min` = total por (1 - rangePct/100), `max` = total por (1 + rangePct/100), redondeados.
 - Si un id de material, iluminación o tipo no existe en las reglas, la función lanza un error con el id inválido en el mensaje. No devuelve un precio silencioso.
+- Un `priceFixed` negativo es config inválida y la validación lo rechaza al cargar (desde 2.14, D138): un recargo que resta sin línea deja un desglose que no suma al total.
 - Cantidad, ancho y alto se asumen ya validados por el panel. Si llegan menores o iguales a cero, la función lanza.
 
 Reglas del modo letters, aditivas y sin tocar nada del modo area:
@@ -542,6 +553,11 @@ Desde 2.11 (D114, D115), tres clientes de vitrina, sin cambios de código, para 
 - `afterglow`, Afterglow Signs: en, USD, pies, precio `range`, CTA WhatsApp, tema oscuro.
 - `alba`, Rótulos Alba: es-ES, EUR, metros, precio `hidden`, CTA los dos, cálido, con totem.
 
+Desde 2.14 (D125), dos clientes de la vertical cajas, fuera de la landing:
+
+- `foldline`, Foldline Packaging: en, USD, pulgadas, precio `range`, CTA los dos.
+- `cajasur`, Caja Sur: es-AR, ARS, centímetros, precio `range`, CTA WhatsApp.
+
 Desde 1.16 esta sección dice lo que los JSON ya tienen: los dos clientes de la demo usan paleta clara, y la estética oscura de northline no existe desde hace varias versiones.
 
 Sin marcas reales, sin fotos reales, sin logos de terceros.
@@ -657,7 +673,7 @@ El cliente entrega antes de empezar: logo, colores, WhatsApp o mail, y sus regla
 
 CRM, auth, usuarios, multi-tenant, panel de administración, permisos, integraciones, email transaccional, generación de PDF en servidor, modelos 3D importados, editor visual del JSON, un cuarto tipo de cartel, más de dos verticales.
 
-Desde 2.12 (D119) la segunda vertical, cajas, está en alcance del bloque 12. Desde 2.13 el contrato de vertical está en 4.4, la composición del precio en 6.3, las claves de la hoja en 8 y la partición del JSON en 10. La forma de cajas entra con TAREA_033.
+Desde 2.12 (D119) la segunda vertical, cajas, está en alcance del bloque 12. Desde 2.13 el contrato de vertical está en 4.4, la composición del precio en 6.3, las claves de la hoja en 8 y la partición del JSON en 10. Desde 2.14 la vertical cajas está en la sección 21.
 
 Desde 2.0 (D45) no están fuera de alcance el postprocesado, los assets descargados en runtime ni los typefaces: los regula la sección 12.
 
@@ -701,3 +717,151 @@ El detalle de bloques, tareas y criterios está en docs/EXECUTION.md.
 ## 20. Métrica de la semana siguiente
 
 30 mensajes por WhatsApp. Objetivo: 5 respuestas y 1 llamada. Con eso se decide seguir, cambiar de nicho o pausar.
+
+## 21. Vertical cajas (desde 2.14)
+
+Módulo `src/verticals/boxes/`, id `boxes`, con el contrato de 4.4 (D119, D123 a D125, D141 a D144). Cajas y packaging a medida. Sin fotos y sin modo vista: el preview es solo el estudio.
+
+### 21.1 Selección y panel
+
+```ts
+type BoxSelection = {
+  style: string;       // id de estilo
+  length: number;      // medidas interiores, en la unidad de largo del cliente
+  width: number;
+  height: number;
+  materialId: string;
+  printingId: string;
+  quantity: number;    // uno de los escalones de quantities
+};
+```
+
+Panel en cinco pasos: estilo (choice); medidas interiores, con título `dimensionsLabel` y largo, ancho y alto como range con la unidad; material (choice con swatch del color de su `visual`); impresión (choice); cantidad (choice, un botón por escalón, con el número formateado con Intl y el locale del cliente).
+
+`materials[].styles` es opcional: sin la clave el material vale para todos los estilos; con la clave, solo para esos. El panel muestra solo los materiales del estilo elegido. Si al cambiar de estilo el material elegido no vale, pasa al primero que vale, en el orden del JSON. La validación exige que cada estilo tenga al menos un material y que el default sea coherente.
+
+### 21.2 Precio
+
+Unidades: `units.length` `"in"` con `units.area` `"sqft"`, o `"cm"` con `"m2"`. Otra combinación falla al cargar. Conversión fija: pulgada cuadrada sobre 144 da sqft, centímetro cuadrado sobre 10000 da m2.
+
+Plancha desplegada (D142): cada estilo declara en `blank` una o más piezas rectangulares. Cada lado de una pieza es `{ l, w, h, add }` y vale `l` por largo más `w` por ancho más `h` por alto más `add`, con `add` en la unidad de largo del cliente. Área de plancha por caja: la suma de largo por ancho de cada pieza, pasada a la unidad de área.
+
+Componentes por caja, en este orden:
+
+1. `material`: área de plancha por `pricePerArea` del material. Clave `lineMaterial`. Entra siempre.
+2. `printing`: área de plancha por `pricePerArea` de la impresión. El precio de cada opción ya dice qué caras imprime: la de exterior e interior lo trae por las dos. Clave `linePrinting`. Entra siempre, en 0 sin impresión.
+3. `assembly`: `assembly` del estilo, fijo por caja. Clave `lineAssembly`. Entra solo si es mayor que 0.
+
+Por pedido: `setup`, el `setup` de la impresión. Clave `lineSetup`. Entra solo si es mayor que 0. No se multiplica por la cantidad ni se descuenta (6.3).
+
+Escalones (D141): `quantities` es una lista `{ qty, pct }` con `qty` y `pct` estrictamente crecientes y el primer `pct` en 0. La cantidad solo puede ser uno de esos `qty`. Pasan a `composePrice` como `discounts` con `minQty` igual a `qty`: el factor del escalón de D123 es 1 menos pct/100 sobre el precio del escalón mínimo, y se ve como la línea de descuento del core. `rangePct` como en carteles.
+
+Resultado: el `PriceResult` de 6.3 más `blankArea`, el área de plancha por caja sin redondear. `detailValues` de material e impresión: `{ id, blankArea, unitPrice }`, que `lineDetail` formatea como área con su unidad por precio con su moneda; armado y preparación sin detalle. `breakdownCaption` es `perBoxCaption` con `{quantity}` formateado: dice que las líneas son por caja y la preparación por pedido.
+
+Mismas prohibiciones de pureza que 6.1. Un id que no existe, un material que no vale para el estilo, una medida fuera de rango o una cantidad fuera de los escalones lanza con el valor en el mensaje.
+
+### 21.3 Hoja, lead y WhatsApp
+
+Claves de la hoja, en este orden y todas siempre: `s` estilo, `l` largo, `w` ancho, `h` alto, `m` material, `p` impresión, `q` cantidad. Punto decimal. Las reglas de la sección 8 valen igual: un material que no vale para el estilo o una `q` fuera de los escalones es un link inválido.
+
+Filas de la hoja: estilo; medidas interiores como largo por ancho por alto con la unidad, formateadas con Intl; material; impresión; cantidad.
+
+`leadSelection`: `{ style, length, width, height, unit, materialId, printingId, quantity }`.
+
+`whatsappMessage`: plantilla con `{style}`, `{length}`, `{width}`, `{height}`, `{unit}`, `{material}`, `{printing}`, `{quantity}`, `{min}` y `{max}`. `whatsappMessageHidden`: la misma sin `{min}` ni `{max}`, condicional como en carteles (sección 10): se exige solo con `hidden` y un CTA que incluya WhatsApp.
+
+### 21.4 JSON
+
+Las claves del core no cambian (sección 10). La vertical valida `units`, `options` y sus claves de `texts`. Un cliente de cajas no lleva `photos`.
+
+```json
+{
+  "vertical": "boxes",
+  "units": { "length": "in", "area": "sqft" },
+  "options": {
+    "styles": [
+      {
+        "id": "mailer", "label": "Mailer box", "assembly": 0.25,
+        "blank": [{ "length": { "l": 1, "w": 0, "h": 4, "add": 1 }, "width": { "l": 0, "w": 2, "h": 3, "add": 1.5 } }],
+        "visual": { "shape": "mailer" }
+      },
+      {
+        "id": "two-piece", "label": "Lid and base", "assembly": 0.6,
+        "blank": [
+          { "length": { "l": 1, "w": 0, "h": 2, "add": 0.25 }, "width": { "l": 0, "w": 1, "h": 2, "add": 0.25 } },
+          { "length": { "l": 1, "w": 0, "h": 0.8, "add": 0.5 }, "width": { "l": 0, "w": 1, "h": 0.8, "add": 0.5 } }
+        ],
+        "visual": { "shape": "two-piece", "lidDepth": 0.4 }
+      },
+      {
+        "id": "shipping", "label": "Shipping box", "assembly": 0.1,
+        "blank": [{ "length": { "l": 2, "w": 2, "h": 0, "add": 1.5 }, "width": { "l": 0, "w": 1, "h": 1, "add": 0.25 } }],
+        "visual": { "shape": "shipping" }
+      }
+    ],
+    "length": { "min": 4, "max": 24, "step": 0.5, "default": 10 },
+    "width": { "min": 3, "max": 18, "step": 0.5, "default": 8 },
+    "height": { "min": 1, "max": 12, "step": 0.5, "default": 4 },
+    "materials": [
+      {
+        "id": "kraft", "label": "Kraft corrugated", "pricePerArea": 0.35,
+        "visual": {
+          "color": "#B8895A", "finish": "foam", "metalness": 0, "roughness": 0.95,
+          "specularIntensity": 0.25, "clearcoat": 0, "clearcoatRoughness": 0,
+          "anisotropy": 0, "normalScale": 0.35, "translucency": 0, "thicknessMm": 3
+        }
+      },
+      { "id": "rigid", "label": "Rigid, paper-wrapped", "pricePerArea": 1.6, "styles": ["two-piece"], "visual": { "...": "igual forma" } }
+    ],
+    "printing": [
+      { "id": "none", "label": "No print", "pricePerArea": 0, "setup": 0, "visual": { "logo": "none", "inside": false } },
+      { "id": "one", "label": "1 color, outside", "pricePerArea": 0.15, "setup": 60, "visual": { "logo": "accent", "inside": false } }
+    ],
+    "quantities": [{ "qty": 50, "pct": 0 }, { "qty": 100, "pct": 10 }, { "qty": 250, "pct": 20 }],
+    "defaults": { "style": "mailer", "materialId": "kraft", "printingId": "one", "quantity": 250 },
+    "rangePct": 10
+  }
+}
+```
+
+- `styles[].visual.shape`: `"mailer"` (autoarmable, tapa con bisagra atrás), `"two-piece"` (fondo y tapa telescópica) o `"shipping"` (caja de envío con cuatro solapas arriba). `lidDepth`, obligatorio solo en `two-piece`, entre 0 y 1: el alto de la tapa como fracción del alto. Es dato de la escena, como `depthMeters` en carteles: el precio sale de `blank`.
+- `materials[].visual`: la forma de `materials[].visual` de carteles (sección 10) más `thicknessMm`, mayor que 0, el espesor que dibuja la escena.
+- `printing[].visual`: `logo` `"none"`, `"accent"` (la silueta del logo en el acento del tema) u `"original"` (sus colores), e `inside`, las caras interiores en el acento.
+- `defaults`: la selección inicial; las medidas salen del `default` de cada range.
+
+Claves de `texts` de cajas, 17: `styleLabel`, `dimensionsLabel`, `lengthLabel`, `widthLabel`, `heightLabel`, `materialLabel`, `printingLabel`, `quantityLabel`, `previewZoomLabel`, `viewClosed`, `viewOpen`, `lineMaterial`, `linePrinting`, `lineAssembly`, `lineSetup`, `perBoxCaption`, `whatsappMessage`. Más `whatsappMessageHidden`, condicional. Varias se llaman igual que claves de carteles: el `texts` es plano y cada vertical valida las suyas.
+
+Valores de `foldline` (USD, decimals 2, pulgadas y sqft, `prices_placeholder` false): los del ejemplo, y además:
+
+| Concepto | Valor |
+|---|---|
+| White corrugated | 0.50 por sqft, todos los estilos |
+| Kraft corrugated | 0.35, todos los estilos |
+| Rigid, paper-wrapped | 1.60, solo two-piece |
+| Full color, outside | 0.45 por sqft, setup 120 |
+| Full color, inside and out | 0.80 por sqft, setup 180 |
+| Escalones | 50 / 100 / 250 / 500 / 1000 con 0 / 10 / 20 / 28 / 35 por ciento |
+
+Valores de `cajasur` (ARS, decimals 0, cm y m2, `prices_placeholder` true), derivados de los de foldline con dólar 1500 y factor 0,45 como en 5.5:
+
+| Concepto | Valor |
+|---|---|
+| Estilos | Mailer autoarmable 170, Tapa y fondo 410, Caja de envío 70 de armado |
+| `add` de plancha, en cm | mailer 2,5 y 4; tapa y fondo 0,6 en el fondo y 1,2 en la tapa; envío 4 y 0,6 |
+| Kraft corrugado / Blanco corrugado / Rígido forrado | 2500 / 3600 / 11600 por m2; rígido solo en tapa y fondo |
+| Sin impresión / 1 color exterior / Full color exterior / Full color exterior e interior | 0 / 1100 / 3300 / 5800 por m2; preparación 0 / 40000 / 81000 / 122000 |
+| Medidas | largo 10 a 60, ancho 8 a 45, alto 3 a 30, paso 1; default 30 x 20 x 15 |
+| Escalones y rango | los de foldline; rangePct 10 |
+| Defaults | caja de envío, kraft, 1 color exterior, 100 |
+
+### 21.5 Preview
+
+- Solo estudio: el escenario del core (D103, D132), la luz de estudio de carteles sin iluminación, el entorno y el pipeline del core. Nada emite, así que la selección del bloom queda vacía.
+- Geometría paramétrica por `shape`, con las medidas interiores pasadas a metros (0,0254 por pulgada, 0,01 por centímetro) y el espesor del material. Cantos con un radio chico nombrado. Sin modelos importados.
+- Abierta y cerrada: control segmentado en la franja de controles del preview (D98, D100), con `viewClosed` y `viewOpen`, cerrada al cargar, transición suave. No es selección: no cambia el precio y no va a la URL ni al lead. El mailer abre la tapa por la bisagra, two-piece levanta la tapa y la corre al costado, shipping abre las cuatro solapas.
+- Material: `MeshPhysicalMaterial` desde el `visual`, con los acabados del core. Un acabado nuevo solo si las capturas muestran que los existentes no alcanzan (D124).
+- Impresión (D144): el logo del cliente, rasterizado una vez a `CanvasTexture` desde su archivo, con `dispose` al desmontar, centrado en la cara exterior de la tapa (en shipping, en la cara lateral larga del frente), con un ancho relativo nombrado. Con `accent`, la silueta en el acento del tema; con `original`, sus colores. Con `inside`, las caras interiores en el acento.
+- Sombra de apoyo en el piso y key que proyecta, como el totem en modo cartel.
+- Cámara: la del modo cartel de la sección 12 (fov 30, órbita con los mismos límites, distancia por la huella de la caja de encuadre con 12 por ciento de margen, zoom de 1,0 a 0,55). La caja de encuadre incluye la tapa o las solapas abiertas.
+- Por debajo de lg el alto del preview es 3/4 del ancho, con el tope de 42svh (D98).
+- Ningún hexadecimal en la escena: colores del `visual` y del tema.
