@@ -42,5 +42,9 @@ Cerrado el 25/09 (D153) con TAREA_032, TAREA_033 y TAREA_034. La lista de lo que
 
 ## Bloque 13 · Kit y agente
 
-Arranca con TAREA_033 cerrada (D126). docs/verticales/KIT.md desde el contrato real, subagente en .claude/agents/vertical-builder.md y prueba con muebles a medida. Vara: la tercera vertical cierra con una sola ronda de correcciones. Las tareas se escriben al cerrar el bloque 12.
+Decisiones D126 y D156 a D162. Dos tareas en orden (D156).
+
+- TAREA_035, kit, agente y deudas del core: encuadre de estudio con la franja (D155, D160), leyenda del desglose en la hoja (D158), formatInteger (D159), docs/verticales/KIT.md, docs/verticales/BRIEF_PLANTILLA.md y .claude/agents/vertical-builder.md (D161). Criterios en la tarea.
+- TAREA_036, prueba con muebles a medida: Canal B escribe el brief con la plantilla y la seccion de SPEC; el subagente arma la vertical en una sesion limpia. Vara de D126: cierra con una sola ronda de correcciones de Canal B. Se escribe al cerrar TAREA_035.
+- Cierre del bloque: docs/STATE.md con el conteo de rondas de TAREA_036 y lo que el kit tuvo que corregir.
 

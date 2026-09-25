@@ -4,21 +4,20 @@
 
 ## Bloque actual
 
-- Bloque 12 cerrado (D153): TAREA_033 y TAREA_034 aceptadas, SPEC 2.16. Falta solo el Canal C de leads (Bloqueos). Bloque 9 sigue en paralelo (CANAL_C_BLOQUE9.md).
+- Bloque 13 abierto (D126, D156): TAREA_035 escrita por Code desde el brief de Canal B, con SPEC 2.17, D156 a D165, EXECUTION y este STATE en el commit de apertura. Fase 1 en curso; frena con los pares para Joaquin. Bloque 9 sigue en paralelo (CANAL_C_BLOQUE9.md).
 
 ## Ultimo cerrado
 
-Revision de TAREA_034 y cierre del bloque 12. Joaquin dio su visto en desktop y celular. Hallazgo para el bloque 13: en mobile la pastilla de controles roza el canto de la caja (D155).
+Bloque 12 (D153, f857820). Hallazgo D155 resuelto en TAREA_035 (D160).
 
 ## Proximo
 
-1. Joaquin borra las filas de prueba de leads (Canal C, abajo) y confirma el conteo.
-2. Commit de docs del cierre del bloque 12.
-3. Bloque 13 (D126): Canal B escribe TAREA_035 con la lista de DECISIONES (lineas de TAREA_033 y TAREA_034, y D155).
+1. Code ejecuta la fase 1 de TAREA_035 y frena con los pares de 1.4; las fases 2 y 3 y el cierre siguen con el ok de Joaquin.
+2. Canal B escribe TAREA_036 (muebles a medida, brief con la plantilla del kit).
 
 ## Bloqueos
 
-Pendientes D18 y D30. Filas de prueba en leads, las borra Canal C: formulario "Vitrina Test" (TAREA_031), "Refactor Test", "Cajas Test" y "Camara Test"; WhatsApp sin nombre de afterglow, alba y northline entre 03:13 y 03:59 UTC, y de foldline, cajasur y afterglow entre 05:41 y 05:43 y entre 06:32 y 06:34 UTC, todo del 25/09.
+Pendientes D18 y D30.
 
 ## Comando para retomar
 

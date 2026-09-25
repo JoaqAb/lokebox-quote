@@ -3,13 +3,13 @@
 Fuente de verdad del alcance. Si algo no está acá, no se construye.
 Este documento se edita, no se contradice. Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 
-Versión: 2.16 · 25/09/2026
+Versión: 2.17 · 25/09/2026
 
 ## 1. Objetivo
 
 Cotizador visual interactivo que un negocio pone en su web. El visitante configura lo que necesita, ve un preview 3D que cambia en vivo, obtiene un precio estimado, deja sus datos, y el negocio recibe un lead estructurado.
 
-Primera y única vertical del MVP: cartelería (custom signs). Desde 2.14 hay una segunda, cajas y packaging a medida (sección 21), que no entra en la landing (D125).
+Primera y única vertical del MVP: cartelería (custom signs). Desde 2.14 hay una segunda, cajas y packaging a medida (sección 21), que no entra en la landing (D125). Desde 2.17 (D156, D161) el bloque 13 suma el kit de verticales, `docs/verticales/KIT.md`, con su plantilla de brief y un subagente de Claude Code, y una tercera vertical, muebles a medida, que se especifica con su brief en TAREA_036.
 
 Canales de venta:
 
@@ -102,6 +102,8 @@ Desde 2.14 (D145) el contrato dice también lo que TAREA_032 tuvo que cubrir:
 - Mientras baja la vista lazy, el área del preview muestra la pantalla de carga del core.
 - La vista recibe además `logo`, la ruta del logo del cliente (D144). Carteles no lo usa; cajas lo imprime.
 - Una vertical no importa de otra. Lo que dos verticales comparten vive en el core, sin vocabulario de ninguna (D143).
+
+Desde 2.17 (D157) el contrato no cambia por `breakdownCaption`: lo que la leyenda necesite de la selección viaja en R, como `quantity` en cajas (D146). La forma de armar una vertical sobre este contrato está en `docs/verticales/KIT.md`, que se escribe desde el código y no lo contradice: si difieren, manda esta sección y el kit se corrige.
 
 ## 5. Vertical cartelería
 
@@ -317,6 +319,8 @@ Formato fijo de `detail` en modo letters: material `letras x altura x precio x f
 
 El formateo de moneda vive aparte, en `src/core/pricing/format.ts`, con `Intl.NumberFormat` y el locale del cliente. Desde 2.13 el detalle visible de las líneas de carteles (área por precio, letras por alto por precio por factor) lo arma la vertical con los formateadores del core; el core formatea solo el porcentaje del descuento.
 
+Desde 2.17 (D159) `format.ts` suma `formatInteger(value, locale)`, con cero decimales y el locale del cliente, para cantidades y conteos. Un valor no entero o no finito lanza: nunca redondea en silencio. Una cantidad no se formatea con `formatLength`, que es para medidas con unidad.
+
 `CurrencyConfig` de la sección 10 tiene una clave más que el `currency` de `PriceRules`: `display`, opcional, `"symbol" | "code"`. El bloque de tipos de arriba no la lleva a propósito. El motor no formatea, así que no tiene nada que hacer con ella: `priceRulesFromClient` la omite al armar las reglas y `display` viaja solo hasta `formatCurrency`. Es la misma razón por la que `symbol` y `decimals` están en las reglas pero no se usan para calcular.
 
 ### 6.3 Composición del precio (core, desde 2.13, D134)
@@ -422,7 +426,7 @@ Etapas de implementación:
 - Parámetros faltantes o inválidos (clave ausente, id que no existe, medida fuera de rango, cantidad no entera) muestran la pantalla de error. No se completan con los defaults del cliente: una hoja con un precio que el visitante nunca configuró es peor que un error. El paso del slider no se valida: un valor intermedio se cotiza tal cual.
 - La hoja no escribe nada: ni lead ni visita.
 - Marca del cliente: logo, nombre, contacto.
-- Selección completa con nombres legibles, en las filas que arma la vertical con `sheetRows`, y desglose por concepto, total y rango.
+- Selección completa con nombres legibles, en las filas que arma la vertical con `sheetRows`, y desglose por concepto, total y rango. Desde 2.17 (D158) la plantilla con precio muestra `breakdownCaption` encima del desglose, igual que el cotizador, en toda vertical; si la vertical devuelve null no hay línea. En carteles es la línea de área del modo area; en cajas, que las líneas son por caja y la preparación por pedido.
 - Fecha, validez (texto del JSON) y disclaimer.
 - Una página A4 o carta, estilos `@media print`, sin librerías de PDF. La exportación la hace el navegador con imprimir a PDF. Los controles de la hoja (imprimir, volver) no se imprimen.
 - Dos plantillas, según el modo de visibilidad de la sección 6.2: con precio, y brief de pedido sin precio. Las dos comparten marca, selección, fecha y validez; la segunda no lleva desglose, total ni rango.
@@ -573,6 +577,7 @@ El selector de vistas es una fila de botones: el primero es el modo cartel, con 
 
 Cámara en perspectiva en los dos modos. Motivo: la ortográfica de 1.9 dibujaba el cartel de frente sobre fotos tomadas en tres cuartos, y girar el cartel no reproduce la fuga de una foto. Se orbita la cámara alrededor del cartel; el cartel no se rota nunca.
 
+- Encuadre de estudio y franja (desde 2.17, D155, D160): en el modo de estudio, el modo cartel y toda vertical sin fotos, la franja de controles se superpone al canvas. El encuadre descuenta su alto: la huella, con el margen de siempre, se encuadra en el rectángulo visible, el canvas menos la franja, y queda centrada en él. El corrimiento lo hace la proyección de la cámara (view offset), no el target ni la posición. El alto de la franja lo mide el core; nunca es un número fijo. El canvas sigue llenando la zona. En modo vista no aplica: la franja va debajo de la foto.
 - Modo cartel: `fov` 30. Target en el centro de la caja de encuadre: la del cartel, o desde 1.15 la del totem completo con panel, poste y base. Distancia (desde 1.13): se deriva en cada frame de la huella proyectada de la caja del cartel (ancho, alto y espesor) con la orientación actual de la cámara, con damp, y 12 por ciento de margen por lado. En modo letters la caja es la del conjunto de letras, no la de una. En el tipo `totem` la caja incluye poste y base. No se usa la esfera contenedora ni un margen fijo: la esfera dimensiona para el peor caso y achica el cartel en la vista frontal, que es la que se ve al cargar. `OrbitControls` con azimut libre de 360 grados, ángulo polar entre 0,6 y 1,5 rad (nunca desde abajo), sin paneo, sin zoom de rueda y sin autorotación. Luz de estudio propia del modo (desde 1.13): el entorno de estudio más una key, con constantes nombradas en el código. No va al JSON del cliente: es del producto, no de un cliente. Desde 2.10 (D104), con iluminación none el estudio prende las luces: más key y luz ambiente, con el entorno igual, para que el cartel se lea del color del JSON (el PVC, casi blanco); con front o back vuelve a la luz de siempre.
 - Modo vista: la cámara sale del anchor de la foto. Se ubica en `cameraYawDeg` y `cameraPitchDeg` alrededor del cartel, con `fovDeg` como campo vertical, a la distancia en la que un metro de cartel ocupa `metersToWidth` del ancho de la foto. El centro del cartel cae en (`x`, `y`) de la foto con un corrimiento de la vista de la cámara (lens shift), no moviendo el cartel. Con el tipo `totem` (desde 1.15) la distancia y el corrimiento salen de `anchorGround`, y el punto que cae en (`x`, `y`) es el apoyo de la base; los ángulos y el fov siguen saliendo del `anchor`. El canvas cubre el cuadro entero. Desde 2.6 (D81) la cámara no orbita ni corre la vista: toma la orientación y el `fovDeg` del `anchor`, con `cameraPitchDeg` 0 como mirada horizontal, y se ubica de modo que el anclaje (el centro del cartel, o el apoyo del tótem) caiga en su (`x`, `y`) de la foto fuera del eje, a la profundidad en la que un metro ocupa `metersToWidth` del ancho. La altura de la cámara sale de esos datos, sin campo nuevo: con pitch 0 el tótem queda con la cámara a unos 1,84 m del piso en northline y 2,04 m en norte. Vale para los tres tipos. Corrige la decisión del 14/09: pitch 0 es mirar horizontal, no estar a la altura del piso.
 
@@ -671,7 +676,7 @@ El cliente entrega antes de empezar: logo, colores, WhatsApp o mail, y sus regla
 
 ## 16. Fuera de alcance
 
-CRM, auth, usuarios, multi-tenant, panel de administración, permisos, integraciones, email transaccional, generación de PDF en servidor, modelos 3D importados, editor visual del JSON, un cuarto tipo de cartel, más de dos verticales.
+CRM, auth, usuarios, multi-tenant, panel de administración, permisos, integraciones, email transaccional, generación de PDF en servidor, modelos 3D importados, editor visual del JSON, un cuarto tipo de cartel, más de tres verticales (hasta 2.16, más de dos; la tercera entra por D126 y D156).
 
 Desde 2.12 (D119) la segunda vertical, cajas, está en alcance del bloque 12. Desde 2.13 el contrato de vertical está en 4.4, la composición del precio en 6.3, las claves de la hoja en 8 y la partición del JSON en 10. Desde 2.14 la vertical cajas está en la sección 21.
 
