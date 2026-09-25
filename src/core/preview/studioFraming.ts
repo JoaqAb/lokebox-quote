@@ -1,7 +1,7 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { useLayoutEffect, useMemo, useRef, type RefObject } from 'react'
-import { MathUtils, Vector3, type PerspectiveCamera as PerspectiveCameraImpl } from 'three'
-import { STUDIO_VIEW, approach, frameDistance, orbitPosition, type FrameVolume, type Vec3 } from './studioView'
+import { Vector3, type PerspectiveCamera as PerspectiveCameraImpl } from 'three'
+import { STUDIO_VIEW, approach, frameDistance, startDirection, type FrameVolume, type StudioStart, type Vec3 } from './studioView'
 
 // Encuadre del modo de estudio (SPEC 12 y 21.5): la distancia derivada en cada frame de la huella
 // de la caja de encuadre, que el zoom multiplica. Lo usan StudioCamera y las vistas con otros
@@ -14,13 +14,22 @@ export type StudioFrame = {
   // Multiplicador de la distancia, entre STUDIO_VIEW.nearFactor y 1.
   zoom: number
   reducedMotion: boolean
+  // Arranque de la vista (D151). Sin el, de frente y apenas por encima.
+  start?: StudioStart
 }
 
 // Encuadre del modo de estudio sobre una camara ya montada. active es si la camara esta en modo
-// de estudio: al entrar va de frente, apenas por encima, y el primer frame pone posicion y
-// distancia de golpe. Cambiar la pieza no le devuelve el azimut al frente.
+// de estudio: al entrar va al arranque de la vista, o de frente y apenas por encima, y el primer
+// frame pone posicion y distancia de golpe. Cambiar la pieza no devuelve la camara al arranque.
 export function useStudioFraming(cameraRef: RefObject<PerspectiveCameraImpl | null>, frame: StudioFrame, active: boolean): void {
-  const { volume, center, zoom, reducedMotion } = frame
+  const { volume, center, zoom, reducedMotion, start } = frame
+  // Se calcula en el render: un arranque fuera de la orbita lanza antes de montar la escena.
+  const azimuth = start?.azimuthDeg
+  const polar = start?.polar
+  const first = useMemo(
+    () => startDirection(azimuth === undefined || polar === undefined ? undefined : { azimuthDeg: azimuth, polar }),
+    [azimuth, polar],
+  )
   // Distancia aplicada en el frame anterior; null al entrar al modo de estudio, que va de golpe.
   const distanceRef = useRef<number | null>(null)
   const direction = useMemo(() => new Vector3(), [])
@@ -50,7 +59,7 @@ export function useStudioFraming(cameraRef: RefObject<PerspectiveCameraImpl | nu
     }
     const current = distanceRef.current
     if (current === null) {
-      direction.set(...orbitPosition(0, 90 - MathUtils.radToDeg(STUDIO_VIEW.startPolar), 1))
+      direction.set(...first)
     } else {
       direction.copy(camera.position).sub(target).normalize()
     }

@@ -4,6 +4,7 @@ import {
   STUDIO_VIEW,
   frameDistance,
   orbitPosition,
+  startDirection,
   studioZoomFactor,
   zoomBy,
   zoomFromPinch,
@@ -124,5 +125,32 @@ describe('zoom del preview (version 2.8, D91 y D92)', () => {
     expect(zoomFromPinch(1, 100, 200, range)).toBe(2)
     expect(zoomFromPinch(2, 100, 20, range)).toBe(1)
     expect(zoomFromPinch(1.5, 0, 50, range)).toBe(1.5)
+  })
+})
+
+describe('arranque de la camara por vista (D151)', () => {
+  it('sin arranque, la direccion es exactamente la de siempre: de frente con startPolar', () => {
+    expect(startDirection()).toStrictEqual(orbitPosition(0, 90 - (STUDIO_VIEW.startPolar * 180) / Math.PI, 1))
+    const [x, y, z] = startDirection()
+    expect(x).toBe(0)
+    expect(y).toBeCloseTo(Math.cos(STUDIO_VIEW.startPolar), 12)
+    expect(z).toBeCloseTo(Math.sin(STUDIO_VIEW.startPolar), 12)
+  })
+
+  it('con arranque, la direccion es la de orbitPosition con ese azimut y ese polar', () => {
+    const polar = 1
+    expect(startDirection({ azimuthDeg: 35, polar })).toStrictEqual(orbitPosition(35, 90 - (polar * 180) / Math.PI, 1))
+    const [x, y, z] = startDirection({ azimuthDeg: 35, polar })
+    expect(y).toBeCloseTo(Math.cos(polar), 12)
+    expect(x).toBeCloseTo(Math.sin(polar) * Math.sin((35 * Math.PI) / 180), 12)
+    expect(z).toBeCloseTo(Math.sin(polar) * Math.cos((35 * Math.PI) / 180), 12)
+  })
+
+  it('un polar fuera de la orbita lanza con el valor en el mensaje', () => {
+    expect(() => startDirection({ azimuthDeg: 0, polar: 0.5 })).toThrow(/0\.5/)
+    expect(() => startDirection({ azimuthDeg: 0, polar: 1.6 })).toThrow(/1\.6/)
+    expect(() => startDirection({ azimuthDeg: 0, polar: Number.NaN })).toThrow(/NaN/)
+    expect(() => startDirection({ azimuthDeg: 0, polar: STUDIO_VIEW.minPolar })).not.toThrow()
+    expect(() => startDirection({ azimuthDeg: 0, polar: STUDIO_VIEW.maxPolar })).not.toThrow()
   })
 })

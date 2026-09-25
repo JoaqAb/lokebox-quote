@@ -101,6 +101,24 @@ export function orbitPosition(yawDeg: number, pitchDeg: number, distance: number
   ]
 }
 
+// Arranque de la camara de estudio por vista (D151): azimut en grados desde el frente, positivo a
+// la derecha, y polar en radianes desde la vertical. Sin arranque, el de siempre: de frente y
+// apenas por encima, con STUDIO_VIEW.startPolar.
+export type StudioStart = { azimuthDeg: number; polar: number }
+
+// Direccion unitaria de la pieza hacia la camara en el primer frame. El polar tiene que caer
+// dentro de la orbita: fuera de minPolar y maxPolar, OrbitControls lo corregiria en el primer
+// arrastre con un salto.
+export function startDirection(start?: StudioStart): Vec3 {
+  if (start === undefined) {
+    return orbitPosition(0, 90 - MathUtils.radToDeg(STUDIO_VIEW.startPolar), 1)
+  }
+  if (!(start.polar >= STUDIO_VIEW.minPolar && start.polar <= STUDIO_VIEW.maxPolar)) {
+    throw new Error(`startDirection: polar fuera de la orbita: ${String(start.polar)}`)
+  }
+  return orbitPosition(start.azimuthDeg, 90 - MathUtils.radToDeg(start.polar), 1)
+}
+
 // Zoom del preview (SPEC 12): el control va de min a max en pasos de step.
 export const PREVIEW_ZOOM = { min: 1, max: 2.5, step: 0.25 } as const
 
