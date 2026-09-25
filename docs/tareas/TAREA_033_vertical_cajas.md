@@ -108,3 +108,54 @@ Fase 4:
 Commits: apertura de docs (esta tarea, SPEC 2.14, DECISIONES D138 a D145, EXECUTION, INDICE y STATE, escritos en disco sin commitear), fase 0 (codigo, despues fixture y linea base), fase 1, fase 2, fase 3 (uno o varios), cierre de docs. STATE, INDICE con la fila de TAREA_033, _ULTIMO en 034 y DECISIONES con lo decidido durante la tarea, una linea cada una. En DECISIONES, ademas, la lista de lo que cajas obligo a cambiar en el contrato o en el core, si hubo algo: es la entrada del bloque 13 (KIT.md).
 
 Reporte a Canal B con tope de 15 lineas mas las tablas (capturas de carteles contra la linea base, casos de la matriz de query por cliente, entradas cambiadas del fixture en la fase 0): hashes, criterios uno por uno, y hallazgos. El reporte completo va tambien a una seccion "Resultado" al final de este archivo, dentro del commit de cierre. Si la tarea se frena, el reporte del freno va igual a esa seccion, en un commit de docs, y no se sigue.
+
+## Resultado
+
+FRENADA en la fase 2, antes de escribir codigo de cajas. Fases 0 y 1 cerradas y verificadas. Commits locales, sin push: push a main es deploy a prod y el cambio de alba sale en vivo.
+
+1. Freno (contrato y SPEC 21): SPEC.md:759 pide que `breakdownCaption` sea `perBoxCaption` con `{quantity}` formateado, pero la firma es `breakdownCaption(config, result)` (SPEC.md:85 y 100, src/core/vertical.ts:43, src/pages/QuotePage.tsx:133) y SPEC.md:759 define el resultado como el `PriceResult` de 6.3 mas `blankArea`, sin la cantidad. Sacarla de `subtotal / unitTotal` es un parche (redondeo de punto flotante, y sin salida si unitTotal da 0). SUGERENCIA A, sin tocar el contrato: 21.2 suma `quantity` al resultado de cajas, que 4.4 ya permite (SPEC.md:83, claves propias de la vertical). SUGERENCIA B: la firma pasa a `breakdownCaption(config, selection, result)`, cambio de contrato que toca core y carteles y es entrada del bloque 13. Recomiendo A.
+2. Fase 0: totem de alba medido con el canvas solo sobre la foto (validacion/vitrina/033-fase0/medir.mjs), default y portada, dia y noche, 1440 y 390: x de 0,114 a 0,337, y de 0,328 a 0,855. Margen minimo 11 por ciento, base sobre la vereda, puerta libre (arranca en x 0,437) y borde superior del panel por debajo del dintel (y 0,287). x, y y wallY sin cambios. Pares en validacion/vitrina/033-fase0/antes y despues, alba 01 a 06.
+3. Fixture: el script regenerado reescribia las 9510 lineas solo por orden de claves (composePrice de TAREA_032 pone detailValues antes de amount; toStrictEqual no mira el orden). scripts/snapshot-precios.mjs ahora conserva el texto de una entrada igual en contenido: el diff queda en 1620 entradas, todas de alba.
+4. Ruido de capturas: en la fase 1b una corrida dio norte/04-mobile.png con 2 niveles de diferencia maxima y 0,0 por ciento de pixeles por encima de 2; la corrida siguiente sobre el mismo codigo dio las 31 identicas a la linea base (validacion/vitrina/033-ruido.txt). El ruido de TAREA_032 era 0 en una sola pareja de corridas: no es 0 siempre.
+5. Para la fase 3: diez archivos de tests de carteles, clients.test.ts y scripts/snapshot-precios.mjs recorren listClientSlugs() y validan cada cliente como carteles. Con foldline y cajasur en src/clients van a necesitar filtrar por vertical: son aserciones editadas con motivo. El registro de la vista lazy de cajas va en el commit de la fase 3, porque el import necesita el archivo de la vista para compilar.
+6. Sin filas de prueba en Supabase: la fase 4 no corrio. STATE, INDICE y _ULTIMO sin tocar: los reescribe el cierre.
+
+| Commit | Contenido |
+|---|---|
+| 737ec26 | docs: apertura, D138 a D145, SPEC 2.14 |
+| 64c1719 | fase 0: alba.json (default 1,4 x 0,8, anchorGround.metersToWidth 0,151 en las dos fotos) |
+| ff85516 | fase 0: fixture regenerado (1620 entradas de alba) y script que conserva entradas iguales |
+| fbe006a | fase 1: estudio compartido al core y logo en VerticalViewProps |
+| 299bf69 | fase 1: areaUnitSymbol al core |
+
+| Criterio | Estado |
+|---|---|
+| 1 | Si. Solo cambio src/clients/alba.json; medidas del punto 2 |
+| 2 | Si. 1620 entradas cambiadas (1584 casos y 36 vistas), cero de otro cliente |
+| 3 | Si. Tablas de abajo |
+| 4 | Si. Snapshot y 2 URLs publicadas con toStrictEqual en verde; 31 capturas de carteles identicas pixel a pixel a 033-base despues de fbe006a y de 299bf69 (ver punto 4) |
+| 5 | Si. src/core/vertical.ts, QuotePage pasa brand.logo, carteles lo ignora |
+| 6 a 12 | No: frenada en la fase 2 |
+| 13 a 17 | No: frenada en la fase 2 |
+
+Linea base de carteles: 033-base (sobre 64c1719) contra la corrida de 19ee613 (033-antes, identica a 032-refactor): cambian solo alba 01 a 06 y 00-grilla, que lleva el cuadrado de alba. Las otras 24 identicas.
+
+| Origen en carteles | Destino en src/core |
+|---|---|
+| sceneGeometry.ts: Vec3, damp (DAMP_LAMBDA, SETTLE_EPSILON, approach), SIGN_VIEW, signFrameDistance, orbitPosition, zoomBy, zoomFromPinch, signZoomFactor, SIGN_STUDIO_LIGHT, SIGN_STUDIO_BRIGHT, STUDIO_SHADOW, studioShadowReach, SUPPORT_SHADOW_COLOR | preview/studioView.ts, con nombres sin rubro (STUDIO_VIEW, frameDistance, studioZoomFactor, STUDIO_LIGHT, STUDIO_BRIGHT, FrameVolume, KeyLight, keyLightPosition, PREVIEW_ZOOM) |
+| SignBoard.tsx: approachColor, lista DAMPED y los siete parametros fisicos | studioView.ts (approachColor), preview/physicalSurface.ts (PHYSICAL_KEYS, setPhysical) |
+| surfaceMaterials.ts: createSurface, applyFinish, repeatSurface, disposeSurface, caras del panel; surfaceParts.ts: PANEL_FACES | preview/physicalSurface.ts (BOX_SLOTS, BOX_FACES) |
+| scene/supportShadow.ts, scene/webgl.ts | preview/supportShadow.ts, preview/webgl.ts |
+| SignScene.tsx: encuadre de estudio de ViewerCamera, orbita, ambiente y key | preview/studioFraming.ts, preview/StudioCamera.tsx, preview/StudioKeyLight.tsx |
+| SignPreview.tsx: zoom con rueda, pinch y pasos, franja con control segmentado y zoom | preview/previewZoom.ts, preview/PreviewControls.tsx |
+| sceneGeometry.ts: readColor | preview/themeColor.ts |
+| visuals.ts: areaUnitSymbol | pricing/format.ts |
+
+| Quedo en carteles | Motivo |
+|---|---|
+| photoCameraPose, groundPointAt, photoCameraDistance, containBox, tinte de foto | Solo modo vista con foto; cajas no tiene fotos (21.5) |
+| Totem, halo, standoff, lampara y parametros de iluminacion, letras, typeface, scenePalette | Vocabulario y escena del rubro |
+| lengthToMeters (m y ft) | Cajas convierte in y cm con los factores fijos de 21.5; no se superponen |
+| roundedPanelParts y splitSurface | Particion cara y cascara para el bloom; cajas no emite y arma sus cantos con su propio radio nombrado |
+
+Tests: 341, igual que la linea base. Movidos sin cambiar aserciones: de sceneGeometry.test.ts a core/preview/studioView.test.ts (tres de encuadre, luz de estudio, orbitPosition, factor de zoom, polar, rueda y pinch) y a core/preview/webgl.test.ts; de visuals.test.ts a core/pricing/format.test.ts (areaUnitSymbol). Unica edicion: SET.sign.thickness pasa a una constante PANEL_THICKNESS de 0,14 en el test del core, el mismo valor, porque el core no importa de carteles.
