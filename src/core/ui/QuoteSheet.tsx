@@ -12,6 +12,8 @@ import type { BrandConfig, ClientTexts, CurrencyConfig, PriceDisplay, PriceLine,
 // larga, asi que sigue entrando en una pagina.
 // Desde la version 2.13 (D133) el detalle de las lineas de la vertical lo arma la vertical
 // (lineDetail de SPEC 4.4); el core formatea solo el porcentaje del descuento.
+// Desde la version 2.17 (D158) la plantilla con precio lleva breakdownCaption de la vertical encima
+// del desglose, como el cotizador; con null no hay linea. La plantilla sin precio no la lleva.
 
 export type QuoteSheetRow = { label: string; value: string }
 
@@ -26,6 +28,7 @@ type QuoteSheetProps = {
   poweredBy: boolean
   backHref: string
   lineDetail: (line: PriceLine) => string | null
+  caption: string | null
   display: PriceDisplay
 }
 
@@ -40,6 +43,7 @@ export function QuoteSheet({
   poweredBy,
   backHref,
   lineDetail,
+  caption,
   display,
 }: QuoteSheetProps) {
   const withPrice = display !== 'hidden'
@@ -88,6 +92,9 @@ export function QuoteSheet({
         <h2 className="text-xs font-semibold tracking-[0.18em] text-[var(--q-muted)] uppercase print:text-black">
           {texts.quoteBreakdownTitle}
         </h2>
+        {caption === null ? null : (
+          <p className="mt-2 text-xs text-[var(--q-muted)] print:text-black">{caption}</p>
+        )}
         <ul className="mt-2">
           {price.lines.map((line) => (
             <li

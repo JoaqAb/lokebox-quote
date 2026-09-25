@@ -1,8 +1,7 @@
-import { formatCurrency, formatLength } from '../../core/pricing/format'
+import { formatCurrency, formatInteger, formatLength } from '../../core/pricing/format'
 import type { PriceDisplay, PriceResult } from '../../core/types'
 import type { QuoteSheetRow } from '../../core/ui/QuoteSheet'
 import { findById } from './config'
-import { formatQuantity } from './pricing/lineDetail'
 import type { BoxSelection, BoxesConfig } from './types'
 
 // Unico lugar de cajas que traduce ids a etiquetas legibles (SPEC 21.3): filas de la hoja, columna
@@ -30,7 +29,7 @@ export function boxQuoteRows(config: BoxesConfig, selection: BoxSelection): Quot
     { label: texts.dimensionsLabel, value: `${size} ${units.length}` },
     { label: texts.materialLabel, value: labels.material },
     { label: texts.printingLabel, value: labels.printing },
-    { label: texts.quantityLabel, value: formatQuantity(selection.quantity, locale) },
+    { label: texts.quantityLabel, value: formatInteger(selection.quantity, locale) },
   ]
 }
 
@@ -61,7 +60,7 @@ export function boxLeadTokens(config: BoxesConfig, selection: BoxSelection, resu
     unit: units.length,
     material: labels.material,
     printing: labels.printing,
-    quantity: formatQuantity(selection.quantity, locale),
+    quantity: formatInteger(selection.quantity, locale),
     ...(display === 'hidden'
       ? {}
       : { min: formatCurrency(result.min, currency, locale), max: formatCurrency(result.max, currency, locale) }),

@@ -23,6 +23,19 @@ export function formatLength(value: number, locale: string): string {
   return formatter.format(value)
 }
 
+// Cantidades y conteos (D159): cero decimales, con el locale del cliente. Un valor no entero o no
+// finito lanza: una cantidad nunca se redondea en silencio. Las medidas con unidad van con
+// formatLength.
+export function formatInteger(value: number, locale: string): string {
+  if (!Number.isFinite(value)) {
+    throw new Error(`formatInteger: el valor no es finito: ${String(value)}`)
+  }
+  if (!Number.isInteger(value)) {
+    throw new Error(`formatInteger: el valor no es un entero: ${String(value)}`)
+  }
+  return new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(value)
+}
+
 // Simbolo visible de la unidad de area, derivado de units.area del cliente. En el core desde
 // TAREA_033 (D143): lo usan las verticales que miden area. Un cliente nuevo con otra unidad se
 // resuelve aca y sigue sin tocar su JSON.

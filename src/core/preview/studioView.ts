@@ -64,15 +64,19 @@ function tanHalf(fovDeg: number): number {
 // que la de la esfera contenedora, y encuadrar la esfera achicaria la vista al cargar.
 // Para cada esquina p y cada eje e de la camara, |p.e| <= k (d - p.z), con k la tangente
 // del semicampo en ese eje dividida por 1 + 2 margen. Despejando d, manda la mayor.
-export function frameDistance(volume: FrameVolume, direction: Vec3, aspect: number): number {
+// visibleRatio es la fraccion del alto del canvas que queda a la vista (D160): con la franja de
+// controles encima del pie, el cuadro vertical se achica a ese tramo; el horizontal no cambia. Con
+// 1, el calculo de siempre.
+export function frameDistance(volume: FrameVolume, direction: Vec3, aspect: number, visibleRatio = 1): number {
   const [zx, zy, zz] = direction
   // Ejes de la camara con el up del mundo, igual que lookAt. El polar del modo de estudio
   // nunca llega a la vertical, pero la funcion no se rompe si llega.
   const flat = Math.hypot(zx, zz)
   const xAxis: Vec3 = flat === 0 ? [1, 0, 0] : [zz / flat, 0, -zx / flat]
   const yAxis: Vec3 = [zy * xAxis[2], zz * xAxis[0] - zx * xAxis[2], -zy * xAxis[0]]
-  const ky = tanHalf(STUDIO_VIEW.fovDeg) / (1 + 2 * STUDIO_VIEW.marginRatio)
-  const kx = ky * aspect
+  const k = tanHalf(STUDIO_VIEW.fovDeg) / (1 + 2 * STUDIO_VIEW.marginRatio)
+  const ky = k * visibleRatio
+  const kx = k * aspect
   const half: Vec3 = [volume.width / 2, volume.height / 2, volume.depth / 2]
   let distance = 0
   for (const sx of [-1, 1]) {

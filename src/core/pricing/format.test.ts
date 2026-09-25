@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { CurrencyConfig } from '../types'
-import { areaUnitSymbol, formatArea, formatCurrency, formatLength, formatPercent } from './format'
+import { areaUnitSymbol, formatArea, formatCurrency, formatInteger, formatLength, formatPercent } from './format'
 
 const usd: CurrencyConfig = { code: 'USD', symbol: '$', decimals: 0 }
 const ars: CurrencyConfig = { code: 'ARS', symbol: '$', decimals: 0 }
@@ -38,6 +38,28 @@ describe('formatLength', () => {
     expect(formatLength(8.5, 'en')).toBe('8.5')
     expect(formatLength(2.5, 'es-AR')).toBe('2,5')
     expect(formatLength(1, 'es-AR')).toBe('1')
+  })
+})
+
+describe('formatInteger', () => {
+  // D159
+  it('cero decimales con el separador de miles del locale', () => {
+    expect(formatInteger(1000, 'en-US')).toBe('1,000')
+    expect(formatInteger(1000, 'es-AR')).toBe('1.000')
+    expect(formatInteger(1000, 'en-GB')).toBe('1,000')
+    expect(formatInteger(25000, 'es-ES')).toBe('25.000')
+    expect(formatInteger(500, 'en-US')).toBe('500')
+    expect(formatInteger(0, 'es-AR')).toBe('0')
+  })
+
+  it('lanza con un valor no entero, con el valor en el mensaje: nunca redondea', () => {
+    expect(() => formatInteger(2.5, 'en-US')).toThrow('2.5')
+    expect(() => formatInteger(0.1, 'es-AR')).toThrow('0.1')
+  })
+
+  it('lanza con un valor no finito, con el valor en el mensaje', () => {
+    expect(() => formatInteger(Number.NaN, 'en-US')).toThrow('NaN')
+    expect(() => formatInteger(Number.POSITIVE_INFINITY, 'es-ES')).toThrow('Infinity')
   })
 })
 

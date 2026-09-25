@@ -1,6 +1,6 @@
+import { formatInteger } from '../../core/pricing/format'
 import type { PanelField, SelectionValue } from '../../core/ui/panelTypes'
 import { materialsForStyle } from './config'
-import { formatQuantity } from './pricing/lineDetail'
 import type { BoxSelection, BoxTexts, BoxesConfig } from './types'
 
 // Adaptador del panel de cajas (SPEC 21.1): cinco pasos, estilo, medidas interiores con el titulo
@@ -50,7 +50,7 @@ export function buildPanelFields(config: BoxesConfig, selection: BoxSelection): 
       step: 'quantity',
       control: {
         kind: 'choice',
-        choices: options.quantities.map((tier) => ({ id: String(tier.qty), label: formatQuantity(tier.qty, locale) })),
+        choices: options.quantities.map((tier) => ({ id: String(tier.qty), label: formatInteger(tier.qty, locale) })),
       },
     },
   ]

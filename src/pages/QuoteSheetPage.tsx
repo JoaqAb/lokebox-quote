@@ -61,6 +61,7 @@ function QuoteSheetScreen({ params, config, vertical, verticalConfig }: QuoteShe
         poweredBy={config.poweredBy}
         backHref={`/d/${config.slug}`}
         lineDetail={(line) => vertical.logic.lineDetail(verticalConfig, line)}
+        caption={vertical.logic.breakdownCaption(verticalConfig, priced.price)}
         display={priceDisplayOf(config)}
       />
     </div>
