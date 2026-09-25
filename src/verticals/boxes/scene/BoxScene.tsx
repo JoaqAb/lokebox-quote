@@ -1,5 +1,5 @@
 import { useFrame } from '@react-three/fiber'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Color, DoubleSide, MeshPhysicalMaterial, type Group, type Material } from 'three'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
 import { StudioCamera } from '../../../core/preview/StudioCamera'
@@ -10,14 +10,15 @@ import { physicalParamsOf, setPhysical } from '../../../core/preview/physicalSur
 import { STUDIO_BRIGHT, SUPPORT_SHADOW_COLOR, approach, studioShadowReach, type Vec3 } from '../../../core/preview/studioView'
 import { supportShadowTexture } from '../../../core/preview/supportShadow'
 import type { BoxVisual } from '../visuals'
-import { BOX_EDGE, BOX_SHADOW, FACE, LOGO, boxRig, edgeRadius, frameOf, groupPose, logoSize, type FaceIndex, type Panel } from './boxGeometry'
+import { BOX_EDGE, BOX_SHADOW, BOX_START, FACE, LOGO, boxRig, edgeRadius, frameOf, groupPose, logoSize, type FaceIndex, type Panel } from './boxGeometry'
 import type { LogoTextures } from './logoTexture'
 
 // La escena de cajas (SPEC 21.5): solo estudio, con la camara, la luz de estudio sin iluminacion,
 // el entorno y la sombra de apoyo del core. Nada emite. La caja se arma por forma con planchas del
 // espesor del material; la cara interior de cada plancha va en el acento del tema cuando la
 // impresion imprime adentro. El logo va en su cara exterior. Abrir y cerrar es una transicion con
-// el damp del core, sin efecto en el precio.
+// el damp del core, sin efecto en el precio. La camara encuadra la caja tal como esta en cada
+// momento de la apertura.
 
 type BoxSceneProps = {
   visual: BoxVisual
@@ -87,7 +88,10 @@ function logoPlacement(panel: Panel, face: FaceIndex): { position: Vec3; rotatio
 
 export function BoxScene({ visual, accent, logo, open, zoom, reducedMotion }: BoxSceneProps) {
   const rig = useMemo(() => boxRig(visual.shape, visual.dims), [visual.shape, visual.dims])
-  const frame = useMemo(() => frameOf(rig), [rig])
+  // Apertura con la que se encuadra: sigue a la amortiguada del frame loop, que la actualiza
+  // mientras la tapa se mueve. Asi el encuadre acompana a la tapa sin salto.
+  const [frameOpen, setFrameOpen] = useState(open ? 1 : 0)
+  const frame = useMemo(() => frameOf(rig, frameOpen), [rig, frameOpen])
   const reach = studioShadowReach(frame.volume, frame.center)
   const { outer, inner } = useBoxMaterials(visual, accent)
   const byInner = useMemo(() => faceMaterials(outer, inner), [outer, inner])
@@ -116,6 +120,9 @@ export function BoxScene({ visual, accent, logo, open, zoom, reducedMotion }: Bo
     const current = openRef.current
     const next = current === null || reducedMotion ? target : approach(current, target, delta)
     openRef.current = next
+    if (next !== frameOpen) {
+      setFrameOpen(next)
+    }
     rig.groups.forEach((group, index) => {
       const node = groupRefs.current[index]
       if (node === null || node === undefined) {
@@ -132,7 +139,7 @@ export function BoxScene({ visual, accent, logo, open, zoom, reducedMotion }: Bo
 
   return (
     <>
-      <StudioCamera volume={frame.volume} center={frame.center} zoom={zoom} reducedMotion={reducedMotion} />
+      <StudioCamera volume={frame.volume} center={frame.center} zoom={zoom} reducedMotion={reducedMotion} start={BOX_START} />
       <StudioKeyLight light={STUDIO_BRIGHT.light} color={white} reach={reach} />
       <StudioEnvironment intensity={STUDIO_BRIGHT.environment} highlight={null} color={WHITE} />
 

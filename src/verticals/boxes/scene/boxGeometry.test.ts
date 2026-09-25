@@ -27,16 +27,19 @@ describe('geometria de la caja (SPEC 21.5)', () => {
     expect(pose.position[0]).toBeGreaterThan(dims.length)
   })
 
-  it('la caja de encuadre incluye la caja abierta y queda en el cuadro con el margen', () => {
+  it('la caja de encuadre es la de la caja tal como esta: cerrada centrada, abierta con la tapa', () => {
     for (const shape of ['mailer', 'two-piece', 'shipping'] as const) {
       const rig = boxRig(shape, dims)
-      const frame = frameOf(rig)
-      const opened = rigBounds(rig, 1)
-      for (let i = 0; i < 3; i += 1) {
-        const size = [frame.volume.width, frame.volume.height, frame.volume.depth][i]
-        expect(frame.center[i] - size / 2).toBeLessThanOrEqual(opened.min[i] + 1e-12)
-        expect(frame.center[i] + size / 2).toBeGreaterThanOrEqual(opened.max[i] - 1e-12)
+      for (const open of [0, 0.5, 1]) {
+        const frame = frameOf(rig, open)
+        const bounds = rigBounds(rig, open)
+        for (let i = 0; i < 3; i += 1) {
+          const size = [frame.volume.width, frame.volume.height, frame.volume.depth][i]
+          expect(frame.center[i] - size / 2).toBeCloseTo(bounds.min[i], 12)
+          expect(frame.center[i] + size / 2).toBeCloseTo(bounds.max[i], 12)
+        }
       }
+      const frame = frameOf(rig, 0)
       expect(frameDistance(frame.volume, [0, Math.cos(STUDIO_VIEW.startPolar), Math.sin(STUDIO_VIEW.startPolar)], 4 / 3)).toBeGreaterThan(0)
     }
   })

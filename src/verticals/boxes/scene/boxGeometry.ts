@@ -241,13 +241,10 @@ export function rigBounds(rig: BoxRig, open: number): { min: Vec3; max: Vec3 } {
   return { min, max }
 }
 
-// Caja de encuadre (SPEC 21.5): la de la caja cerrada unida a la de la caja abierta, asi incluye la
-// tapa o las solapas abiertas y la camara no salta al abrir.
-export function frameOf(rig: BoxRig): { volume: FrameVolume; center: Vec3 } {
-  const closed = rigBounds(rig, 0)
-  const opened = rigBounds(rig, 1)
-  const min = closed.min.map((value, i) => Math.min(value, opened.min[i])) as Vec3
-  const max = closed.max.map((value, i) => Math.max(value, opened.max[i])) as Vec3
+// Caja de encuadre (SPEC 21.5) con la apertura open: la de la caja tal como esta, asi cerrada queda
+// centrada y abierta incluye la tapa o las solapas. La escena la sigue con la apertura amortiguada.
+export function frameOf(rig: BoxRig, open: number): { volume: FrameVolume; center: Vec3 } {
+  const { min, max } = rigBounds(rig, open)
   return {
     volume: { width: max[0] - min[0], height: max[1] - min[1], depth: max[2] - min[2] },
     center: [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2, (min[2] + max[2]) / 2],
@@ -261,6 +258,10 @@ export function logoSize(face: [number, number], aspect: number): [number, numbe
   const width = Math.min(face[0] * LOGO.widthRatio, face[1] * LOGO.maxHeightRatio * aspect)
   return [width, width / aspect]
 }
+
+// Arranque de la camara (SPEC 21.5 desde 2.15, D151): tres cuartos y desde arriba, asi al cargar se
+// ven la cara del logo y dos caras laterales. Azimut en grados desde el frente, polar en radianes.
+export const BOX_START = { azimuthDeg: 35, polar: 1 } as const
 
 // Sombra de apoyo en el piso (SPEC 21.5): el degradado del core bajo la huella de la caja.
 export const BOX_SHADOW = { scale: 1.5, opacity: 0.3, lift: 0.0005 } as const
