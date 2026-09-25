@@ -1,10 +1,10 @@
 # STATE
 
-24/09/2026
+25/09/2026
 
 ## Bloque actual
 
-- Bloque 12, Segunda vertical (D119 a D126, D130 a D136). TAREA_032 escrita en docs/tareas/TAREA_032_contrato_de_vertical.md, con SPEC 2.13 (4.4 contrato de vertical, 6.3 composePrice, 8 y 10 partidos). Fase 0 con hallazgos visibles de la vitrina, fase 1 linea base, fase 2 refactor con la vara de D122.
+- Bloque 12, Segunda vertical (D119 a D126, D130 a D136). TAREA_032 cerrada por Code, espera revision de Canal B: fase 0 en 61ade97, linea base en 6d59ecd, refactor en 00e9813, en produccion. Reporte en la seccion Resultado de docs/tareas/TAREA_032_contrato_de_vertical.md.
 - Bloque 9 sigue en paralelo (CANAL_C_BLOQUE9.md).
 
 ## Ultimo cerrado
@@ -13,15 +13,13 @@ Bloque 11, Vitrina. TAREA_031 aceptada (D129), codigo en 0fd3f8a.
 
 ## Proximo
 
-0. Nada de TAREA_032 esta commiteado: los docs de apertura estan en disco sin commit. main y origin en 75423b0 (landing con cinco demos, D137).
-1. Code ejecuta TAREA_032 y deja el reporte en su seccion Resultado.
-2. Joaquin mira los pares de validacion/vitrina/032-fase0/ (afterglow 01 a 04, alba 02 y 03, halcyon 02).
-3. Con TAREA_032 aceptada, Canal B escribe TAREA_033 (cajas, D123 a D125) con el contrato real.
+1. Joaquin mira los pares de validacion/vitrina/032-fase0/ (afterglow 01 a 04, alba 02 y 03, halcyon 02) y decide sobre el recargo negativo (DECISIONES 25/09).
+2. Canal B revisa Resultado de TAREA_032 y escribe TAREA_033 (cajas, D123 a D125) sobre el contrato real: src/core/vertical.ts y src/verticals/signs/logic.ts.
 
 ## Bloqueos
 
-Pendientes D18 (contraste sobre `.q-on` con la identidad nueva; no aparecio en afterglow, 5,60:1) y D30 (etapa 2 de SPEC 6.2). Filas "Vitrina Test" de TAREA_031 siguen en leads: se borran por Canal C al cerrar el bloque 12, junto con las de "Refactor Test".
+Pendientes D18 y D30. Filas de prueba en leads, las borra Canal C al cerrar el bloque 12: "Vitrina Test" de TAREA_031, 8 filas de formulario "Refactor Test" y 12 de WhatsApp sin nombre (afterglow, alba y northline) entre 03:13 y 03:59 UTC del 25/09.
 
 ## Comando para retomar
 
-`cd ~/proyectos/lokebox-quote && cat docs/STATE.md docs/tareas/TAREA_032_contrato_de_vertical.md`
+`cd ~/proyectos/lokebox-quote && cat docs/STATE.md && tail -60 docs/tareas/TAREA_032_contrato_de_vertical.md`
