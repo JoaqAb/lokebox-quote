@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { listClientSlugs } from '../../clients'
 import { defaultSelection, materialsForMode } from './config'
 import type { SignSelection } from './types'
 import northline from '../../clients/northline.json'
 import { lengthToMeters, resolveSignVisual } from './visuals'
-import { signsClientOf } from './testing'
+import { signsClientOf, signsClientSlugs } from './testing'
 
 const clientOrFail = signsClientOf
 
@@ -20,7 +19,7 @@ describe('resolveSignVisual', () => {
 
   // 12.2
   it('para cada material de cada cliente devuelve exactamente el visual del JSON', () => {
-    for (const slug of listClientSlugs()) {
+    for (const slug of signsClientSlugs()) {
       const config = clientOrFail(slug)
       for (const material of config.options.materials) {
         const selection: SignSelection = { ...defaultSelection(config), materialId: material.id }
@@ -40,7 +39,7 @@ describe('resolveSignVisual', () => {
         return resolveSignVisual(config, selection).lighting.mode
       })
     }
-    for (const slug of listClientSlugs()) {
+    for (const slug of signsClientSlugs()) {
       expect(modesOf(slug), slug).toEqual(clientOrFail(slug).options.lighting.map((lighting) => lighting.visual.mode))
     }
     for (const slug of ['northline', 'norte']) {
@@ -64,7 +63,7 @@ describe('resolveSignVisual: mount', () => {
   // flush y sin montaje) aparece en al menos un cliente.
   it('cada tipo monta segun su JSON, y facade con standoff, totem al ras y letters sin montaje en la demo', () => {
     const vistos = new Set<string>()
-    for (const slug of listClientSlugs()) {
+    for (const slug of signsClientSlugs()) {
       const config = clientOrFail(slug)
       for (const type of config.options.types) {
         const selection = {

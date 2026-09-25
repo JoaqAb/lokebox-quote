@@ -1,6 +1,7 @@
 import { lazy, type ComponentType } from 'react'
 import type { PriceResult } from '../core/types'
 import type { VerticalLogic, VerticalModule, VerticalViewProps } from '../core/vertical'
+import { boxesLogic } from '../verticals/boxes/logic'
 import { signsLogic } from '../verticals/signs/logic'
 
 // Registro de verticales (SPEC 4.4, D121). Vive fuera de src/core: mapea el campo vertical del
@@ -8,6 +9,7 @@ import { signsLogic } from '../verticals/signs/logic'
 // cotizacion, que no monta la vista, no descarga three. Una vertical nueva es una entrada mas.
 
 export const SIGNS_VERTICAL = 'signs'
+export const BOXES_VERTICAL = 'boxes'
 
 // Una vertical del registro, con su config, su seleccion y su resultado propios borrados: el core
 // la usa por el contrato y nunca mira adentro de esos tipos. Se borran en un solo lugar, register.
@@ -26,6 +28,10 @@ const VERTICALS: Readonly<Record<string, RegisteredVertical>> = {
   [SIGNS_VERTICAL]: register({
     logic: signsLogic,
     View: lazy(async () => ({ default: (await import('../verticals/signs/view')).SignsView })),
+  }),
+  [BOXES_VERTICAL]: register({
+    logic: boxesLogic,
+    View: lazy(async () => ({ default: (await import('../verticals/boxes/view')).BoxesView })),
   }),
 }
 

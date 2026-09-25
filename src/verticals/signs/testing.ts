@@ -1,4 +1,5 @@
-import { getClient } from '../../clients'
+import { SIGNS_VERTICAL } from '../../app/verticals'
+import { getClient, listClientSlugs } from '../../clients'
 import { validateClientConfig, verticalContextOf } from '../../core/clientConfig'
 import type { ClientConfig } from '../../core/types'
 import { validateSigns } from './config'
@@ -33,4 +34,15 @@ export function signsClientOf(slug: string): ValidatedSignsClient {
     throw new Error(`cliente no encontrado en el test: ${slug}`)
   }
   return validateSignsJson(client.json)
+}
+
+// Los clientes de carteles del registro (D148): con clientes de dos verticales, los tests que
+// recorren todos los clientes recorren los de carteles. Exige al menos uno, asi un filtro vacio no
+// deja pasar un test que no prueba nada.
+export function signsClientSlugs(): string[] {
+  const slugs = listClientSlugs().filter((slug) => getClient(slug)?.vertical === SIGNS_VERTICAL)
+  if (slugs.length === 0) {
+    throw new Error('no hay ningun cliente de carteles en src/clients')
+  }
+  return slugs
 }

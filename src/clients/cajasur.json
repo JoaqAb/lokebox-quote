@@ -1,0 +1,316 @@
+{
+  "slug": "cajasur",
+  "locale": "es-AR",
+  "vertical": "boxes",
+  "currency": {
+    "code": "ARS",
+    "symbol": "$",
+    "decimals": 0
+  },
+  "units": {
+    "length": "cm",
+    "area": "m2"
+  },
+  "brand": {
+    "name": "Caja Sur",
+    "logo": "/clients/cajasur/logo.svg",
+    "colors": {
+      "bg": "#FBF4EC",
+      "primary": "#EAD6C2",
+      "accent": "#B2502A",
+      "text": "#2B1D15",
+      "muted": "#7B665A"
+    },
+    "phone": "+54 381 555 0456",
+    "whatsapp": "5493815550456",
+    "email": "hola@cajasur.example"
+  },
+  "cta": "whatsapp",
+  "poweredBy": true,
+  "prices_placeholder": true,
+  "options": {
+    "styles": [
+      {
+        "id": "mailer",
+        "label": "Mailer autoarmable",
+        "assembly": 170,
+        "blank": [
+          {
+            "length": {
+              "l": 1,
+              "w": 0,
+              "h": 4,
+              "add": 2.5
+            },
+            "width": {
+              "l": 0,
+              "w": 2,
+              "h": 3,
+              "add": 4
+            }
+          }
+        ],
+        "visual": {
+          "shape": "mailer"
+        }
+      },
+      {
+        "id": "two-piece",
+        "label": "Tapa y fondo",
+        "assembly": 410,
+        "blank": [
+          {
+            "length": {
+              "l": 1,
+              "w": 0,
+              "h": 2,
+              "add": 0.6
+            },
+            "width": {
+              "l": 0,
+              "w": 1,
+              "h": 2,
+              "add": 0.6
+            }
+          },
+          {
+            "length": {
+              "l": 1,
+              "w": 0,
+              "h": 0.8,
+              "add": 1.2
+            },
+            "width": {
+              "l": 0,
+              "w": 1,
+              "h": 0.8,
+              "add": 1.2
+            }
+          }
+        ],
+        "visual": {
+          "shape": "two-piece",
+          "lidDepth": 0.4
+        }
+      },
+      {
+        "id": "shipping",
+        "label": "Caja de envío",
+        "assembly": 70,
+        "blank": [
+          {
+            "length": {
+              "l": 2,
+              "w": 2,
+              "h": 0,
+              "add": 4
+            },
+            "width": {
+              "l": 0,
+              "w": 1,
+              "h": 1,
+              "add": 0.6
+            }
+          }
+        ],
+        "visual": {
+          "shape": "shipping"
+        }
+      }
+    ],
+    "length": {
+      "min": 10,
+      "max": 60,
+      "step": 1,
+      "default": 30
+    },
+    "width": {
+      "min": 8,
+      "max": 45,
+      "step": 1,
+      "default": 20
+    },
+    "height": {
+      "min": 3,
+      "max": 30,
+      "step": 1,
+      "default": 15
+    },
+    "materials": [
+      {
+        "id": "kraft",
+        "label": "Kraft corrugado",
+        "pricePerArea": 2500,
+        "visual": {
+          "color": "#B8895A",
+          "finish": "foam",
+          "metalness": 0,
+          "roughness": 0.95,
+          "specularIntensity": 0.25,
+          "clearcoat": 0,
+          "clearcoatRoughness": 0,
+          "anisotropy": 0,
+          "normalScale": 0.35,
+          "translucency": 0,
+          "thicknessMm": 3
+        }
+      },
+      {
+        "id": "blanco",
+        "label": "Blanco corrugado",
+        "pricePerArea": 3600,
+        "visual": {
+          "color": "#ECEAE4",
+          "finish": "foam",
+          "metalness": 0,
+          "roughness": 0.9,
+          "specularIntensity": 0.3,
+          "clearcoat": 0,
+          "clearcoatRoughness": 0,
+          "anisotropy": 0,
+          "normalScale": 0.3,
+          "translucency": 0,
+          "thicknessMm": 3
+        }
+      },
+      {
+        "id": "rigido",
+        "label": "Rígido forrado",
+        "pricePerArea": 11600,
+        "styles": [
+          "two-piece"
+        ],
+        "visual": {
+          "color": "#23303D",
+          "finish": "foam",
+          "metalness": 0,
+          "roughness": 0.55,
+          "specularIntensity": 0.5,
+          "clearcoat": 0.3,
+          "clearcoatRoughness": 0.4,
+          "anisotropy": 0,
+          "normalScale": 0.15,
+          "translucency": 0,
+          "thicknessMm": 2
+        }
+      }
+    ],
+    "printing": [
+      {
+        "id": "sin",
+        "label": "Sin impresión",
+        "pricePerArea": 0,
+        "setup": 0,
+        "visual": {
+          "logo": "none",
+          "inside": false
+        }
+      },
+      {
+        "id": "un-color",
+        "label": "1 color exterior",
+        "pricePerArea": 1100,
+        "setup": 40000,
+        "visual": {
+          "logo": "accent",
+          "inside": false
+        }
+      },
+      {
+        "id": "full",
+        "label": "Full color exterior",
+        "pricePerArea": 3300,
+        "setup": 81000,
+        "visual": {
+          "logo": "original",
+          "inside": false
+        }
+      },
+      {
+        "id": "full-interior",
+        "label": "Full color exterior e interior",
+        "pricePerArea": 5800,
+        "setup": 122000,
+        "visual": {
+          "logo": "original",
+          "inside": true
+        }
+      }
+    ],
+    "quantities": [
+      {
+        "qty": 50,
+        "pct": 0
+      },
+      {
+        "qty": 100,
+        "pct": 10
+      },
+      {
+        "qty": 250,
+        "pct": 20
+      },
+      {
+        "qty": 500,
+        "pct": 28
+      },
+      {
+        "qty": 1000,
+        "pct": 35
+      }
+    ],
+    "defaults": {
+      "style": "shipping",
+      "materialId": "kraft",
+      "printingId": "un-color",
+      "quantity": 100
+    },
+    "rangePct": 10
+  },
+  "texts": {
+    "headline": "El precio de tu caja en 60 segundos",
+    "subheadline": "Elegí el estilo, la medida, el cartón y la impresión. Mirá tu caja en 3D y llevate una estimación al instante.",
+    "configureTitle": "Armá tu caja",
+    "styleLabel": "Estilo de caja",
+    "dimensionsLabel": "Medida interior",
+    "lengthLabel": "Largo",
+    "widthLabel": "Ancho",
+    "heightLabel": "Alto",
+    "materialLabel": "Cartón",
+    "printingLabel": "Impresión",
+    "quantityLabel": "Cantidad",
+    "previewZoomLabel": "Acercar",
+    "viewClosed": "Cerrada",
+    "viewOpen": "Abierta",
+    "loadingLabel": "Preparando tu caja",
+    "priceLabel": "Precio estimado",
+    "priceRangeNote": "Rango estimado",
+    "disclaimer": "Es una estimación. El presupuesto final lo confirma Caja Sur.",
+    "ctaWhatsapp": "Enviar por WhatsApp",
+    "ctaForm": "Pedir este presupuesto",
+    "formTitle": "¿A dónde te mandamos el presupuesto?",
+    "formName": "Tu nombre",
+    "formContact": "Email o teléfono",
+    "formNote": "¿Algo que tengamos que saber?",
+    "formSubmit": "Enviar pedido",
+    "formSending": "Enviando",
+    "thanksTitle": "Gracias, recibimos tu pedido",
+    "thanksBody": "Te respondemos dentro de un día hábil.",
+    "viewQuote": "Ver mi presupuesto",
+    "quoteTitle": "Presupuesto de cajas",
+    "quoteValidity": "Este presupuesto tiene 15 días de validez.",
+    "quoteDateLabel": "Fecha",
+    "quoteSelectionTitle": "Tu caja",
+    "quoteBreakdownTitle": "Detalle del precio",
+    "quotePrint": "Imprimir o guardar en PDF",
+    "quoteBack": "Volver al cotizador",
+    "lineMaterial": "Cartón",
+    "linePrinting": "Impresión",
+    "lineAssembly": "Armado y pegado",
+    "lineSetup": "Preparación de impresión, por pedido",
+    "lineDiscount": "Descuento por cantidad",
+    "perBoxCaption": "Precios por caja para {quantity} cajas. La preparación de impresión es por pedido.",
+    "poweredBy": "Powered by Lokebox",
+    "whatsappMessage": "Hola, quiero un presupuesto de {quantity} cajas: {style}, medida interior {length} x {width} x {height} {unit}, {material}, impresión: {printing}. Rango estimado {min} a {max}."
+  }
+}

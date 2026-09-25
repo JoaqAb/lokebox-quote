@@ -29,6 +29,21 @@ const COVERS = [
   { slug: 'alba', type: 'totem', material: 'aluminio', lighting: 'front' },
 ]
 
+// Clientes de cajas (TAREA_033, SPEC 21.5): seis capturas cada uno, sin fotos. No entran a la
+// grilla, que es la de los cinco de carteles. La configuracion de cada toma se fija con clics en el
+// panel y en el control de abierta y cerrada. La camara al cargar es la del modo cartel, casi de
+// frente: cada toma orbita arrastrando sobre el preview hasta la cara del logo. Mailer y tapa y
+// fondo lo llevan arriba; la caja de envio, en el frente. Con la tapa del mailer abierta el logo
+// mira hacia atras: la toma full color abierta orbita hasta detras de la caja.
+const BOX_CLIENTS = ['foldline', 'cajasur']
+const BOX_ORBIT = {
+  top: { dx: -160, dy: 120 },
+  front: { dx: -60, dy: 70 },
+  behind: { dx: 330, dy: 90 },
+  mobileTop: { dx: -70, dy: 55 },
+  mobileFront: { dx: -30, dy: 35 },
+}
+
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 function startServer() {
@@ -74,6 +89,19 @@ async function open(browser, slug, device) {
 
 async function choose(page, label) {
   await page.getByRole('button', { name: label, exact: true }).click()
+  await wait(SETTLE_MS)
+}
+
+// Arrastra sobre el centro del preview: la orbita del modo de estudio.
+async function orbit(page, { dx, dy }) {
+  await page.evaluate(() => window.scrollTo(0, 0))
+  const zone = await page.locator('[data-preview-zone]').boundingBox()
+  const x = zone.x + zone.width / 2
+  const y = zone.y + zone.height / 2
+  await page.mouse.move(x, y)
+  await page.mouse.down()
+  await page.mouse.move(x + dx, y + dy, { steps: 20 })
+  await page.mouse.up()
   await wait(SETTLE_MS)
 }
 
@@ -149,6 +177,50 @@ try {
 
     await previewShot(browser, config, cover, { width: 1080, height: 1080 }, file('05-cuadrado.png'))
     await previewShot(browser, config, cover, { width: 1200, height: 630 }, file('06-ancho.png'))
+  }
+
+  for (const slug of BOX_CLIENTS) {
+    const dir = new URL(`${slug}/`, OUT)
+    await mkdir(dir, { recursive: true })
+    const config = JSON.parse(await readFile(new URL(`src/clients/${slug}.json`, ROOT), 'utf8'))
+    const { options, texts } = config
+    const label = (list, id) => list.find((item) => item.id === id).label
+    const file = (name) => {
+      const url = new URL(name, dir)
+      written.push(url)
+      return url.pathname
+    }
+    const fullInside = options.printing.find((item) => item.visual.inside).id
+    const rigid = options.materials.find((item) => item.styles !== undefined).id
+    const shipping = options.defaults.style === 'shipping'
+    const shots = [
+      { name: '01-desktop-cerrada.png', clicks: [], orbit: shipping ? BOX_ORBIT.front : BOX_ORBIT.top },
+      { name: '02-desktop-abierta.png', clicks: [texts.viewOpen], orbit: shipping ? BOX_ORBIT.front : BOX_ORBIT.top },
+      {
+        name: '03-desktop-full-interior-abierta.png',
+        clicks: [label(options.printing, fullInside), texts.viewOpen],
+        orbit: shipping ? BOX_ORBIT.front : BOX_ORBIT.behind,
+      },
+      {
+        name: '05-desktop-tapa-fondo-rigido-abierta.png',
+        clicks: [label(options.styles, 'two-piece'), label(options.materials, rigid), texts.viewOpen],
+        orbit: BOX_ORBIT.top,
+      },
+      { name: '06-desktop-envio-cerrada.png', clicks: [label(options.styles, 'shipping')], orbit: BOX_ORBIT.front },
+    ]
+    for (const shot of shots) {
+      const page = await open(browser, slug, { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 })
+      for (const text of shot.clicks) {
+        await choose(page, text)
+      }
+      await orbit(page, shot.orbit)
+      await page.screenshot({ path: file(shot.name) })
+      await page.close()
+    }
+    const page = await open(browser, slug, { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3 })
+    await orbit(page, shipping ? BOX_ORBIT.mobileFront : BOX_ORBIT.mobileTop)
+    await page.screenshot({ path: file('04-mobile.png') })
+    await page.close()
   }
 
   // Grilla de los cinco cuadrados sobre fondo liso, sin texto: tres arriba y dos abajo, centrados.

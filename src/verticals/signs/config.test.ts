@@ -1,9 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { listClientSlugs } from '../../clients'
 import northline from '../../clients/northline.json'
 import { HIDDEN_TEMPLATE_KEYS, SIGN_TEXT_KEYS, defaultSelection, materialsForMode, priceRulesFromClient, pricingModeOf } from './config'
 import { calculateSignPrice } from './pricing/calculateSignPrice'
-import { signsClientOf, signsConfigOf, validateSignsJson } from './testing'
+import { signsClientOf, signsConfigOf, validateSignsJson, signsClientSlugs } from './testing'
 
 // Hasta la version 2.12 estos tests estaban en src/core/clientConfig.test.ts. Desde 2.13 (D133)
 // la validacion de units, photos, options y las 20 claves de texts es de la vertical: validateSignsJson
@@ -205,7 +204,7 @@ describe('priceRulesFromClient y defaultSelection', () => {
   })
 
   it('la seleccion por defecto de cada cliente calcula precio sin lanzar', () => {
-    for (const slug of listClientSlugs()) {
+    for (const slug of signsClientSlugs()) {
       const client = signsClientOf(slug)
       const result = calculateSignPrice(priceRulesFromClient(client), defaultSelection(client))
       expect(result.total).toBeGreaterThan(0)
@@ -408,7 +407,7 @@ describe('claves de texto de carteles', () => {
     expect(SIGN_TEXT_KEYS).toEqual(CLAVES_DE_CARTELES)
     expect(HIDDEN_TEMPLATE_KEYS).toEqual(['whatsappMessageHidden', 'whatsappMessageHiddenLetters'])
     let conHidden = 0
-    for (const slug of listClientSlugs()) {
+    for (const slug of signsClientSlugs()) {
       const client = signsClientOf(slug)
       const texts = signsConfigOf(slug).texts
       const keys = Object.keys(texts)

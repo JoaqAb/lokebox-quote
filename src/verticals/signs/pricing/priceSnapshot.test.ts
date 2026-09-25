@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { getClient, listClientSlugs } from '../../../clients'
+import { getClient } from '../../../clients'
 import { buildLeadRow } from '../../../core/lead/leadRow'
 import { DISCOUNT_LINE_ID } from '../../../core/pricing/composePrice'
 import { formatCurrency, formatPercent } from '../../../core/pricing/format'
 import { resolveTextKey } from '../../../core/textKeys'
 import { signsLogic } from '../logic'
-import { signsConfigOf } from '../testing'
+import { signsConfigOf, signsClientSlugs } from '../testing'
 import type { SignPriceResult, SignSelection } from '../types'
 
 // La vara de D122 para el refactor de TAREA_032 (criterios 9 y 10): el fixture se genero con
@@ -42,8 +42,8 @@ function clientTexts(slug: string) {
 
 describe('snapshot del calculo (D122)', () => {
   it('el fixture cubre los cinco clientes con el total de casos que declara', () => {
-    expect(Object.keys(snapshot.totals).sort()).toEqual(listClientSlugs())
-    for (const slug of listClientSlugs()) {
+    expect(Object.keys(snapshot.totals).sort()).toEqual(signsClientSlugs())
+    for (const slug of signsClientSlugs()) {
       expect(cases.filter((item) => item.slug === slug).length, slug).toBe(snapshot.totals[slug])
     }
     expect(cases.length).toBe(9360)

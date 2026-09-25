@@ -55,7 +55,9 @@ try {
 
   const snapshot = { generatedFrom: 'TAREA_032 fase 1', totals: {}, cases: [], published: [], views: [] }
 
-  for (const slug of listClientSlugs()) {
+  // Solo los clientes de carteles (D148): el fixture es de carteles y cajas tiene su propio calculo.
+  const signsSlugs = listClientSlugs().filter((slug) => getClient(slug).vertical === 'signs')
+  for (const slug of signsSlugs) {
     const client = getClient(slug)
     const config = signsOf(client)
     const { options } = config

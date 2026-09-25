@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { getClient, listClientSlugs } from '../../../clients'
+import { getClient } from '../../../clients'
 import { resolveTextKey } from '../../../core/textKeys'
 import { TOTEM_TYPE_ID, defaultSelection, materialsForMode, priceRulesFromClient } from '../config'
-import { signsConfigOf } from '../testing'
+import { signsConfigOf, signsClientSlugs } from '../testing'
 import type { SignSelection } from '../types'
 import { calculateSignPrice } from './calculateSignPrice'
 
@@ -39,7 +39,7 @@ describe('resolveTextKey con las lineas de carteles', () => {
   // D127: corre sobre cada cliente con totem, el tipo que suma la linea de estructura, y exige que
   // haya al menos uno.
   it('resuelve cada labelKey del motor a un texto no vacio, para cada cliente con totem', () => {
-    const conTotem = listClientSlugs().filter((slug) =>
+    const conTotem = signsClientSlugs().filter((slug) =>
       clientOrFail(slug).options.types.some((item) => item.id === TOTEM_TYPE_ID),
     )
     expect(conTotem.length).toBeGreaterThan(0)

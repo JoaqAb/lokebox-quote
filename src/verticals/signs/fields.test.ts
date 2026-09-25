@@ -1,11 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { listClientSlugs } from '../../clients'
 import northlineJson from '../../clients/northline.json'
 import { defaultSelection, priceRulesFromClient } from './config'
 import { calculateSignPrice } from './pricing/calculateSignPrice'
 import type { SelectionValue } from '../../core/ui/panelTypes'
 import { applyFieldChange, buildPanelFields, selectionFromValues, valuesFromSelection } from './fields'
-import { signsClientOf, validateSignsJson } from './testing'
+import { signsClientOf, validateSignsJson, signsClientSlugs } from './testing'
 
 const clientOrFail = signsClientOf
 
@@ -102,7 +101,7 @@ describe('buildPanelFields en modo area', () => {
 describe('valuesFromSelection y selectionFromValues', () => {
   // 12.6
   it('ida y vuelta devuelve la misma seleccion, para los dos clientes', () => {
-    for (const slug of listClientSlugs()) {
+    for (const slug of signsClientSlugs()) {
       const selection = defaultSelection(clientOrFail(slug))
       expect(selectionFromValues(valuesFromSelection(selection))).toEqual(selection)
     }
@@ -189,7 +188,7 @@ describe('buildPanelFields por modo y applyFieldChange', () => {
 
 describe('pasos del panel y swatch (version 2.8, D94)', () => {
   it('seis pasos seguidos: tipo, texto, medidas, material, iluminacion y cantidad, en los dos modos', () => {
-    for (const slug of listClientSlugs()) {
+    for (const slug of signsClientSlugs()) {
       const config = clientOrFail(slug)
       for (const type of ['facade', 'letters']) {
         const fields = buildPanelFields(config, { ...defaultSelection(config), type })
@@ -209,7 +208,7 @@ describe('pasos del panel y swatch (version 2.8, D94)', () => {
   })
 
   it('los materiales llevan swatch con el color del JSON, y los demas choice no', () => {
-    for (const slug of listClientSlugs()) {
+    for (const slug of signsClientSlugs()) {
       const config = clientOrFail(slug)
       const fields = buildPanelFields(config, defaultSelection(config))
       for (const field of fields) {

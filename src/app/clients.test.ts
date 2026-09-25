@@ -4,12 +4,20 @@ import { CORE_TEXT_KEYS, DEFAULT_PRICE_DISPLAY, priceDisplayOf } from '../core/c
 import { stageToneOf, themeFromClient } from '../core/theme'
 import { resolveClient } from '../pages/resolveClient'
 import { HIDDEN_TEMPLATE_KEYS, SIGN_TEXT_KEYS } from '../verticals/signs/config'
-import { signsConfigOf } from '../verticals/signs/testing'
-import { SIGNS_VERTICAL, verticalOf } from './verticals'
+import { BOX_HIDDEN_TEMPLATE_KEY, BOX_TEXT_KEYS } from '../verticals/boxes/config'
+import { signsClientSlugs, signsConfigOf } from '../verticals/signs/testing'
+import { BOXES_VERTICAL, SIGNS_VERTICAL, verticalOf } from './verticals'
 
 // Tests que cruzan las tres capas: los JSON de src/clients, la validacion del core y el registro
 // de verticales. Hasta la version 2.12 estaban en src/core/clientConfig.test.ts y en
 // src/core/theme.test.ts; desde 2.13 el core no importa de src/clients (SPEC 4.4).
+
+// Los clientes de una vertical (D148): exige al menos uno.
+function slugsOf(vertical: string): string[] {
+  const slugs = listClientSlugs().filter((slug) => clientOrFail(slug).vertical === vertical)
+  expect(slugs.length, vertical).toBeGreaterThan(0)
+  return slugs
+}
 
 function clientOrFail(slug: string) {
   const client = getClient(slug)
@@ -83,7 +91,8 @@ describe('las 47 claves de texts', () => {
     expect(signs).toHaveLength(20)
     expect(core.filter((key) => signs.includes(key))).toEqual([])
     const all = [...core, ...signs].sort()
-    for (const slug of listClientSlugs()) {
+    // Editada en TAREA_033 (D148): recorre los clientes de carteles; los de cajas, en el test de abajo.
+    for (const slug of signsClientSlugs()) {
       const config = clientOrFail(slug)
       const keys = Object.keys(config.texts).filter((key) => !(HIDDEN_TEMPLATE_KEYS as readonly string[]).includes(key))
       expect(keys.sort(), slug).toEqual(all)
@@ -144,30 +153,52 @@ describe('themeFromClient sobre los clientes', () => {
 })
 
 
+describe('las 44 claves de texts de cajas', () => {
+  it('las 27 del core y las 17 de cajas son disjuntas y cubren las claves de cada JSON de cajas', () => {
+    const core: readonly string[] = CORE_TEXT_KEYS
+    const boxes: readonly string[] = BOX_TEXT_KEYS
+    expect(boxes).toHaveLength(17)
+    expect(core.filter((key) => boxes.includes(key))).toEqual([])
+    const all = [...core, ...boxes].sort()
+    for (const slug of slugsOf(BOXES_VERTICAL)) {
+      const keys = Object.keys(clientOrFail(slug).texts).filter((key) => key !== BOX_HIDDEN_TEMPLATE_KEY)
+      expect(keys.sort(), slug).toEqual(all)
+    }
+  })
+})
+
 describe('stageToneOf sobre los clientes', () => {
   // Movido de src/core/theme.test.ts.
   it('en los clientes del registro solo afterglow tiene tema oscuro', () => {
     const slugs = listClientSlugs()
-    expect(slugs).toEqual(['afterglow', 'alba', 'halcyon', 'norte', 'northline'])
+    // Editada en TAREA_033: suma cajasur y foldline, los dos clientes de cajas, con tema claro.
+    expect(slugs).toEqual(['afterglow', 'alba', 'cajasur', 'foldline', 'halcyon', 'norte', 'northline'])
     const dark = slugs.filter((slug) => stageToneOf(clientOrFail(slug).brand.colors.bg) === 'dark')
     expect(dark).toEqual(['afterglow'])
   })
 })
 
 describe('registro de verticales y resolveClient', () => {
-  it('los cinco clientes resuelven a la vertical de carteles', () => {
-    for (const slug of listClientSlugs()) {
-      const resolved = resolveClient(slug)
-      expect(resolved.ok, slug).toBe(true)
-      if (resolved.ok) {
-        expect(resolved.config.vertical).toBe(SIGNS_VERTICAL)
-        expect(resolved.vertical).toBe(verticalOf(SIGNS_VERTICAL))
+  // Editada en TAREA_033 (D148): cada cliente resuelve a la vertical de su JSON, los cinco de
+  // carteles a carteles y los dos de cajas a cajas.
+  it('cada cliente resuelve a la vertical de su JSON: cinco de carteles y dos de cajas', () => {
+    expect(slugsOf(SIGNS_VERTICAL)).toEqual(['afterglow', 'alba', 'halcyon', 'norte', 'northline'])
+    expect(slugsOf(BOXES_VERTICAL)).toEqual(['cajasur', 'foldline'])
+    for (const vertical of [SIGNS_VERTICAL, BOXES_VERTICAL]) {
+      for (const slug of slugsOf(vertical)) {
+        const resolved = resolveClient(slug)
+        expect(resolved.ok, slug).toBe(true)
+        if (resolved.ok) {
+          expect(resolved.config.vertical).toBe(vertical)
+          expect(resolved.vertical).toBe(verticalOf(vertical))
+        }
       }
     }
   })
 
   it('una vertical que no esta en el registro es null, y un slug desconocido da la ruta', () => {
-    expect(verticalOf('boxes')).toBeNull()
+    // Editada en TAREA_033: boxes ya esta en el registro; una vertical que no esta es muebles.
+    expect(verticalOf('furniture')).toBeNull()
     expect(verticalOf('constructor')).toBeNull()
     expect(resolveClient('no-existe')).toEqual({ ok: false, detail: '/d/no-existe' })
   })

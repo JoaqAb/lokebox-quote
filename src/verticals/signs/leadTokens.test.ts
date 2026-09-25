@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest'
-import { listClientSlugs } from '../../clients'
 import northline from '../../clients/northline.json'
 import { defaultSelection, priceRulesFromClient } from './config'
 import { buildWhatsappMessage } from '../../core/lead/whatsapp'
@@ -9,7 +8,7 @@ import type { PriceDisplay } from '../../core/types'
 import type { SignSelection } from './types'
 import { signLeadSelection, signLeadTokens, signWhatsappTemplate } from './leadTokens'
 import { signQuoteRows } from './quoteRows'
-import { signsClientOf, validateSignsJson } from './testing'
+import { signsClientOf, validateSignsJson, signsClientSlugs } from './testing'
 
 const clientOrFail = signsClientOf
 
@@ -44,7 +43,7 @@ describe('signLeadTokens', () => {
 
     // Las diez claves de SPEC 10, siempre presentes y no vacias. D127: con el primer tipo de area de
     // cada cliente, elegido por su pricing, y al menos un cliente con tipo de area.
-    const conArea = listClientSlugs().filter((slug) =>
+    const conArea = signsClientSlugs().filter((slug) =>
       clientOrFail(slug).options.types.some((item) => item.pricing === 'area'),
     )
     expect(conArea.length).toBeGreaterThan(0)

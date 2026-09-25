@@ -1,9 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { listClientSlugs } from '../../clients'
 import { defaultSelection, materialsForMode } from './config'
 import type { PricingMode, SignSelection } from './types'
 import { decodeQuoteParams, encodeQuoteParams } from './query'
-import { signsClientOf } from './testing'
+import { signsClientOf, signsClientSlugs } from './testing'
 
 const clientOrFail = signsClientOf
 
@@ -42,7 +41,7 @@ describe('decodeQuoteParams', () => {
   it('ida y vuelta: devuelve la misma seleccion para cada cliente y cada modo que ofrece', () => {
     const modes: PricingMode[] = ['area', 'letters']
     const cubiertos = new Set<PricingMode>()
-    for (const slug of listClientSlugs()) {
+    for (const slug of signsClientSlugs()) {
       const config = clientOrFail(slug)
       for (const mode of modes) {
         const type = config.options.types.find((item) => item.pricing === mode)

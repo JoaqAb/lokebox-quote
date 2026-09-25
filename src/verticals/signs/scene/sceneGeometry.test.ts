@@ -1,6 +1,5 @@
 import { Color, PerspectiveCamera, Vector3 } from 'three'
 import { describe, expect, it } from 'vitest'
-import { listClientSlugs } from '../../../clients'
 import { defaultSelection } from '../config'
 import { STUDIO_VIEW, SUPPORT_SHADOW_COLOR, frameDistance } from '../../../core/preview/studioView'
 import { themeFromClient } from '../../../core/theme'
@@ -53,7 +52,7 @@ import {
   totemLayout,
   totemStructureColor,
 } from './sceneGeometry'
-import { signsClientOf } from '../testing'
+import { signsClientOf, signsClientSlugs } from '../testing'
 
 const clientOrFail = signsClientOf
 
@@ -88,7 +87,7 @@ describe('signBoxMeters', () => {
 
   // 10.1
   it('el cartel se dibuja centrado en el origen, sin importar el tipo', () => {
-    for (const slug of listClientSlugs()) {
+    for (const slug of signsClientSlugs()) {
       const config = clientOrFail(slug)
       for (const type of ['facade', 'totem']) {
         const placement = signPlacement({ ...defaultSelection(config), type }, factorOf(slug))
@@ -217,7 +216,7 @@ describe('scenePalette', () => {
   // Editada en TAREA_019: la sombra deja de derivarse del tema y pasa a ser la constante de
   // escena; el texto sigue derivado y sin negros.
   it('queda solo lo que el cartel necesita: texto derivado del tema y sin negros, sombra de escena', () => {
-    for (const slug of listClientSlugs()) {
+    for (const slug of signsClientSlugs()) {
       const palette = scenePalette(themeFromClient(clientOrFail(slug)))
       expect(Object.keys(palette).sort()).toEqual(['shadow', 'signText'])
       expect(luminance(palette.signText), `${slug}.signText`).toBeGreaterThan(0.02)
@@ -229,7 +228,7 @@ describe('scenePalette', () => {
   // que sigue saliendo del tema, queda por encima de ella.
   it('la sombra es casi negra y mas oscura que el glifo del texto', () => {
     expect(luminance(SUPPORT_SHADOW_COLOR)).toBeLessThan(0.01)
-    for (const slug of listClientSlugs()) {
+    for (const slug of signsClientSlugs()) {
       const palette = scenePalette(themeFromClient(clientOrFail(slug)))
       expect(luminance(palette.shadow), slug).toBeLessThan(luminance(palette.signText))
     }
@@ -512,7 +511,7 @@ describe('totem de verdad', () => {
   })
 
   it('en los extremos del rango de los dos clientes la base es mas angosta que el panel y mas ancha que el poste', () => {
-    for (const slug of listClientSlugs()) {
+    for (const slug of signsClientSlugs()) {
       const client = clientOrFail(slug)
       const factor = factorOf(slug)
       const { width, height } = client.options
@@ -537,7 +536,7 @@ describe('totem de verdad', () => {
     const aspect = 16 / 9
     const inside = 1 / (1 + 2 * STUDIO_VIEW.marginRatio)
     const tan = Math.tan((STUDIO_VIEW.fovDeg * Math.PI) / 360)
-    for (const slug of listClientSlugs()) {
+    for (const slug of signsClientSlugs()) {
       const { width, height } = clientOrFail(slug).options
       const factor = factorOf(slug)
       for (const [w, h] of [[width.min, height.max], [width.max, height.max], [width.max, height.min]]) {
@@ -568,7 +567,7 @@ describe('totem de verdad', () => {
   })
 
   it('poste y base van en el muted del tema, con metalness 0,2 y roughness 0,6', () => {
-    for (const slug of listClientSlugs()) {
+    for (const slug of signsClientSlugs()) {
       const client = clientOrFail(slug)
       const color = totemStructureColor(themeFromClient(client))
       expect(new Color(color).getHexString()).toBe(new Color(client.brand.colors.muted).getHexString())

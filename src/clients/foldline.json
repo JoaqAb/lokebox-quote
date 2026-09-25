@@ -1,0 +1,316 @@
+{
+  "slug": "foldline",
+  "locale": "en",
+  "vertical": "boxes",
+  "currency": {
+    "code": "USD",
+    "symbol": "$",
+    "decimals": 2
+  },
+  "units": {
+    "length": "in",
+    "area": "sqft"
+  },
+  "brand": {
+    "name": "Foldline Packaging",
+    "logo": "/clients/foldline/logo.svg",
+    "colors": {
+      "bg": "#F4F3F0",
+      "primary": "#D6D3CC",
+      "accent": "#2F5D50",
+      "text": "#1B1D1C",
+      "muted": "#6A6E6B"
+    },
+    "phone": "+1 555 014 7788",
+    "whatsapp": "15550147788",
+    "email": "hello@foldline.example"
+  },
+  "cta": "both",
+  "poweredBy": true,
+  "prices_placeholder": false,
+  "options": {
+    "styles": [
+      {
+        "id": "mailer",
+        "label": "Mailer box",
+        "assembly": 0.25,
+        "blank": [
+          {
+            "length": {
+              "l": 1,
+              "w": 0,
+              "h": 4,
+              "add": 1
+            },
+            "width": {
+              "l": 0,
+              "w": 2,
+              "h": 3,
+              "add": 1.5
+            }
+          }
+        ],
+        "visual": {
+          "shape": "mailer"
+        }
+      },
+      {
+        "id": "two-piece",
+        "label": "Lid and base",
+        "assembly": 0.6,
+        "blank": [
+          {
+            "length": {
+              "l": 1,
+              "w": 0,
+              "h": 2,
+              "add": 0.25
+            },
+            "width": {
+              "l": 0,
+              "w": 1,
+              "h": 2,
+              "add": 0.25
+            }
+          },
+          {
+            "length": {
+              "l": 1,
+              "w": 0,
+              "h": 0.8,
+              "add": 0.5
+            },
+            "width": {
+              "l": 0,
+              "w": 1,
+              "h": 0.8,
+              "add": 0.5
+            }
+          }
+        ],
+        "visual": {
+          "shape": "two-piece",
+          "lidDepth": 0.4
+        }
+      },
+      {
+        "id": "shipping",
+        "label": "Shipping box",
+        "assembly": 0.1,
+        "blank": [
+          {
+            "length": {
+              "l": 2,
+              "w": 2,
+              "h": 0,
+              "add": 1.5
+            },
+            "width": {
+              "l": 0,
+              "w": 1,
+              "h": 1,
+              "add": 0.25
+            }
+          }
+        ],
+        "visual": {
+          "shape": "shipping"
+        }
+      }
+    ],
+    "length": {
+      "min": 4,
+      "max": 24,
+      "step": 0.5,
+      "default": 10
+    },
+    "width": {
+      "min": 3,
+      "max": 18,
+      "step": 0.5,
+      "default": 8
+    },
+    "height": {
+      "min": 1,
+      "max": 12,
+      "step": 0.5,
+      "default": 4
+    },
+    "materials": [
+      {
+        "id": "kraft",
+        "label": "Kraft corrugated",
+        "pricePerArea": 0.35,
+        "visual": {
+          "color": "#B8895A",
+          "finish": "foam",
+          "metalness": 0,
+          "roughness": 0.95,
+          "specularIntensity": 0.25,
+          "clearcoat": 0,
+          "clearcoatRoughness": 0,
+          "anisotropy": 0,
+          "normalScale": 0.35,
+          "translucency": 0,
+          "thicknessMm": 3
+        }
+      },
+      {
+        "id": "white",
+        "label": "White corrugated",
+        "pricePerArea": 0.5,
+        "visual": {
+          "color": "#ECEAE4",
+          "finish": "foam",
+          "metalness": 0,
+          "roughness": 0.9,
+          "specularIntensity": 0.3,
+          "clearcoat": 0,
+          "clearcoatRoughness": 0,
+          "anisotropy": 0,
+          "normalScale": 0.3,
+          "translucency": 0,
+          "thicknessMm": 3
+        }
+      },
+      {
+        "id": "rigid",
+        "label": "Rigid, paper-wrapped",
+        "pricePerArea": 1.6,
+        "styles": [
+          "two-piece"
+        ],
+        "visual": {
+          "color": "#23303D",
+          "finish": "foam",
+          "metalness": 0,
+          "roughness": 0.55,
+          "specularIntensity": 0.5,
+          "clearcoat": 0.3,
+          "clearcoatRoughness": 0.4,
+          "anisotropy": 0,
+          "normalScale": 0.15,
+          "translucency": 0,
+          "thicknessMm": 2
+        }
+      }
+    ],
+    "printing": [
+      {
+        "id": "none",
+        "label": "No print",
+        "pricePerArea": 0,
+        "setup": 0,
+        "visual": {
+          "logo": "none",
+          "inside": false
+        }
+      },
+      {
+        "id": "one",
+        "label": "1 color, outside",
+        "pricePerArea": 0.15,
+        "setup": 60,
+        "visual": {
+          "logo": "accent",
+          "inside": false
+        }
+      },
+      {
+        "id": "full",
+        "label": "Full color, outside",
+        "pricePerArea": 0.45,
+        "setup": 120,
+        "visual": {
+          "logo": "original",
+          "inside": false
+        }
+      },
+      {
+        "id": "full-inside",
+        "label": "Full color, inside and out",
+        "pricePerArea": 0.8,
+        "setup": 180,
+        "visual": {
+          "logo": "original",
+          "inside": true
+        }
+      }
+    ],
+    "quantities": [
+      {
+        "qty": 50,
+        "pct": 0
+      },
+      {
+        "qty": 100,
+        "pct": 10
+      },
+      {
+        "qty": 250,
+        "pct": 20
+      },
+      {
+        "qty": 500,
+        "pct": 28
+      },
+      {
+        "qty": 1000,
+        "pct": 35
+      }
+    ],
+    "defaults": {
+      "style": "mailer",
+      "materialId": "kraft",
+      "printingId": "one",
+      "quantity": 250
+    },
+    "rangePct": 10
+  },
+  "texts": {
+    "headline": "Your custom box price in 60 seconds",
+    "subheadline": "Choose the style, the size, the board and the print. See your box in 3D and get an instant estimate.",
+    "configureTitle": "Build your box",
+    "styleLabel": "Box style",
+    "dimensionsLabel": "Inside size",
+    "lengthLabel": "Length",
+    "widthLabel": "Width",
+    "heightLabel": "Height",
+    "materialLabel": "Board",
+    "printingLabel": "Printing",
+    "quantityLabel": "Quantity",
+    "previewZoomLabel": "Zoom",
+    "viewClosed": "Closed",
+    "viewOpen": "Open",
+    "loadingLabel": "Preparing your box",
+    "priceLabel": "Estimated price",
+    "priceRangeNote": "Estimated range",
+    "disclaimer": "This is an estimate. Foldline Packaging confirms the final price.",
+    "ctaWhatsapp": "Send on WhatsApp",
+    "ctaForm": "Request this quote",
+    "formTitle": "Where do we send the quote?",
+    "formName": "Your name",
+    "formContact": "Email or phone",
+    "formNote": "Anything we should know?",
+    "formSubmit": "Send request",
+    "formSending": "Sending",
+    "thanksTitle": "Thanks, we got your request",
+    "thanksBody": "We will answer within one business day.",
+    "viewQuote": "View my quote",
+    "quoteTitle": "Box quote",
+    "quoteValidity": "This quote is valid for 15 days.",
+    "quoteDateLabel": "Date",
+    "quoteSelectionTitle": "Your box",
+    "quoteBreakdownTitle": "Price breakdown",
+    "quotePrint": "Print or save as PDF",
+    "quoteBack": "Back to the box builder",
+    "lineMaterial": "Board",
+    "linePrinting": "Printing",
+    "lineAssembly": "Folding and gluing",
+    "lineSetup": "Print setup, per order",
+    "lineDiscount": "Quantity discount",
+    "perBoxCaption": "Prices per box for {quantity} boxes. Print setup is per order.",
+    "poweredBy": "Powered by Lokebox",
+    "whatsappMessage": "Hi, I want a quote for {quantity} boxes: {style}, inside size {length} x {width} x {height} {unit}, {material}, printing: {printing}. Estimated range {min} to {max}."
+  }
+}
