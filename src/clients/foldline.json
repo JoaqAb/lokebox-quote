@@ -150,7 +150,7 @@
           "clearcoat": 0,
           "clearcoatRoughness": 0,
           "anisotropy": 0,
-          "normalScale": 0.35,
+          "normalScale": 0.1,
           "translucency": 0,
           "thicknessMm": 3
         }
@@ -168,7 +168,7 @@
           "clearcoat": 0,
           "clearcoatRoughness": 0,
           "anisotropy": 0,
-          "normalScale": 0.3,
+          "normalScale": 0.1,
           "translucency": 0,
           "thicknessMm": 3
         }
@@ -182,14 +182,14 @@
         ],
         "visual": {
           "color": "#23303D",
-          "finish": "foam",
+          "finish": "polished",
           "metalness": 0,
           "roughness": 0.55,
           "specularIntensity": 0.5,
           "clearcoat": 0.3,
           "clearcoatRoughness": 0.4,
           "anisotropy": 0,
-          "normalScale": 0.15,
+          "normalScale": 0.1,
           "translucency": 0,
           "thicknessMm": 2
         }

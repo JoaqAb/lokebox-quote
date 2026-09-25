@@ -5,22 +5,23 @@ import type { BoxesConfig } from './types'
 
 // Ayudas de los tests de cajas: la parte de cajas del JSON de foldline y de cajasur con los
 // valores de SPEC 21.4, armada aca para que la logica se pruebe contra la SPEC y no contra el
-// archivo. Un test de la fase 3 exige que src/clients/foldline.json y cajasur.json traigan
-// exactamente estas unidades y opciones. Solo las importan los tests.
+// archivo. finish y normalScale son los finales de D152, los mismos del JSON. Un test de la fase 3
+// exige que src/clients/foldline.json y cajasur.json traigan exactamente estas unidades y opciones.
+// Solo las importan los tests.
 
 type Raw = Record<string, unknown>
 
 const kraftVisual = {
   color: '#B8895A', finish: 'foam', metalness: 0, roughness: 0.95, specularIntensity: 0.25, clearcoat: 0,
-  clearcoatRoughness: 0, anisotropy: 0, normalScale: 0.35, translucency: 0, thicknessMm: 3,
+  clearcoatRoughness: 0, anisotropy: 0, normalScale: 0.1, translucency: 0, thicknessMm: 3,
 }
 const whiteVisual = {
   color: '#ECEAE4', finish: 'foam', metalness: 0, roughness: 0.9, specularIntensity: 0.3, clearcoat: 0,
-  clearcoatRoughness: 0, anisotropy: 0, normalScale: 0.3, translucency: 0, thicknessMm: 3,
+  clearcoatRoughness: 0, anisotropy: 0, normalScale: 0.1, translucency: 0, thicknessMm: 3,
 }
 const rigidVisual = {
-  color: '#23303D', finish: 'foam', metalness: 0, roughness: 0.55, specularIntensity: 0.5, clearcoat: 0.3,
-  clearcoatRoughness: 0.4, anisotropy: 0, normalScale: 0.15, translucency: 0, thicknessMm: 2,
+  color: '#23303D', finish: 'polished', metalness: 0, roughness: 0.55, specularIntensity: 0.5, clearcoat: 0.3,
+  clearcoatRoughness: 0.4, anisotropy: 0, normalScale: 0.1, translucency: 0, thicknessMm: 2,
 }
 
 const side = (l: number, w: number, h: number, add: number) => ({ l, w, h, add })
