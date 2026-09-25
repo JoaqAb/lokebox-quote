@@ -756,7 +756,7 @@ Por pedido: `setup`, el `setup` de la impresión. Clave `lineSetup`. Entra solo 
 
 Escalones (D141): `quantities` es una lista `{ qty, pct }` con `qty` y `pct` estrictamente crecientes y el primer `pct` en 0. La cantidad solo puede ser uno de esos `qty`. Pasan a `composePrice` como `discounts` con `minQty` igual a `qty`: el factor del escalón de D123 es 1 menos pct/100 sobre el precio del escalón mínimo, y se ve como la línea de descuento del core. `rangePct` como en carteles.
 
-Resultado: el `PriceResult` de 6.3 más `blankArea`, el área de plancha por caja sin redondear. `detailValues` de material e impresión: `{ id, blankArea, unitPrice }`, que `lineDetail` formatea como área con su unidad por precio con su moneda; armado y preparación sin detalle. `breakdownCaption` es `perBoxCaption` con `{quantity}` formateado: dice que las líneas son por caja y la preparación por pedido.
+Resultado: el `PriceResult` de 6.3 más `blankArea`, el área de plancha por caja sin redondear, y `quantity`, la cantidad de la selección, que es lo que lee `breakdownCaption` (D146). `detailValues` de material e impresión: `{ id, blankArea, unitPrice }`, que `lineDetail` formatea como área con su unidad por precio con su moneda; armado y preparación sin detalle. `breakdownCaption` es `perBoxCaption` con `{quantity}` formateado: dice que las líneas son por caja y la preparación por pedido.
 
 Mismas prohibiciones de pureza que 6.1. Un id que no existe, un material que no vale para el estilo, una medida fuera de rango o una cantidad fuera de los escalones lanza con el valor en el mensaje.
 

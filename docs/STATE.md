@@ -13,7 +13,7 @@ TAREA_032 aceptada (D139), refactor en 00e9813, cierre de docs en 19ee613. Recar
 
 ## Proximo
 
-0. Nada de TAREA_033 esta commiteado: los docs de apertura estan en disco sin commit. main y origin en 19ee613.
+0. TAREA_033 frenada en la fase 2 y resuelta por D146 a D149 (quantity en el resultado de cajas, vara de capturas con dos corridas, tests filtrados por vertical). Fases 0 y 1 en commits locales hasta 05c8e67, sin push; D146 a D149 y SPEC 21.2 en disco sin commit.
 1. Code ejecuta TAREA_033 y deja el reporte en su seccion Resultado.
 2. Joaquin mira los pares de validacion/vitrina/033-fase0/ (alba 01 a 06).
 3. Canal B revisa Resultado y las doce capturas de cajas contra las de carteles (R1 del bloque 12).
