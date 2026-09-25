@@ -3,7 +3,7 @@
 Fuente de verdad del alcance. Si algo no está acá, no se construye.
 Este documento se edita, no se contradice. Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 
-Versión: 2.15 · 25/09/2026
+Versión: 2.16 · 25/09/2026
 
 ## 1. Objetivo
 
@@ -862,6 +862,6 @@ Valores de `cajasur` (ARS, decimals 0, cm y m2, `prices_placeholder` true), deri
 - Material: `MeshPhysicalMaterial` desde el `visual`, con los acabados del core. Un acabado nuevo solo si las capturas muestran que los existentes no alcanzan (D124).
 - Impresión (D144): el logo del cliente, rasterizado una vez a `CanvasTexture` desde su archivo, con `dispose` al desmontar, centrado en la cara exterior de la tapa (en shipping, en la cara lateral larga del frente), con un ancho relativo nombrado. Con `accent`, la silueta en el acento del tema; con `original`, sus colores. Con `inside`, las caras interiores en el acento.
 - Sombra de apoyo en el piso y key que proyecta, como el totem en modo cartel.
-- Cámara: la del modo cartel de la sección 12 (fov 30, órbita con los mismos límites, distancia por la huella de la caja de encuadre con 12 por ciento de margen, zoom de 1,0 a 0,55). La caja de encuadre incluye la tapa o las solapas abiertas. Desde 2.15 (D151) arranca en tres cuartos y desde arriba, con el arranque que el core acepta por vista: al cargar, sin arrastrar, se ven la cara del logo y dos caras laterales en los tres estilos.
+- Cámara: la del modo cartel de la sección 12 (fov 30, órbita con los mismos límites, distancia por la huella de la caja de encuadre con 12 por ciento de margen, zoom de 1,0 a 0,55). La caja de encuadre es la caja tal como está en cada momento de la apertura: cerrada, solo la caja, centrada; abierta, con la tapa o las solapas (2.16, D154). Desde 2.15 (D151) arranca en tres cuartos y desde arriba, con el arranque que el core acepta por vista: al cargar, sin arrastrar, se ven la cara del logo y dos caras laterales en los tres estilos.
 - Por debajo de lg el alto del preview es 3/4 del ancho, con el tope de 42svh (D98).
 - Ningún hexadecimal en la escena: colores del `visual` y del tema.
