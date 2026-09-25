@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { CurrencyConfig } from '../types'
-import { formatArea, formatCurrency, formatLength, formatPercent } from './format'
+import { areaUnitSymbol, formatArea, formatCurrency, formatLength, formatPercent } from './format'
 
 const usd: CurrencyConfig = { code: 'USD', symbol: '$', decimals: 0 }
 const ars: CurrencyConfig = { code: 'ARS', symbol: '$', decimals: 0 }
@@ -55,5 +55,19 @@ describe('formatPercent', () => {
   it('el porcentaje del descuento, en los dos locales', () => {
     expect(formatPercent(5, 'en')).toBe('5%')
     expect(formatPercent(10, 'es-AR')).toBe('10%')
+  })
+})
+
+// Movido de la vertical de carteles con el codigo en TAREA_033 (D143).
+describe('areaUnitSymbol', () => {
+  // 9.7
+  it('mapea las unidades de area de los dos clientes', () => {
+    expect(areaUnitSymbol('m2')).toBe('m²')
+    expect(areaUnitSymbol('sqft')).toBe('sq ft')
+  })
+
+  // 9.7
+  it('lanza con una unidad desconocida, con la unidad en el mensaje', () => {
+    expect(() => areaUnitSymbol('acres')).toThrow(/acres/)
   })
 })

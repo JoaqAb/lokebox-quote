@@ -30,19 +30,6 @@ export function lengthToMeters(unit: string): number {
   throw new Error(`lengthToMeters: unidad de longitud desconocida: "${unit}"`)
 }
 
-// Simbolo visible de la unidad de area, derivado de units.area del cliente. Vive en la
-// vertical por la misma razon que lengthToMeters: core no sabe en que se mide un cartel.
-// Un cliente nuevo con otra unidad se resuelve aca y sigue sin tocar su JSON.
-export function areaUnitSymbol(unit: string): string {
-  if (unit === 'm2') {
-    return 'm²'
-  }
-  if (unit === 'sqft') {
-    return 'sq ft'
-  }
-  throw new Error(`areaUnitSymbol: unidad de area desconocida: "${unit}"`)
-}
-
 function findById<T extends { id: string }>(list: T[], id: string, what: string): T {
   const found = list.find((item) => item.id === id)
   if (found === undefined) {

@@ -23,6 +23,19 @@ export function formatLength(value: number, locale: string): string {
   return formatter.format(value)
 }
 
+// Simbolo visible de la unidad de area, derivado de units.area del cliente. En el core desde
+// TAREA_033 (D143): lo usan las verticales que miden area. Un cliente nuevo con otra unidad se
+// resuelve aca y sigue sin tocar su JSON.
+export function areaUnitSymbol(unit: string): string {
+  if (unit === 'm2') {
+    return 'm²'
+  }
+  if (unit === 'sqft') {
+    return 'sq ft'
+  }
+  throw new Error(`areaUnitSymbol: unidad de area desconocida: "${unit}"`)
+}
+
 // Area con su unidad, en el locale del cliente. El simbolo de la unidad lo pone la
 // vertical: core no sabe en que se mide nada.
 export function formatArea(area: number, locale: string, areaUnit: string): string {

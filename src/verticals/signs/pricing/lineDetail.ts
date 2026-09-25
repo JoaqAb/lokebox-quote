@@ -1,7 +1,6 @@
-import { formatArea, formatCurrency, formatLength } from '../../../core/pricing/format'
+import { areaUnitSymbol, formatArea, formatCurrency, formatLength } from '../../../core/pricing/format'
 import type { CurrencyConfig, PriceLine } from '../../../core/types'
 import type { SignDetailValues, SignLineId, SignPriceResult, SignsConfig } from '../types'
-import { areaUnitSymbol } from '../visuals'
 
 // El detalle visible de cada linea de carteles (SPEC 6.1, desde 2.13 de la vertical). El calculo
 // emite numeros crudos y el formateo vive aca, con los formateadores del core, la moneda del
