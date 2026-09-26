@@ -107,7 +107,7 @@ La vertical calcula sus componentes en precision completa y los pasa a `composeP
 
 La vista arma una zona con estas piezas del core (ver `src/verticals/boxes/BoxPreview.tsx`):
 
-- Un `div` con `data-preview-zone`, `ref` para `usePreviewZoom(zoneRef)` (`previewZoom.ts`), los `pointerHandlers` del zoom y `--q-strip: CONTROL_STRIP` en el estilo. Por debajo de lg el alto va con tope `42svh`; en lg, `h-full`.
+- Un `div` con `data-preview-zone`, `ref` para `usePreviewZoom(zoneRef)` (`previewZoom.ts`), los `pointerHandlers` del zoom y `--q-strip: CONTROL_STRIP` en el estilo. El alto de la zona lo pone la vertical en su clase: por debajo de lg, el que diga el brief con tope `42svh` (D98); en lg, `h-full`.
 - `StageBackdrop` de `src/core/ui/StageBackdrop.tsx`, con `loading.stage` como tono.
 - `PreviewCanvas` (`PreviewCanvas.tsx`) con la escena como children, solo si `hasWebGL()` (`webgl.ts`). Monta el renderer, la calidad, el pipeline y la pantalla de carga.
 - `PreviewStrip` (`PreviewControls.tsx`) dentro de la zona, con las opciones del control segmentado de la vertical, el zoom y `previewZoomLabel`. El encuadre mide cuanto tapa la franja al canvas y la descuenta solo (D160): la vertical no hace nada para eso, salvo poner la franja dentro de la zona.

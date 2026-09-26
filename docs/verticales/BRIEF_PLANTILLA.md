@@ -51,7 +51,7 @@ Primero la plantilla en blanco. Despues un ejemplo completo, cajas, rellenado de
 - Caja de encuadre: que entra en el encuadre, y si cambia con alguna animacion.
 - Control de vista en la franja: las opciones y su efecto, o "no aplica". Si no es seleccion, no va al precio, a la URL ni al lead.
 - Logo del cliente: donde va, o "no lo dibuja".
-- Alto del preview por debajo de lg.
+- Alto de la zona del preview por debajo de lg, que lo pone la vertical (siempre con tope de 42svh).
 
 ### 6. Clientes
 
@@ -63,7 +63,7 @@ Dos clientes, uno en ingles y uno en espanol, cada uno con:
 
 ### 7. Claves de texts propias
 
-Tabla con cada clave de la vertical y su texto en los dos clientes. Ninguna igual a una del core (CORE_TEXT_KEYS). Las 27 del core se escriben en los dos idiomas como en los clientes existentes.
+Tabla con cada clave de la vertical y su texto en los dos clientes. Ninguna igual a una del core (CORE_TEXT_KEYS). Las 27 del core se escriben en los dos idiomas como en los clientes existentes. Se dice el total: N propias obligatorias, 27 mas N con las del core (el numero del describe de src/app/clients.test.ts), y las condicionales aparte.
 
 ### 8. Capturas
 
@@ -123,7 +123,7 @@ Rellenado desde SPEC 21 (2.16) y los JSON de foldline y cajasur. Es la vertical 
 - Encuadre: la caja tal como esta en cada momento de la apertura; cerrada, centrada.
 - Control de vista: `viewClosed` y `viewOpen`, cerrada al cargar, transicion con damp. No es seleccion.
 - Logo: impreso en la tapa (en shipping, en la cara lateral larga del frente); `accent` en el acento del tema, `original` en sus colores; `inside` pinta las caras interiores en el acento.
-- Alto por debajo de lg: 3/4 del ancho con tope de 42svh.
+- Alto de la zona por debajo de lg, que lo pone la vertical: 3/4 del ancho con tope de 42svh.
 
 ### 6. Clientes
 
@@ -143,7 +143,9 @@ Rellenado desde SPEC 21 (2.16) y los JSON de foldline y cajasur. Es la vertical 
 
 Los `blank` de cada estilo estan en SPEC 21.4; los `add` de cajasur en cm son mailer 2,5 y 4, tapa y fondo 0,6 en el fondo y 1,2 en la tapa, envio 4 y 0,6.
 
-### 7. Claves de texts propias (17 mas la condicional)
+### 7. Claves de texts propias
+
+17 obligatorias, 44 con las 27 del core, mas `whatsappMessageHidden`, condicional, que no cuenta en las 44.
 
 | Clave | foldline | cajasur |
 |---|---|---|

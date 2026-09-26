@@ -2,7 +2,7 @@
 
 ## Qué es
 
-Lokebox Quote es un cotizador interactivo comercial, paralelo al producto Lokebox. Demo inicial: cartelería. Deadline: viernes 18/09/2026. Existe para conseguir clientes.
+Lokebox Quote es un cotizador interactivo comercial, paralelo al producto Lokebox. Demo inicial: cartelería. Existe para conseguir clientes.
 
 ## Stack
 
@@ -13,13 +13,13 @@ Vite + React + TypeScript · Tailwind v4 como plugin de Vite · Framer Motion ·
 Regla no negociable: core / vertical / cliente (JSON).
 
 - **core**: layout, panel de opciones, motor de precios, captura de lead, quote imprimible y tracking. No sabe nada de una vertical concreta ni de un cliente concreto.
-- **vertical**: aporta el esquema de opciones y el componente de preview 3D. Hoy, cartelería.
+- **vertical**: aporta el esquema de opciones y el componente de preview 3D. Hoy, carteles y cajas.
 - **cliente**: un JSON con nombre, logo, colores, precios y opciones habilitadas. Personalizar un cliente nuevo es editar un JSON y reemplazar un logo, sin tocar código.
 
 Además:
 
 - El motor de precios es una función pura, con la firma de SPEC 6. Sin React, sin Supabase, sin efectos, sin formateo de moneda adentro.
-- El preview es un componente enchufable que recibe el estado como props. La escena es simple: fachada, cartel como caja emisiva, una luz, órbita limitada. Sin shaders custom, sin física, sin modelos pesados.
+- El preview es un componente enchufable que recibe el estado como props. Lo que una escena puede usar está en SPEC 12 y en `docs/verticales/KIT.md`.
 - Cero strings de UI hardcodeados. Todo texto visible sale de `texts` en el JSON del cliente.
 
 ## Protocolo de contexto
@@ -37,7 +37,6 @@ Además:
 - Soluciones sólidas, nada de parches. Si algo pide un workaround, se frena y se reporta.
 - Nada se declara terminado sin verificar los criterios de aceptación.
 - Si una tarea contradice SPEC.md, frenar y reportar. No resolverlo por cuenta propia.
-- Si una feature pone en riesgo el viernes 18, se simplifica o se elimina.
 - Tres commits por tarea, en orden: docs de apertura, código, docs de cierre (STATE, DECISIONES y `_ULTIMO.md`).
 - No se reescribe historia ya pusheada.
 - Los textos en inglés de la demo van en nivel B2, frases simples.
@@ -51,3 +50,4 @@ Además:
 - `docs/STATE.md`: estado vivo, formato fijo, tope 25 líneas.
 - `docs/DECISIONES.md`: una línea por decisión, con fecha.
 - `docs/tareas/TAREA_NNN_titulo.md`: la tarea en curso.
+- `docs/verticales/KIT.md`: cómo se arma una vertical nueva. Lo usa el subagente `.claude/agents/vertical-builder.md`.
