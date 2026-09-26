@@ -118,3 +118,35 @@ Tope de 15 lineas: uno al terminar la fase 1, con los pares, y otro al cierre. E
 3. 1.3: src/core/preview/stripOverlap.ts mide con ResizeObserver cuanto tapa la [data-controls] de la zona al canvas y PreviewCanvas lo pasa por contexto. useStudioFraming usa stripView: frameDistance con visibleRatio y setViewOffset con strip / 2 hacia abajo; target y posicion igual. Tests en studioFraming.test.ts: franja 0 da la misma distancia exacta; con franja, el target cae en el centro del rectangulo visible y la huella entra con el margen. No se toco ninguna vertical para esto.
 4. 1.4: dos corridas antes (b1c5650) y dos despues (923f7be) de scripts/vitrina.mjs mas cinco hojas. Ruido entre corridas iguales: solo las tomas abiertas de cajas (02, 03 y 05), las dos veces. Modo vista de carteles (02 y 03 de los cinco) identico, hoja de letters y de alba identicas. Cambian todas las tomas de estudio y las hojas con leyenda. Pares en validacion/premium/035/pares/.
 5. Tests 397 (385 mas 12). Build, tsc -b --force, oxlint y tests en verde. Snapshot de precios sin diff. grep de vocabulario en src/core da 0; cero imports cruzados.
+
+### Fases 2 y 3 y cierre
+
+Pares aceptados por Joaquin, 13 de 13 (D166). Fases 2 y 3 hechas; 655a59a en produccion, Vercel en Ready.
+
+1. Fase 2 (ba997cf): docs/verticales/KIT.md, 170 lineas, escrito desde el codigo despues de la fase 1, con cajas como referencia; toda ruta citada verificada con ls. docs/verticales/BRIEF_PLANTILLA.md: plantilla en nueve secciones y el ejemplo completo de cajas desde SPEC 21 y los JSON.
+2. Fase 3 (655a59a): .claude/agents/vertical-builder.md en sonnet, con las prohibiciones de D161 y D116. CLAUDE.md sin el deadline, sin la regla del viernes 18 y sin la de escena simple; "Hoy, carteles y cajas"; suma KIT.md a Documentos.
+3. Verificacion del agente: sesion limpia de claude -p en modo plan, sin Edit ni Write. El agente leyo el kit y el brief, listo 26 archivos a crear en src/verticals/<id>/, src/clients/ y public/clients/, y 3 a editar (src/app/verticals.ts, src/app/clients.test.ts, scripts/vitrina.mjs); nada fuera de lo permitido. Marco dos vacios, corregidos en 655a59a: el total de claves de texts no estaba dicho (44, 27 mas 17) y el alto de la zona parecia del core (lo pone la vertical, con tope de 42svh).
+4. Cierre: leads en 3 verificado, DROP TABLE leads_backup_20260925 (to_regclass da null) y rm del JSON (D165).
+5. Produccion: siete rutas, tres hojas y la landing en 200. Con Playwright y Supabase cortado, los siete clientes en desktop y mobile sin errores propios de consola (solo el insert de visitas cortado a proposito). Las hojas de northline, foldline y cajasur muestran la leyenda. No se mandaron leads: el flujo de lead no cambio en la tarea y leads queda limpio despues de D163.
+
+| Commit | Contenido |
+|---|---|
+| b1c5650 | docs: apertura, SPEC 2.17, D156 a D165 |
+| 923f7be | fase 1: formatInteger, leyenda en la hoja, encuadre con la franja |
+| 038bb29 | docs: resultado de la fase 1, freno con los pares |
+| ba997cf | fase 2: KIT.md y BRIEF_PLANTILLA.md |
+| 655a59a | fase 3: vertical-builder y CLAUDE.md, ajustes del kit por la verificacion |
+
+| Criterio | Estado |
+|---|---|
+| 1 | Si. formatInteger con 3 tests; cajas no usa formatLength para contar |
+| 2 | Si. 5 tests con la pagina real: leyenda con precio, sin ella sin precio, en carteles y cajas |
+| 3 | Si. 02 y 03 de los cinco de carteles identicos en dos corridas antes y despues |
+| 4 | Si. priceSnapshot.test en verde, fixture sin diff |
+| 5 | Si. 13 de 13 pares aceptados (D166) |
+| 6 | Si. KIT.md 170 lineas, rutas verificadas con ls |
+| 7 | Si. Ejemplo de cajas completo en las nueve secciones |
+| 8 | Si. model sonnet y las prohibiciones de D161 |
+| 9 | Si. rg de 18/09, viernes y escena simple en CLAUDE.md da 0 |
+| 10 | Si. Tabla borrada, JSON borrado, leads en 3 |
+| G1 a G6 | Si. build sin warnings, tsc -b --force 0, oxlint 0, 397 tests, sin rayas, sin parches |

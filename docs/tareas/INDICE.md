@@ -46,3 +46,4 @@ ejecutaron, que es el orden del historial: TAREA_013 se ejecuto despues de TAREA
 | TAREA_032 | Contrato de vertical y motor generico | cerrada (D139) | 00e9813 |
 | TAREA_033 | Vertical cajas | cerrada (D150, D153) | 691f087 |
 | TAREA_034 | Camara de arranque y acabados de cajas | cerrada (D153) | 1f8eefc |
+| TAREA_035 | Kit de verticales y deudas del core | cerrada (D166) | 655a59a |
