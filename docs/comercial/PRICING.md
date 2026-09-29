@@ -3,6 +3,8 @@
 Fecha: 2026-09-16
 Estado: V2 cerrada por D17. Reemplaza entera a la V1 del 12/09.
 
+Revision 29/09/2026 (D167): el precio sigue igual. "Que incluye el setup" y "Que se construye por mas" quedan reemplazados: cada Quote funciona de punta a punta, sin add-ons de funciones, y el precio crece por alcance. Ya no se publica "hasta tres tipos de cartel" ni la lista de extras. Detalle en DECISIONES.md, D167.
+
 ## Principio
 
 Lokebox Quote se vende como producto implementado, no como desarrollo abierto por horas.
