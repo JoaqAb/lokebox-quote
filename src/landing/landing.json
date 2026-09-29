@@ -23,7 +23,7 @@
     "offerTitle": "What you get",
     "offerPrice": "From {setup} setup, plus {monthly} per month.",
     "offerMonthlyTitle": "Included every month",
-    "offerMoreTitle": "Built on request, quoted case by case",
+    "offerMoreTitle": "The price grows with scope, not with features",
     "contactTitle": "Want one for your business?",
     "contactBody": "Tell me what you sell and how you charge for it. I reply with a demo built around your own product.",
     "contactButton": "Send an email",
@@ -40,27 +40,26 @@
     "price": { "setup": 250, "monthly": 29 },
     "setup": [
       "Quote tool with your logo, your colors and your texts.",
-      "Up to three sign types, with all their options.",
-      "3D preview that changes while the visitor picks options.",
-      "Price on screen as a range, with your own note.",
+      "Your product with all its options and variants.",
+      "A preview that changes while the visitor picks options.",
+      "Price on screen, shown the way you sell.",
       "Leads with the full configuration, by WhatsApp or by form.",
       "Printable quote sheet.",
       "Your prices loaded and checked with you."
     ],
     "monthly": [
-      "Prices kept up to date, up to two updates per month.",
       "Your page online, with your address and its certificate.",
       "Orders saved with the full configuration.",
-      "Small changes at no cost.",
-      "Product improvements included.",
-      "Support with an answer within one working day.",
+      "Simple content and price changes on what already exists.",
+      "Maintenance and general product improvements.",
+      "Support from the team that built it.",
       "Cancel whenever you want and keep your data."
     ],
     "more": [
-      "More sign types, or another product family.",
+      "More product families.",
       "More complex price rules.",
-      "Your photos of real jobs in the preview.",
-      "Another language on the same page."
+      "Integrations with your systems.",
+      "Logic specific to your business."
     ]
   },
   "contact": { "email": "hola@lokebox.com", "placeholder": false }

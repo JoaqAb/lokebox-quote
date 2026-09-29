@@ -3,6 +3,22 @@
 Fecha: 2026-09-17
 Estado: publicado (D110), aprobado despues del envio del 17/09/2026. La edicion posterior a la aprobacion esta en docs/comercial/CANAL_C_BLOQUE9.md, paso 3. Este documento es el registro de lo que se envio, mas lo que falta agregar despues de la aprobacion. Unica fuente del texto del listado. docs/comercial/UPWORK.md ya no lo duplica.
 
+PENDIENTE por D167 (29/09/2026): el listado publicado todavia dice "up to three sign types", el
+abono con "one working day" y la lista de extras. Hay que editarlo en Upwork (lo hace Joaquin o
+se pide el ok). Texto para reemplazar:
+
+- En la descripcion, el ultimo parrafo pasa a: "What you get is a complete quote tool for your
+  signs, with all their options. It is not a template with one product in it."
+- En Que incluye, "Up to three sign types, with all their options." pasa a "Your signs, with all
+  their options."
+- El abono, igual a la landing: Your page online, with your address and its certificate. / Orders
+  saved with the full configuration. / Simple content and price changes on what already exists. /
+  Maintenance and general product improvements. / Support from the team that built it. / Cancel
+  whenever you want and keep your data.
+- "Built on request, quoted case by case" pasa a "The price grows with scope, not with features":
+  More product families. / More complex price rules. / Integrations with your systems. / Logic
+  specific to your business.
+
 Reglas que cumple este texto:
 
 - El eje es hasta tres tipos de cartel con todas sus variantes, no cantidad de familias de producto (D15).

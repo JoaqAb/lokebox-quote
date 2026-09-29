@@ -3,7 +3,7 @@
 Fecha: 2026-09-16
 Estado: V2 cerrada por D17. Reemplaza entera a la V1 del 12/09.
 
-Revision 29/09/2026 (D167): el precio sigue igual. "Que incluye el setup" y "Que se construye por mas" quedan reemplazados: cada Quote funciona de punta a punta, sin add-ons de funciones, y el precio crece por alcance. Ya no se publica "hasta tres tipos de cartel" ni la lista de extras. Detalle en DECISIONES.md, D167.
+Revision 29/09/2026 (D167): el precio sigue igual; el setup, el abono y como crece el precio quedan reescritos abajo.
 
 ## Principio
 
@@ -28,42 +28,47 @@ Por que un piso y no una tabla:
 
 Se empieza por Tucuman. El piso sube despues de los primeros clientes, con horas reales medidas.
 
-## Que incluye el setup
+## Que incluye el setup (D167)
+
+Cada Quote contratado funciona de punta a punta. Nada esencial es add-on.
 
 - Cotizador con el logo, los colores y los textos del cliente.
-- Hasta tres tipos de cartel, con todas sus variantes.
-- Preview 3D que cambia mientras el visitante elige opciones.
-- Precio en pantalla como rango, con la nota del propio cliente.
-- Leads con la configuracion completa, por WhatsApp o por formulario.
-- Hoja de cotizacion imprimible.
+- Su producto con todas sus opciones y variantes.
+- La visualizacion que pida el caso: 3D, composicion sobre foto u otra vista.
+- Precio en pantalla como lo venda el cliente: rango, exacto o sin cifra.
+- Leads con la configuracion completa, por WhatsApp, por formulario o los dos.
+- Hoja de cotizacion imprimible, cuando la venta la necesita.
+- Responsive, publicado y listo para clientes reales.
 - Los precios del cliente cargados y revisados con el.
 
-El eje es hasta tres tipos de cartel con todas sus variantes, no una cantidad de familias de producto: es lo que el producto hace hoy y lo que el visitante ve en la demo.
+USD 250 es el piso de una implementacion completa de alcance simple, no el precio de cualquier
+Quote.
 
-## Que incluye el abono
+## Que incluye el abono (D167)
 
-Los siete puntos, siempre enumerados. El abono no se resume como mantenimiento de precios: asi contado parece un gasto y no un servicio.
+Continuidad dentro del alcance contratado, sin desarrollo ilimitado.
 
-- Precios al dia, con hasta dos actualizaciones por mes.
 - La pagina online, con su direccion y su certificado.
 - Pedidos guardados con la configuracion completa.
-- Cambios chicos sin costo.
-- Mejoras del producto incluidas.
-- Soporte con respuesta dentro de un dia habil.
+- Cambios simples de contenido y precios sobre lo que ya existe.
+- Mantenimiento y mejoras generales del producto.
+- Soporte.
 - Cancelacion cuando quiera, conservando sus datos.
 
-## Que se construye por mas
+## Como crece el precio (D167)
 
-Se cotiza caso por caso, sin precio publicado:
+Por alcance, nunca por desbloquear funciones. Se define antes de empezar, sin precio publicado:
 
-- Mas tipos de cartel, u otra familia de producto.
-- Reglas de precio mas complejas.
-- Fotos de trabajos reales del cliente en el preview.
-- Otro idioma en la misma pagina.
+- Varias familias de producto, o sistemas de configuracion distintos.
+- Mas escenas o vistas.
+- Reglas comerciales complejas.
 - Integraciones, webhooks y flujos internos.
-- Modelado 3D a medida.
+- Logica propia del negocio.
 
 Si un pedido implica desarrollo que no se reutiliza en otro cliente, deja de ser Quote y se cotiza como implementacion.
+
+USD 100 es una herramienta privada, nunca publicada: pilotos elegidos a cambio del caso, fotos,
+feedback, testimonio o permiso de portfolio (regla de descuentos).
 
 ## Que sale de la V1
 

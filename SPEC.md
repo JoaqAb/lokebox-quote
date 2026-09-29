@@ -658,17 +658,11 @@ Una página en `/` con identidad Lokebox, en inglés y sin selector de idioma. C
 Un solo precio público para todos los mercados, presentado como piso:
 
 - Setup: USD 250. Mensual: USD 29.
-- El piso filtra al prospecto. Lo que exceda el alcance cotizado va por add-ons, cotizados caso por caso y sin precio publicado: un precio de add-on que todavía no medimos se convierte en techo.
+- USD 250 es el piso de una implementación completa de alcance simple. El precio crece por alcance (familias, sistemas de configuración, reglas, escenas, integraciones, lógica propia), cotizado antes de empezar y sin precio publicado; nunca por desbloquear funciones (D167).
 - Se empieza por Tucumán y el piso sube después de los primeros clientes.
-- No hay tiers, ni planes por mercado, ni oferta founding.
+- No hay tiers, ni planes por mercado, ni oferta founding pública.
 
-Lo que incluye el setup: cotizador con el logo, los colores y los textos del cliente; hasta tres tipos de cartel con todas sus variantes; preview 3D que cambia mientras el visitante elige; precio en pantalla como rango, con su propia nota; leads con la configuración completa, por WhatsApp o por formulario; hoja de cotización imprimible; y sus precios cargados y revisados con él.
-
-Lo que incluye el abono, los siete puntos, sin reducirlo a mantenimiento de precios: precios al día con hasta dos actualizaciones por mes; la página online, con su dirección y su certificado; pedidos guardados con la configuración completa; cambios chicos sin costo; mejoras del producto incluidas; soporte con respuesta dentro de un día hábil; y cancelación cuando quiera, conservando sus datos.
-
-Lo que se construye por más y se cotiza caso por caso: más tipos de cartel u otra familia de producto; reglas de precio más complejas; sus fotos de trabajos reales en el preview; otro idioma en la misma página.
-
-El eje de lo que se entrega son hasta tres tipos de cartel con todas sus variantes, no una cantidad de familias de producto: es lo que el producto hace hoy y lo que el visitante ve en la demo.
+Cada Quote contratado funciona de punta a punta: marca, producto con sus opciones y variantes, la visualización que pida el caso (no siempre 3D), precio como lo venda el cliente, leads con la configuración completa por WhatsApp o formulario, hoja cuando corresponde, responsive y publicado. El detalle vigente del setup, el abono y cómo crece el precio vive en `docs/comercial/PRICING.md`.
 
 Tucumán se trabaja con `/d/norte` más WhatsApp y sin precio propio, con un solo número público. El WhatsApp es el canal de la salida en frío, no un botón de la página.
 
