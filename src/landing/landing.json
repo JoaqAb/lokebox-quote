@@ -5,29 +5,29 @@
   "colors": { "bg": "#FAFAF8", "text": "#101215", "muted": "#6E737B", "accent": "#1E56E0" },
   "texts": {
     "headline": "A visual quote builder for your website",
-    "subheadline": "Your customer picks what they need, sees it in 3D and gets an estimate. You get the request with every detail already filled in.",
+    "subheadline": "Your customer picks what they need, sees the result while choosing and gets an estimate. You get the request with every choice already in it.",
     "demosTitle": "See how it works",
     "demosNote": "This is a demo to show you the product. It is not set up for your daily work.",
     "howTitle": "How it works",
     "how": [
-      "The visitor configures the product and watches it change in 3D.",
-      "The price updates live, as an estimate range that you confirm later.",
+      "The visitor configures the product and watches the result change.",
+      "The price updates live, as an estimate that you confirm later.",
       "You get the request by WhatsApp or email, with a printable quote."
     ],
     "forWhoTitle": "Who it is for",
     "forWho": [
-      "Sign makers and print shops that quote by hand, one message at a time.",
-      "Businesses that keep getting vague questions like how much for a sign.",
+      "Businesses that sell products with options and quote by hand, one message at a time.",
+      "Shops that keep getting vague questions like how much for this.",
       "Owners who want the price question answered while the visitor is still on the page."
     ],
     "offerTitle": "What you get",
     "offerPrice": "From {setup} setup, plus {monthly} per month.",
     "offerMonthlyTitle": "Included every month",
-    "offerMoreTitle": "The price grows with scope, not with features",
+    "offerMoreTitle": "Larger projects can include",
     "contactTitle": "Want one for your business?",
-    "contactBody": "Tell me what you sell and how you charge for it. I reply with a demo built around your own product.",
+    "contactBody": "Tell me what you sell and how you charge for it. I show you how Quote could work in your case.",
     "contactButton": "Send an email",
-    "footer": "Interactive quote builders for custom products. Built by Lokebox."
+    "footer": "Interactive quote builders for products with options. Built by Lokebox."
   },
   "demos": [
     { "id": "en", "label": "See the English demo", "href": "/d/northline" },
