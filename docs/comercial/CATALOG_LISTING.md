@@ -13,8 +13,8 @@ se pide el ok). Texto para reemplazar:
   their options."
 - El abono, igual a la landing: Your page online, with your address and its certificate. / Orders
   saved with the full configuration. / Simple content and price changes on what already exists. /
-  Maintenance and general product improvements. / Support from the team that built it. / Cancel
-  whenever you want and keep your data.
+  Maintenance and general product improvements. / Support from the team that built it. Sin "keep
+  your data": sale el 30/09 por decision de Joaquin, no hay exportacion que la respalde.
 - "Built on request, quoted case by case" pasa a "The price grows with scope, not with features":
   More product families. / More complex price rules. / Integrations with your systems. / Logic
   specific to your business.

@@ -13,7 +13,7 @@ describe('validateLandingConfig', () => {
     expect(config.demos.map((demo) => demo.href)).toEqual(['/d/northline', '/d/norte', '/d/halcyon', '/d/afterglow', '/d/alba'])
     expect([config.offer.price.setup, config.offer.price.monthly]).toEqual([250, 29])
     expect(config.offer.setup).toHaveLength(7)
-    expect(config.offer.monthly).toHaveLength(6)
+    expect(config.offer.monthly).toHaveLength(5)
     expect(config.offer.more).toHaveLength(4)
     expect(config.texts.how).toHaveLength(3)
     expect(config.brand.logo).toBe('/lokebox-logo-horizontal.svg')
