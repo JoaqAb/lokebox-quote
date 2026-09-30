@@ -1,8 +1,10 @@
 import { dataConfigFrom, restHeaders, restUrl, type DataConfig } from './config'
+import { SHOWCASE } from './showcase'
 
 // Unico punto de escritura contra la base. Solo inserta: nunca hace select,
 // nunca lanza, nunca devuelve el body y nunca toca la pantalla (SPEC 7.3).
 // Sin reintentos y sin cola: un lead perdido es aceptable, un usuario bloqueado no.
+// En modo vitrina (D168) no escribe nada.
 
 export type InsertOutcome = 'ok' | 'skipped' | 'failed'
 
@@ -15,6 +17,9 @@ export async function insertRow(
   table: string,
   row: Record<string, unknown>,
 ): Promise<InsertOutcome> {
+  if (SHOWCASE) {
+    return 'skipped'
+  }
   if (config === null) {
     if (!warnedAboutMissingConfig) {
       warnedAboutMissingConfig = true

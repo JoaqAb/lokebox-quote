@@ -1,12 +1,17 @@
 import { useEffect } from 'react'
 import { buildVisitRow, visitKey } from '../lead/visit'
 import { insertRow } from './insertRow'
+import { SHOWCASE } from './showcase'
 
 // Una visita por sesion y por slug. sessionStorage va adentro de un try: en modo
 // privado de algunos navegadores lanza, y en ese caso se inserta igual y se sigue.
+// En modo vitrina (D168) no toca sessionStorage ni registra la visita.
 
 export function useVisitOnce(slug: string): void {
   useEffect(() => {
+    if (SHOWCASE) {
+      return
+    }
     const key = visitKey(slug)
     let alreadyVisited = false
     try {
