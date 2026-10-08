@@ -1,0 +1,15 @@
+# quote.lokebox.com sirve las demos de Quote, una por cliente en /d/<slug>.
+#
+# Hasta la auditoria del 08/10/2026 este archivo no existia: al ser una SPA, /robots.txt
+# devolvia el index.html entero, asi que un buscador recibia una pagina HTML donde esperaba
+# reglas y no habia ninguna indicacion de que indexar.
+#
+# Las demos se indexan: son publicas, se muestran en lokebox.com/quote y cada una es una
+# vidriera del producto. La hoja de presupuesto de cada demo (/d/<slug>/quote) no: es el
+# resultado de una configuracion puntual, no una pagina de entrada.
+
+User-agent: *
+Allow: /
+Disallow: /d/*/quote
+
+Sitemap: https://quote.lokebox.com/sitemap.xml
