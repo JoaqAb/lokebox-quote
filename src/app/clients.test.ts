@@ -172,7 +172,8 @@ describe('stageToneOf sobre los clientes', () => {
   it('en los clientes del registro solo afterglow tiene tema oscuro', () => {
     const slugs = listClientSlugs()
     // Editada en TAREA_033: suma cajasur y foldline, los dos clientes de cajas, con tema claro.
-    expect(slugs).toEqual(['afterglow', 'alba', 'cajasur', 'foldline', 'halcyon', 'norte', 'northline'])
+    // Editada en TAREA_036: suma pliego, el de la web de ejemplo de Studio, tambien claro.
+    expect(slugs).toEqual(['afterglow', 'alba', 'cajasur', 'foldline', 'halcyon', 'norte', 'northline', 'pliego'])
     const dark = slugs.filter((slug) => stageToneOf(clientOrFail(slug).brand.colors.bg) === 'dark')
     expect(dark).toEqual(['afterglow'])
   })
@@ -180,10 +181,10 @@ describe('stageToneOf sobre los clientes', () => {
 
 describe('registro de verticales y resolveClient', () => {
   // Editada en TAREA_033 (D148): cada cliente resuelve a la vertical de su JSON, los cinco de
-  // carteles a carteles y los dos de cajas a cajas.
-  it('cada cliente resuelve a la vertical de su JSON: cinco de carteles y dos de cajas', () => {
+  // carteles a carteles y los de cajas a cajas. Editada en TAREA_036: pliego es el tercero de cajas.
+  it('cada cliente resuelve a la vertical de su JSON: cinco de carteles y tres de cajas', () => {
     expect(slugsOf(SIGNS_VERTICAL)).toEqual(['afterglow', 'alba', 'halcyon', 'norte', 'northline'])
-    expect(slugsOf(BOXES_VERTICAL)).toEqual(['cajasur', 'foldline'])
+    expect(slugsOf(BOXES_VERTICAL)).toEqual(['cajasur', 'foldline', 'pliego'])
     for (const vertical of [SIGNS_VERTICAL, BOXES_VERTICAL]) {
       for (const slug of slugsOf(vertical)) {
         const resolved = resolveClient(slug)
